@@ -17,6 +17,17 @@ func NewController(s *Service) *Controller {
 	return &Controller{service: s}
 }
 
+// GetProfile godoc
+// @Summary Get user profile
+// @Description Get the authenticated user's profile information
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Profile retrieved successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Security BearerAuth
+// @Router /users/profile [get]
 func (c *Controller) GetProfile(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
@@ -36,6 +47,18 @@ func (c *Controller) GetProfile(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// UpdateProfile godoc
+// @Summary Update user profile
+// @Description Update the authenticated user's profile information
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param request body dto.UpdateUserRequest true "Profile update details"
+// @Success 200 {object} map[string]interface{} "Profile updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Security BearerAuth
+// @Router /users/profile [put]
 func (c *Controller) UpdateProfile(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
@@ -62,6 +85,19 @@ func (c *Controller) UpdateProfile(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// GetUser godoc
+// @Summary Get user by ID (admin only)
+// @Description Get a specific user's information (admin access required)
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} map[string]interface{} "User retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID"
+// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Security BearerAuth
+// @Router /users/{id} [get]
 func (c *Controller) GetUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 	user, err := c.service.GetUserByID(ctx, id)
@@ -75,6 +111,18 @@ func (c *Controller) GetUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// DeleteUser godoc
+// @Summary Delete user (admin only)
+// @Description Delete a user account (admin access required)
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} map[string]interface{} "User deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID"
+// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Security BearerAuth
+// @Router /users/{id} [delete]
 func (c *Controller) DeleteUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 	err := c.service.DeleteUser(ctx, id)
@@ -88,6 +136,18 @@ func (c *Controller) DeleteUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// ListUsers godoc
+// @Summary List all users (admin only)
+// @Description Get a paginated list of all users (admin access required)
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Success 200 {object} map[string]interface{} "Users retrieved successfully"
+// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Security BearerAuth
+// @Router /users [get]
 func (c *Controller) ListUsers(ctx *gin.Context) {
 	page := int64(1)
 	limit := int64(10)
@@ -208,96 +268,54 @@ func (c *Controller) DeleteFinancialProfile(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
-func (c *Controller) CreateRole(ctx *gin.Context) {
-	var req dto.CreateRoleRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
-		ctx.JSON(http.StatusBadRequest, resp)
-		return
-	}
-
-	role, err := c.service.CreateRole(ctx, &req)
-	if err != nil {
-		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
-		ctx.JSON(http.StatusBadRequest, resp)
-		return
-	}
-
-	resp := utils.NewCreatedResponse("Role created successfully", role)
-	ctx.JSON(http.StatusCreated, resp)
-}
-
-func (c *Controller) GetRole(ctx *gin.Context) {
-	id := ctx.Param("id")
-	role, err := c.service.GetRole(ctx, id)
-	if err != nil {
-		resp := utils.NewErrorResponse(http.StatusNotFound, err.Error())
-		ctx.JSON(http.StatusNotFound, resp)
-		return
-	}
-
-	resp := utils.NewSuccessResponse("Role retrieved successfully", role)
-	ctx.JSON(http.StatusOK, resp)
-}
-
-func (c *Controller) ListRoles(ctx *gin.Context) {
-	roles, err := c.service.ListRoles(ctx)
-	if err != nil {
-		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
-		ctx.JSON(http.StatusBadRequest, resp)
-		return
-	}
-
-	resp := utils.NewSuccessResponse("Roles retrieved successfully", roles)
-	ctx.JSON(http.StatusOK, resp)
-}
-
-func (c *Controller) AssignRoleToUser(ctx *gin.Context) {
+// DisableUser godoc
+// @Summary Disable user (admin only)
+// @Description Disable a user account (admin access required)
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} map[string]interface{} "User disabled successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID"
+// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Security BearerAuth
+// @Router /users/{id}/disable [post]
+func (c *Controller) DisableUser(ctx *gin.Context) {
 	userID := ctx.Param("id")
 
-	var req dto.AssignRoleRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
-		ctx.JSON(http.StatusBadRequest, resp)
-		return
-	}
-
-	err := c.service.AssignRoleToUser(ctx, userID, req.RoleID)
+	err := c.service.DisableUser(ctx, userID)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	resp := utils.NewSuccessResponse("Role assigned successfully", nil)
+	resp := utils.NewSuccessResponse("User disabled successfully", nil)
 	ctx.JSON(http.StatusOK, resp)
 }
 
-func (c *Controller) GetUserRoles(ctx *gin.Context) {
+// EnableUser godoc
+// @Summary Enable user (admin only)
+// @Description Enable a user account (admin access required)
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} map[string]interface{} "User enabled successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID"
+// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Security BearerAuth
+// @Router /users/{id}/enable [post]
+func (c *Controller) EnableUser(ctx *gin.Context) {
 	userID := ctx.Param("id")
 
-	roles, err := c.service.GetUserRoles(ctx, userID)
+	err := c.service.EnableUser(ctx, userID)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	resp := utils.NewSuccessResponse("User roles retrieved successfully", roles)
-	ctx.JSON(http.StatusOK, resp)
-}
-
-func (c *Controller) RemoveRoleFromUser(ctx *gin.Context) {
-	userID := ctx.Param("id")
-	roleID := ctx.Param("role_id")
-
-	err := c.service.RemoveRoleFromUser(ctx, userID, roleID)
-	if err != nil {
-		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
-		ctx.JSON(http.StatusBadRequest, resp)
-		return
-	}
-
-	resp := utils.NewSuccessResponse("Role removed successfully", nil)
+	resp := utils.NewSuccessResponse("User enabled successfully", nil)
 	ctx.JSON(http.StatusOK, resp)
 }

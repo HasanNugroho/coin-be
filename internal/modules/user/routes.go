@@ -18,13 +18,7 @@ func RegisterRoutes(r *gin.RouterGroup, controller *Controller) {
 		admin.GET("", controller.ListUsers)
 		admin.GET("/:id", controller.GetUser)
 		admin.DELETE("/:id", controller.DeleteUser)
-
-		admin.POST("/roles", controller.CreateRole)
-		admin.GET("/roles", controller.ListRoles)
-		admin.GET("/roles/:id", controller.GetRole)
-
-		admin.POST("/:id/roles", controller.AssignRoleToUser)
-		admin.GET("/:id/roles", controller.GetUserRoles)
-		admin.DELETE("/:id/roles/:role_id", controller.RemoveRoleFromUser)
+		admin.POST("/:id/disable", controller.DisableUser)
+		admin.POST("/:id/enable", controller.EnableUser)
 	}
 }

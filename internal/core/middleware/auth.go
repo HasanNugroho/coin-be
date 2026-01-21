@@ -4,12 +4,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/pkg/errors"
+	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func AuthMiddleware(jwtManager *utils.JWTManager) gin.HandlerFunc {
+func AuthMiddleware(jwtManager *utils.JWTManager, db *mongo.Database) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
@@ -33,45 +35,44 @@ func AuthMiddleware(jwtManager *utils.JWTManager) gin.HandlerFunc {
 			return
 		}
 
+		// Get user role from database
+		userID, err := primitive.ObjectIDFromHex(claims.UserID)
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse("invalid user id"))
+			ctx.Abort()
+			return
+		}
+
+		usersCollection := db.Collection("users")
+		var user struct {
+			Role string `bson:"role"`
+		}
+		err = usersCollection.FindOne(ctx, primitive.M{"_id": userID}).Decode(&user)
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse("user not found"))
+			ctx.Abort()
+			return
+		}
+
 		ctx.Set("user_id", claims.UserID)
 		ctx.Set("email", claims.Email)
+		ctx.Set("role", user.Role)
 		ctx.Next()
 	}
 }
 
-func RoleMiddleware(requiredRoles ...string) gin.HandlerFunc {
+func AdminMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		_, exists := ctx.Get("user_id")
+		role, exists := ctx.Get("role")
 		if !exists {
-			ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse("unauthorized"))
+			ctx.JSON(http.StatusForbidden, errors.NewErrorResponse("unable to verify role"))
 			ctx.Abort()
 			return
 		}
 
-		roles, exists := ctx.Get("roles")
-		if !exists {
-			ctx.JSON(http.StatusForbidden, errors.NewErrorResponse("unable to verify roles"))
-			ctx.Abort()
-			return
-		}
-
-		userRoles := roles.([]string)
-		hasRequiredRole := false
-
-		for _, userRole := range userRoles {
-			for _, required := range requiredRoles {
-				if userRole == required {
-					hasRequiredRole = true
-					break
-				}
-			}
-			if hasRequiredRole {
-				break
-			}
-		}
-
-		if !hasRequiredRole {
-			ctx.JSON(http.StatusForbidden, errors.NewErrorResponse("insufficient permissions"))
+		userRole := role.(string)
+		if userRole != "admin" {
+			ctx.JSON(http.StatusForbidden, errors.NewErrorResponse("admin access required"))
 			ctx.Abort()
 			return
 		}

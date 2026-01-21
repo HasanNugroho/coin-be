@@ -1,11 +1,13 @@
 package auth
 
 import (
-	"github.com/redis/go-redis/v9"
-	"github.com/sarulabs/di/v2"
 	"github.com/HasanNugroho/coin-be/internal/core/config"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
+	"github.com/HasanNugroho/coin-be/internal/modules/allocation"
+	"github.com/HasanNugroho/coin-be/internal/modules/category"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
+	"github.com/redis/go-redis/v9"
+	"github.com/sarulabs/di/v2"
 )
 
 func Register(builder *di.Builder) {
@@ -13,11 +15,13 @@ func Register(builder *di.Builder) {
 		Name: "authService",
 		Build: func(ctn di.Container) (interface{}, error) {
 			userRepo := ctn.Get("userRepository").(*user.Repository)
+			categoryRepo := ctn.Get("categoryRepository").(*category.Repository)
+			allocationRepo := ctn.Get("allocationRepository").(*allocation.Repository)
 			redisClient := ctn.Get("redis").(*redis.Client)
 			cfg := ctn.Get("config").(*config.Config)
 			jwtManager := utils.NewJWTManager(cfg.JWTSecret)
 			passwordMgr := utils.NewPasswordManager()
-			return NewService(userRepo, redisClient, jwtManager, passwordMgr), nil
+			return NewService(userRepo, categoryRepo, allocationRepo, redisClient, jwtManager, passwordMgr), nil
 		},
 	})
 

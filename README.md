@@ -1,13 +1,17 @@
 # Coin Backend API
 
-A comprehensive user management system with authentication, authorization, financial profiles, and role-based access control built with Go and Gin.
+A comprehensive financial management system with user authentication, smart allocation engine, transaction tracking, saving targets, and detailed financial reports built with Go and Gin.
 
 ## Features
 
 - **User Management**: Registration, login, profile management
 - **Authentication**: JWT-based authentication with refresh tokens
 - **Authorization**: Role-based access control (RBAC)
-- **Financial Profiles**: User salary and payment information management
+- **Category Management**: Income and expense categories with custom support
+- **Transaction Management**: Income and expense tracking with advanced filtering
+- **Smart Allocation Engine**: Automatic income distribution based on priorities and percentages
+- **Saving Targets**: Goal tracking linked to allocations with progress monitoring
+- **Financial Reports**: Dashboard, income, expense, allocation, and target progress reports
 - **Hot Reload**: Development with Air for instant feedback
 - **API Documentation**: Swagger/OpenAPI documentation
 - **Middleware**: CORS, logging, panic recovery
@@ -191,7 +195,7 @@ coin-be/
 
 ### Authentication (Public)
 
-- `POST /api/auth/register` - Register new user
+- `POST /api/auth/register` - Register new user (auto-creates default categories & allocations)
 - `POST /api/auth/login` - User login
 - `POST /api/auth/refresh` - Refresh access token
 - `POST /api/auth/logout` - User logout
@@ -204,6 +208,50 @@ coin-be/
 - `POST /api/users/financial-profile` - Create financial profile
 - `PUT /api/users/financial-profile` - Update financial profile
 - `DELETE /api/users/financial-profile` - Delete financial profile
+
+### Categories (Protected)
+
+- `POST /api/categories` - Create category
+- `GET /api/categories` - Get all categories (filter by type)
+- `GET /api/categories/:id` - Get category by ID
+- `PUT /api/categories/:id` - Update category
+- `DELETE /api/categories/:id` - Delete category
+
+### Transactions (Protected)
+
+- `POST /api/transactions/income` - Create income (auto-distributes to allocations)
+- `POST /api/transactions/expense` - Create expense
+- `GET /api/transactions` - Get all transactions (paginated)
+- `GET /api/transactions/filter` - Filter transactions
+- `GET /api/transactions/:id` - Get transaction by ID
+- `PUT /api/transactions/:id` - Update transaction
+- `DELETE /api/transactions/:id` - Delete transaction
+
+### Allocations (Protected)
+
+- `POST /api/allocations` - Create allocation
+- `GET /api/allocations` - Get all allocations
+- `GET /api/allocations/:id` - Get allocation by ID
+- `PUT /api/allocations/:id` - Update allocation
+- `DELETE /api/allocations/:id` - Delete allocation
+- `GET /api/allocations/logs` - Get allocation distribution logs
+- `GET /api/allocations/:id/logs` - Get logs for specific allocation
+
+### Saving Targets (Protected)
+
+- `POST /api/targets` - Create saving target
+- `GET /api/targets` - Get all targets
+- `GET /api/targets/:id` - Get target by ID
+- `PUT /api/targets/:id` - Update target
+- `DELETE /api/targets/:id` - Delete target
+
+### Reports (Protected)
+
+- `GET /api/reports/dashboard` - Get dashboard summary
+- `GET /api/reports/income` - Get income report
+- `GET /api/reports/expense` - Get expense report
+- `GET /api/reports/allocation` - Get allocation report
+- `GET /api/reports/target-progress` - Get target progress
 
 ### Admin Operations (Protected + Admin Role)
 
@@ -302,6 +350,25 @@ make lint
 ## License
 
 MIT
+
+## Financial Management System
+
+For detailed documentation about the financial management features, see [FINANCIAL_SYSTEM.md](FINANCIAL_SYSTEM.md).
+
+### Key Features:
+
+1. **Smart Allocation Engine**: Automatically distributes income based on priorities and percentages
+2. **Category Management**: Default and custom categories for income and expenses
+3. **Transaction Tracking**: Complete income and expense history with filtering
+4. **Saving Targets**: Goal tracking with automatic progress updates
+5. **Comprehensive Reports**: Dashboard, income, expense, allocation, and target reports
+
+### Quick Start:
+
+1. Register a user (default categories and allocations are auto-created)
+2. Create an income transaction (automatically distributed to allocations)
+3. Create expense transactions (tracked against allocations)
+4. View reports to see your financial overview
 
 ## Support
 

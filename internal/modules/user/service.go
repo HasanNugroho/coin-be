@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/HasanNugroho/coin-be/internal/modules/user/dto"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Service struct {
@@ -131,93 +131,32 @@ func (s *Service) DeleteFinancialProfile(ctx context.Context, userID string) err
 	return s.repo.DeleteFinancialProfile(ctx, objID)
 }
 
-func (s *Service) CreateRole(ctx context.Context, req *dto.CreateRoleRequest) (*Role, error) {
-	existingRole, _ := s.repo.GetRoleByName(ctx, req.Name)
-	if existingRole != nil {
-		return nil, errors.New("role already exists")
-	}
-
-	role := &Role{
-		Name:        req.Name,
-		Description: req.Description,
-		IsActive:    true,
-	}
-
-	err := s.repo.CreateRole(ctx, role)
-	if err != nil {
-		return nil, err
-	}
-
-	return role, nil
-}
-
-func (s *Service) GetRole(ctx context.Context, roleID string) (*Role, error) {
-	objID, err := primitive.ObjectIDFromHex(roleID)
-	if err != nil {
-		return nil, errors.New("invalid role id")
-	}
-	return s.repo.GetRoleByID(ctx, objID)
-}
-
-func (s *Service) ListRoles(ctx context.Context) ([]*Role, error) {
-	return s.repo.ListRoles(ctx)
-}
-
-func (s *Service) AssignRoleToUser(ctx context.Context, userID, roleID string) error {
-	userObjID, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return errors.New("invalid user id")
-	}
-
-	roleObjID, err := primitive.ObjectIDFromHex(roleID)
-	if err != nil {
-		return errors.New("invalid role id")
-	}
-
-	user, err := s.repo.GetUserByID(ctx, userObjID)
-	if err != nil {
-		return err
-	}
-
-	role, err := s.repo.GetRoleByID(ctx, roleObjID)
-	if err != nil {
-		return err
-	}
-
-	if !user.IsActive {
-		return errors.New("user is inactive")
-	}
-
-	if !role.IsActive {
-		return errors.New("role is inactive")
-	}
-
-	userRole := &UserRole{
-		UserID: user.ID,
-		RoleID: role.ID,
-	}
-
-	return s.repo.AssignRoleToUser(ctx, userRole)
-}
-
-func (s *Service) GetUserRoles(ctx context.Context, userID string) ([]*UserRole, error) {
+func (s *Service) DisableUser(ctx context.Context, userID string) error {
 	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, errors.New("invalid user id")
+		return errors.New("invalid user id")
 	}
-	return s.repo.GetUserRoles(ctx, objID)
+
+	user, err := s.repo.GetUserByID(ctx, objID)
+	if err != nil {
+		return err
+	}
+
+	user.IsActive = false
+	return s.repo.UpdateUser(ctx, objID, user)
 }
 
-func (s *Service) RemoveRoleFromUser(ctx context.Context, userID, roleID string) error {
-	userObjID, err := primitive.ObjectIDFromHex(userID)
+func (s *Service) EnableUser(ctx context.Context, userID string) error {
+	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return errors.New("invalid user id")
 	}
 
-	roleObjID, err := primitive.ObjectIDFromHex(roleID)
+	user, err := s.repo.GetUserByID(ctx, objID)
 	if err != nil {
-		return errors.New("invalid role id")
+		return err
 	}
 
-	return s.repo.RemoveRoleFromUser(ctx, userObjID, roleObjID)
+	user.IsActive = true
+	return s.repo.UpdateUser(ctx, objID, user)
 }

@@ -12,18 +12,18 @@ import (
 )
 
 type Repository struct {
-	users              *mongo.Collection
-	financialProfiles  *mongo.Collection
-	roles              *mongo.Collection
-	userRoles          *mongo.Collection
+	users             *mongo.Collection
+	financialProfiles *mongo.Collection
+	roles             *mongo.Collection
+	userRoles         *mongo.Collection
 }
 
 func NewRepository(db *mongo.Database) *Repository {
 	return &Repository{
-		users:              db.Collection("users"),
-		financialProfiles:  db.Collection("financial_profiles"),
-		roles:              db.Collection("roles"),
-		userRoles:          db.Collection("user_roles"),
+		users:             db.Collection("users"),
+		financialProfiles: db.Collection("financial_profiles"),
+		roles:             db.Collection("roles"),
+		userRoles:         db.Collection("user_roles"),
 	}
 }
 
@@ -140,79 +140,7 @@ func (r *Repository) DeleteFinancialProfile(ctx context.Context, userID primitiv
 	return nil
 }
 
-func (r *Repository) CreateRole(ctx context.Context, role *Role) error {
-	role.ID = primitive.NewObjectID()
-	role.CreatedAt = time.Now()
-	_, err := r.roles.InsertOne(ctx, role)
-	return err
-}
-
-func (r *Repository) GetRoleByID(ctx context.Context, id primitive.ObjectID) (*Role, error) {
-	var role Role
-	err := r.roles.FindOne(ctx, bson.M{"_id": id}).Decode(&role)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New("role not found")
-		}
-		return nil, err
-	}
-	return &role, nil
-}
-
-func (r *Repository) GetRoleByName(ctx context.Context, name string) (*Role, error) {
-	var role Role
-	err := r.roles.FindOne(ctx, bson.M{"name": name}).Decode(&role)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New("role not found")
-		}
-		return nil, err
-	}
-	return &role, nil
-}
-
-func (r *Repository) ListRoles(ctx context.Context) ([]*Role, error) {
-	cursor, err := r.roles.Find(ctx, bson.M{})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var roles []*Role
-	if err = cursor.All(ctx, &roles); err != nil {
-		return nil, err
-	}
-	return roles, nil
-}
-
-func (r *Repository) AssignRoleToUser(ctx context.Context, userRole *UserRole) error {
-	userRole.ID = primitive.NewObjectID()
-	userRole.AssignedAt = time.Now()
-	_, err := r.userRoles.InsertOne(ctx, userRole)
-	return err
-}
-
-func (r *Repository) GetUserRoles(ctx context.Context, userID primitive.ObjectID) ([]*UserRole, error) {
-	cursor, err := r.userRoles.Find(ctx, bson.M{"user_id": userID})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var userRoles []*UserRole
-	if err = cursor.All(ctx, &userRoles); err != nil {
-		return nil, err
-	}
-	return userRoles, nil
-}
-
-func (r *Repository) RemoveRoleFromUser(ctx context.Context, userID, roleID primitive.ObjectID) error {
-	result, err := r.userRoles.DeleteOne(ctx, bson.M{"user_id": userID, "role_id": roleID})
-	if err != nil {
-		return err
-	}
-	if result.DeletedCount == 0 {
-		return errors.New("user role not found")
-	}
-	return nil
+func (r *Repository) CountUsersByRole(ctx context.Context, role string) (int64, error) {
+	count, err := r.users.CountDocuments(ctx, bson.M{"role": role})
+	return count, err
 }
