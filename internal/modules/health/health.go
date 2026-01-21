@@ -1,6 +1,9 @@
 package health
 
 import (
+	"net/http"
+
+	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/sarulabs/di/v2"
 )
@@ -12,7 +15,8 @@ func NewController() *Controller {
 }
 
 func (c *Controller) Check(ctx *gin.Context) {
-	ctx.JSON(200, gin.H{"status": "ok"})
+	resp := utils.NewSuccessResponse("Service is healthy", gin.H{"status": "ok"})
+	ctx.JSON(http.StatusOK, resp)
 }
 
 func Register(builder *di.Builder) {

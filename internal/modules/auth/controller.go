@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/auth/dto"
-	"github.com/HasanNugroho/coin-be/pkg/errors"
 )
 
 type Controller struct {
@@ -19,69 +19,82 @@ func NewController(service *Service) *Controller {
 func (c *Controller) Register(ctx *gin.Context) {
 	var req dto.RegisterRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errors.NewErrorResponse(err.Error()))
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
 	user, err := c.service.Register(ctx, &req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, errors.NewErrorResponse(err.Error()))
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, dto.RegisterResponse{User: user})
+	resp := utils.NewCreatedResponse("User registered successfully", dto.RegisterResponse{User: user})
+	ctx.JSON(http.StatusCreated, resp)
 }
 
 func (c *Controller) Login(ctx *gin.Context) {
 	var req dto.LoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errors.NewErrorResponse(err.Error()))
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
 	authResp, err := c.service.Login(ctx, &req)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse(err.Error()))
+		resp := utils.NewErrorResponse(http.StatusUnauthorized, err.Error())
+		ctx.JSON(http.StatusUnauthorized, resp)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, authResp)
+	resp := utils.NewSuccessResponse("Login successful", authResp)
+	ctx.JSON(http.StatusOK, resp)
 }
 
 func (c *Controller) RefreshToken(ctx *gin.Context) {
 	var req dto.RefreshTokenRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errors.NewErrorResponse(err.Error()))
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
 	userID, exists := ctx.Get("user_id")
 	if !exists {
-		ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse("unauthorized"))
+		resp := utils.NewErrorResponse(http.StatusUnauthorized, "unauthorized")
+		ctx.JSON(http.StatusUnauthorized, resp)
 		return
 	}
 
 	accessToken, err := c.service.RefreshAccessToken(ctx, userID.(string), req.RefreshToken)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse(err.Error()))
+		resp := utils.NewErrorResponse(http.StatusUnauthorized, err.Error())
+		ctx.JSON(http.StatusUnauthorized, resp)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, dto.RefreshTokenResponse{AccessToken: accessToken})
+	resp := utils.NewSuccessResponse("Token refreshed successfully", dto.RefreshTokenResponse{AccessToken: accessToken})
+	ctx.JSON(http.StatusOK, resp)
 }
 
 func (c *Controller) Logout(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
-		ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse("unauthorized"))
+		resp := utils.NewErrorResponse(http.StatusUnauthorized, "unauthorized")
+		ctx.JSON(http.StatusUnauthorized, resp)
 		return
 	}
 
 	err := c.service.Logout(ctx, userID.(string))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, errors.NewErrorResponse(err.Error()))
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "logged out successfully"})
+	resp := utils.NewSuccessResponse("Logged out successfully", nil)
+	ctx.JSON(http.StatusOK, resp)
 }
