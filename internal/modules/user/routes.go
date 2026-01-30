@@ -7,10 +7,6 @@ func RegisterRoutes(r *gin.RouterGroup, controller *Controller) {
 	{
 		protected.GET("/profile", controller.GetProfile)
 		protected.PUT("/profile", controller.UpdateProfile)
-		protected.GET("/financial-profile", controller.GetFinancialProfile)
-		protected.POST("/financial-profile", controller.CreateFinancialProfile)
-		protected.PUT("/financial-profile", controller.UpdateFinancialProfile)
-		protected.DELETE("/financial-profile", controller.DeleteFinancialProfile)
 	}
 
 	admin := r.Group("")

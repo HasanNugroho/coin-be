@@ -53,7 +53,6 @@ func (s *Service) Register(ctx context.Context, req *authDTO.RegisterRequest) (*
 
 	newUser := &user.User{
 		Email:        req.Email,
-		Phone:        req.Phone,
 		PasswordHash: passwordHash,
 		Name:         req.Name,
 		Role:         userRole,

@@ -37,9 +37,6 @@ func (s *Service) UpdateUser(ctx context.Context, id string, req *dto.UpdateUser
 		return nil, err
 	}
 
-	if req.Phone != "" {
-		user.Phone = req.Phone
-	}
 	if req.Name != "" {
 		user.Name = req.Name
 	}
@@ -64,7 +61,7 @@ func (s *Service) ListUsers(ctx context.Context, limit, skip int64) ([]*User, er
 	return s.repo.ListUsers(ctx, limit, skip)
 }
 
-func (s *Service) CreateFinancialProfile(ctx context.Context, userID string, req *dto.CreateFinancialProfileRequest) (*FinancialProfile, error) {
+func (s *Service) CreateUserProfile(ctx context.Context, userID string, req *dto.CreateUserProfileRequest) (*UserProfile, error) {
 	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return nil, errors.New("invalid user id")
@@ -75,7 +72,7 @@ func (s *Service) CreateFinancialProfile(ctx context.Context, userID string, req
 		return nil, err
 	}
 
-	profile := &FinancialProfile{
+	profile := &UserProfile{
 		UserID:      user.ID,
 		BaseSalary:  req.BaseSalary,
 		SalaryCycle: req.SalaryCycle,
@@ -84,51 +81,12 @@ func (s *Service) CreateFinancialProfile(ctx context.Context, userID string, req
 		IsActive:    true,
 	}
 
-	err = s.repo.CreateFinancialProfile(ctx, profile)
+	err = s.repo.CreateUserProfile(ctx, profile)
 	if err != nil {
 		return nil, err
 	}
 
 	return profile, nil
-}
-
-func (s *Service) GetFinancialProfile(ctx context.Context, userID string) (*FinancialProfile, error) {
-	objID, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return nil, errors.New("invalid user id")
-	}
-	return s.repo.GetFinancialProfileByUserID(ctx, objID)
-}
-
-func (s *Service) UpdateFinancialProfile(ctx context.Context, userID string, req *dto.CreateFinancialProfileRequest) (*FinancialProfile, error) {
-	objID, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return nil, errors.New("invalid user id")
-	}
-
-	profile := &FinancialProfile{
-		UserID:      objID,
-		BaseSalary:  req.BaseSalary,
-		SalaryCycle: req.SalaryCycle,
-		SalaryDay:   req.SalaryDay,
-		PayCurrency: req.PayCurrency,
-		IsActive:    true,
-	}
-
-	err = s.repo.UpdateFinancialProfile(ctx, objID, profile)
-	if err != nil {
-		return nil, err
-	}
-
-	return profile, nil
-}
-
-func (s *Service) DeleteFinancialProfile(ctx context.Context, userID string) error {
-	objID, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return errors.New("invalid user id")
-	}
-	return s.repo.DeleteFinancialProfile(ctx, objID)
 }
 
 func (s *Service) DisableUser(ctx context.Context, userID string) error {

@@ -97,7 +97,7 @@ func (r *Repository) ListUsers(ctx context.Context, limit int64, skip int64) ([]
 	return users, nil
 }
 
-func (r *Repository) CreateFinancialProfile(ctx context.Context, profile *FinancialProfile) error {
+func (r *Repository) CreateUserProfile(ctx context.Context, profile *UserProfile) error {
 	profile.ID = primitive.NewObjectID()
 	profile.CreatedAt = time.Now()
 	profile.UpdatedAt = time.Now()
@@ -105,8 +105,8 @@ func (r *Repository) CreateFinancialProfile(ctx context.Context, profile *Financ
 	return err
 }
 
-func (r *Repository) GetFinancialProfileByUserID(ctx context.Context, userID primitive.ObjectID) (*FinancialProfile, error) {
-	var profile FinancialProfile
+func (r *Repository) GetUserProfileByUserID(ctx context.Context, userID primitive.ObjectID) (*UserProfile, error) {
+	var profile UserProfile
 	err := r.financialProfiles.FindOne(ctx, bson.M{"user_id": userID}).Decode(&profile)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -117,7 +117,7 @@ func (r *Repository) GetFinancialProfileByUserID(ctx context.Context, userID pri
 	return &profile, nil
 }
 
-func (r *Repository) UpdateFinancialProfile(ctx context.Context, userID primitive.ObjectID, profile *FinancialProfile) error {
+func (r *Repository) UpdateUserProfile(ctx context.Context, userID primitive.ObjectID, profile *UserProfile) error {
 	profile.UpdatedAt = time.Now()
 	result, err := r.financialProfiles.UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{"$set": profile})
 	if err != nil {
@@ -129,7 +129,7 @@ func (r *Repository) UpdateFinancialProfile(ctx context.Context, userID primitiv
 	return nil
 }
 
-func (r *Repository) DeleteFinancialProfile(ctx context.Context, userID primitive.ObjectID) error {
+func (r *Repository) DeleteUserProfile(ctx context.Context, userID primitive.ObjectID) error {
 	result, err := r.financialProfiles.DeleteOne(ctx, bson.M{"user_id": userID})
 	if err != nil {
 		return err

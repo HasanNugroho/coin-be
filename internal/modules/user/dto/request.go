@@ -11,7 +11,7 @@ type UpdateUserRequest struct {
 	Name  string `json:"name"`
 }
 
-type CreateFinancialProfileRequest struct {
+type CreateUserProfileRequest struct {
 	BaseSalary  float64 `json:"base_salary" binding:"required"`
 	SalaryCycle string  `json:"salary_cycle" binding:"required,oneof=monthly weekly biweekly"`
 	SalaryDay   int     `json:"salary_day" binding:"required,min=1,max=28"`

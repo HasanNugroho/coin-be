@@ -101,40 +101,6 @@ func main() {
 	userRoutes.Use(middleware.AdminMiddleware())
 	user.RegisterRoutes(userRoutes, userController)
 
-	// Health routes (public)
-	healthController := appContainer.Get("healthController").(*health.Controller)
-	health.RegisterRoutes(api.Group("/health"), healthController)
-
-	// Category routes (protected)
-	categoryController := appContainer.Get("categoryController").(*category.Controller)
-	categoryRoutes := api.Group("/categories")
-	categoryRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
-	category.RegisterRoutes(categoryRoutes, categoryController)
-
-	// Transaction routes (protected)
-	transactionController := appContainer.Get("transactionController").(*transaction.Controller)
-	transactionRoutes := api.Group("/transactions")
-	transactionRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
-	transaction.RegisterRoutes(transactionRoutes, transactionController)
-
-	// Allocation routes (protected)
-	allocationController := appContainer.Get("allocationController").(*allocation.Controller)
-	allocationRoutes := api.Group("/allocations")
-	allocationRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
-	allocation.RegisterRoutes(allocationRoutes, allocationController)
-
-	// Target routes (protected)
-	targetController := appContainer.Get("targetController").(*target.Controller)
-	targetRoutes := api.Group("/targets")
-	targetRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
-	target.RegisterRoutes(targetRoutes, targetController)
-
-	// Report routes (protected)
-	reportController := appContainer.Get("reportController").(*report.Controller)
-	reportRoutes := api.Group("/reports")
-	reportRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
-	report.RegisterRoutes(reportRoutes, reportController)
-
 	log.Println("Server running on http://localhost:8080")
 	log.Println("Swagger docs available at http://localhost:8080/swagger/index.html")
 	r.Run(":8080")
