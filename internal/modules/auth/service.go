@@ -5,31 +5,25 @@ import (
 	"errors"
 
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
-	"github.com/HasanNugroho/coin-be/internal/modules/allocation"
 	authDTO "github.com/HasanNugroho/coin-be/internal/modules/auth/dto"
-	"github.com/HasanNugroho/coin-be/internal/modules/category"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Service struct {
-	userRepo       *user.Repository
-	categoryRepo   *category.Repository
-	allocationRepo *allocation.Repository
-	redis          *redis.Client
-	jwtManager     *utils.JWTManager
-	passwordMgr    *utils.PasswordManager
+	userRepo    *user.Repository
+	redis       *redis.Client
+	jwtManager  *utils.JWTManager
+	passwordMgr *utils.PasswordManager
 }
 
-func NewService(userRepo *user.Repository, categoryRepo *category.Repository, allocationRepo *allocation.Repository, redis *redis.Client, jwtManager *utils.JWTManager, passwordMgr *utils.PasswordManager) *Service {
+func NewService(userRepo *user.Repository, redis *redis.Client, jwtManager *utils.JWTManager, passwordMgr *utils.PasswordManager) *Service {
 	return &Service{
-		userRepo:       userRepo,
-		categoryRepo:   categoryRepo,
-		allocationRepo: allocationRepo,
-		redis:          redis,
-		jwtManager:     jwtManager,
-		passwordMgr:    passwordMgr,
+		userRepo:    userRepo,
+		redis:       redis,
+		jwtManager:  jwtManager,
+		passwordMgr: passwordMgr,
 	}
 }
 
@@ -39,7 +33,11 @@ func (s *Service) Register(ctx context.Context, req *authDTO.RegisterRequest) (*
 		return nil, errors.New("email already registered")
 	}
 
-	passwordHash, err := s.passwordMgr.HashPassword(req.Password)
+	salt, err := s.passwordMgr.GenerateSalt()
+	if err != nil {
+		return nil, err
+	}
+	passwordHash, err := s.passwordMgr.HashPassword(req.Password, salt)
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +52,7 @@ func (s *Service) Register(ctx context.Context, req *authDTO.RegisterRequest) (*
 	newUser := &user.User{
 		Email:        req.Email,
 		PasswordHash: passwordHash,
+		Salt:         salt,
 		Name:         req.Name,
 		Role:         userRole,
 		IsActive:     true,
@@ -64,11 +63,20 @@ func (s *Service) Register(ctx context.Context, req *authDTO.RegisterRequest) (*
 		return nil, err
 	}
 
-	if err := s.categoryRepo.CreateDefaultCategories(ctx, newUser.ID); err != nil {
-		return nil, err
+	userProfile := &user.UserProfile{
+		UserID:      newUser.ID,
+		Phone:       req.Phone,
+		TelegramId:  "",
+		BaseSalary:  0,
+		SalaryCycle: "monthly",
+		SalaryDay:   1,
+		PayCurrency: user.CurrencyIDR,
+		Lang:        user.LanguageID,
+		IsActive:    true,
 	}
 
-	if err := s.allocationRepo.CreateDefaultAllocations(ctx, newUser.ID); err != nil {
+	err = s.userRepo.CreateUserProfile(ctx, userProfile)
+	if err != nil {
 		return nil, err
 	}
 
@@ -85,7 +93,7 @@ func (s *Service) Login(ctx context.Context, req *authDTO.LoginRequest) (*authDT
 		return nil, errors.New("user account is inactive")
 	}
 
-	if !s.passwordMgr.VerifyPassword(userRecord.PasswordHash, req.Password) {
+	if !s.passwordMgr.VerifyPassword(userRecord.PasswordHash, req.Password, userRecord.Salt) {
 		return nil, errors.New("invalid email or password")
 	}
 

@@ -1,6 +1,9 @@
 package user
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/HasanNugroho/coin-be/internal/core/middleware"
+	"github.com/gin-gonic/gin"
+)
 
 func RegisterRoutes(r *gin.RouterGroup, controller *Controller) {
 	protected := r.Group("")
@@ -10,6 +13,7 @@ func RegisterRoutes(r *gin.RouterGroup, controller *Controller) {
 	}
 
 	admin := r.Group("")
+	admin.Use(middleware.AdminMiddleware())
 	{
 		admin.GET("", controller.ListUsers)
 		admin.GET("/:id", controller.GetUser)

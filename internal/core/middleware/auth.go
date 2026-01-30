@@ -15,14 +15,16 @@ func AuthMiddleware(jwtManager *utils.JWTManager, db *mongo.Database) gin.Handle
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
-			ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse("missing authorization header"))
+			resp := utils.NewErrorResponse(http.StatusUnauthorized, "missing authorization header")
+			ctx.JSON(http.StatusUnauthorized, resp)
 			ctx.Abort()
 			return
 		}
 
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse("invalid authorization header"))
+			resp := utils.NewErrorResponse(http.StatusUnauthorized, "invalid authorization header format, use Bearer <token>")
+			ctx.JSON(http.StatusUnauthorized, resp)
 			ctx.Abort()
 			return
 		}
@@ -30,7 +32,8 @@ func AuthMiddleware(jwtManager *utils.JWTManager, db *mongo.Database) gin.Handle
 		token := parts[1]
 		claims, err := jwtManager.VerifyAccessToken(token)
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse("invalid token"))
+			resp := utils.NewErrorResponse(http.StatusUnauthorized, "invalid token")
+			ctx.JSON(http.StatusUnauthorized, resp)
 			ctx.Abort()
 			return
 		}
@@ -38,7 +41,8 @@ func AuthMiddleware(jwtManager *utils.JWTManager, db *mongo.Database) gin.Handle
 		// Get user role from database
 		userID, err := primitive.ObjectIDFromHex(claims.UserID)
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse("invalid user id"))
+			resp := utils.NewErrorResponse(http.StatusUnauthorized, "invalid user id")
+			ctx.JSON(http.StatusUnauthorized, resp)
 			ctx.Abort()
 			return
 		}
@@ -49,7 +53,8 @@ func AuthMiddleware(jwtManager *utils.JWTManager, db *mongo.Database) gin.Handle
 		}
 		err = usersCollection.FindOne(ctx, primitive.M{"_id": userID}).Decode(&user)
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, errors.NewErrorResponse("user not found"))
+			resp := utils.NewErrorResponse(http.StatusUnauthorized, "user not found")
+			ctx.JSON(http.StatusUnauthorized, resp)
 			ctx.Abort()
 			return
 		}

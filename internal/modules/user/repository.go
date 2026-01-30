@@ -12,18 +12,18 @@ import (
 )
 
 type Repository struct {
-	users             *mongo.Collection
-	financialProfiles *mongo.Collection
-	roles             *mongo.Collection
-	userRoles         *mongo.Collection
+	users        *mongo.Collection
+	userProfiles *mongo.Collection
+	roles        *mongo.Collection
+	userRoles    *mongo.Collection
 }
 
 func NewRepository(db *mongo.Database) *Repository {
 	return &Repository{
-		users:             db.Collection("users"),
-		financialProfiles: db.Collection("financial_profiles"),
-		roles:             db.Collection("roles"),
-		userRoles:         db.Collection("user_roles"),
+		users:        db.Collection("users"),
+		userProfiles: db.Collection("user_profiles"),
+		roles:        db.Collection("roles"),
+		userRoles:    db.Collection("user_roles"),
 	}
 }
 
@@ -101,16 +101,16 @@ func (r *Repository) CreateUserProfile(ctx context.Context, profile *UserProfile
 	profile.ID = primitive.NewObjectID()
 	profile.CreatedAt = time.Now()
 	profile.UpdatedAt = time.Now()
-	_, err := r.financialProfiles.InsertOne(ctx, profile)
+	_, err := r.userProfiles.InsertOne(ctx, profile)
 	return err
 }
 
 func (r *Repository) GetUserProfileByUserID(ctx context.Context, userID primitive.ObjectID) (*UserProfile, error) {
 	var profile UserProfile
-	err := r.financialProfiles.FindOne(ctx, bson.M{"user_id": userID}).Decode(&profile)
+	err := r.userProfiles.FindOne(ctx, bson.M{"user_id": userID}).Decode(&profile)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, errors.New("financial profile not found")
+			return nil, errors.New("user profile not found")
 		}
 		return nil, err
 	}
@@ -119,23 +119,23 @@ func (r *Repository) GetUserProfileByUserID(ctx context.Context, userID primitiv
 
 func (r *Repository) UpdateUserProfile(ctx context.Context, userID primitive.ObjectID, profile *UserProfile) error {
 	profile.UpdatedAt = time.Now()
-	result, err := r.financialProfiles.UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{"$set": profile})
+	result, err := r.userProfiles.UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{"$set": profile})
 	if err != nil {
 		return err
 	}
 	if result.MatchedCount == 0 {
-		return errors.New("financial profile not found")
+		return errors.New("user profile not found")
 	}
 	return nil
 }
 
 func (r *Repository) DeleteUserProfile(ctx context.Context, userID primitive.ObjectID) error {
-	result, err := r.financialProfiles.DeleteOne(ctx, bson.M{"user_id": userID})
+	result, err := r.userProfiles.DeleteOne(ctx, bson.M{"user_id": userID})
 	if err != nil {
 		return err
 	}
 	if result.DeletedCount == 0 {
-		return errors.New("financial profile not found")
+		return errors.New("user profile not found")
 	}
 	return nil
 }

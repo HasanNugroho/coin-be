@@ -26,7 +26,45 @@ func (s *Service) GetUserByID(ctx context.Context, id string) (*User, error) {
 	return s.repo.GetUserByID(ctx, objID)
 }
 
-func (s *Service) UpdateUser(ctx context.Context, id string, req *dto.UpdateUserRequest) (*User, error) {
+func (s *Service) GetUserProfile(ctx context.Context, id string) (*dto.UserResponse, error) {
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errors.New("invalid user id")
+	}
+
+	user, err := s.repo.GetUserByID(ctx, objID)
+	if err != nil {
+		return nil, err
+	}
+
+	profile, err := s.repo.GetUserProfileByUserID(ctx, objID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &dto.UserResponse{
+		ID:        user.ID.Hex(),
+		Name:      user.Name,
+		Email:     user.Email,
+		IsActive:  user.IsActive,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+
+	if profile != nil {
+		resp.Phone = profile.Phone
+		resp.TelegramId = profile.TelegramId
+		resp.Currency = profile.PayCurrency
+		resp.BaseSalary = profile.BaseSalary
+		resp.SalaryCycle = profile.SalaryCycle
+		resp.SalaryDay = profile.SalaryDay
+		resp.Language = profile.Lang
+	}
+
+	return resp, nil
+}
+
+func (s *Service) UpdateUser(ctx context.Context, id string, req *dto.UpdateUserRequest) (*dto.UserResponse, error) {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New("invalid user id")
@@ -40,13 +78,65 @@ func (s *Service) UpdateUser(ctx context.Context, id string, req *dto.UpdateUser
 	if req.Name != "" {
 		user.Name = req.Name
 	}
+	if req.Email != "" {
+		user.Email = req.Email
+	}
 
 	err = s.repo.UpdateUser(ctx, objID, user)
 	if err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	profile, err := s.repo.GetUserProfileByUserID(ctx, objID)
+	if err == nil && profile != nil {
+		if req.Phone != "" {
+			profile.Phone = req.Phone
+		}
+		if req.TelegramId != "" {
+			profile.TelegramId = req.TelegramId
+		}
+		if req.Currency != "" {
+			profile.PayCurrency = req.Currency
+		}
+		if req.BaseSalary > 0 {
+			profile.BaseSalary = req.BaseSalary
+		}
+		if req.SalaryCycle != "" {
+			profile.SalaryCycle = req.SalaryCycle
+		}
+		if req.SalaryDay > 0 {
+			profile.SalaryDay = req.SalaryDay
+		}
+		if req.Language != "" {
+			profile.Lang = req.Language
+		}
+
+		err = s.repo.UpdateUserProfile(ctx, objID, profile)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	resp := &dto.UserResponse{
+		ID:        user.ID.Hex(),
+		Name:      user.Name,
+		Email:     user.Email,
+		IsActive:  user.IsActive,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+
+	if profile != nil {
+		resp.Phone = profile.Phone
+		resp.TelegramId = profile.TelegramId
+		resp.Currency = profile.PayCurrency
+		resp.BaseSalary = profile.BaseSalary
+		resp.SalaryCycle = profile.SalaryCycle
+		resp.SalaryDay = profile.SalaryDay
+		resp.Language = profile.Lang
+	}
+
+	return resp, nil
 }
 
 func (s *Service) DeleteUser(ctx context.Context, id string) error {

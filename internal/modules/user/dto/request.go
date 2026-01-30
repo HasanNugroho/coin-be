@@ -7,8 +7,15 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Phone string `json:"phone"`
-	Name  string `json:"name"`
+	Name        string  `json:"name"`
+	Email       string  `json:"email"`
+	Phone       string  `json:"phone"`
+	TelegramId  string  `json:"telegramId"`
+	Currency    string  `json:"currency"`
+	BaseSalary  float64 `json:"baseSalary"`
+	SalaryCycle string  `json:"salaryCycle"`
+	SalaryDay   int     `json:"salaryDay"`
+	Language    string  `json:"language"`
 }
 
 type CreateUserProfileRequest struct {

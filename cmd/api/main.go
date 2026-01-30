@@ -14,13 +14,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/core/container"
 	"github.com/HasanNugroho/coin-be/internal/core/middleware"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
-	"github.com/HasanNugroho/coin-be/internal/modules/allocation"
 	"github.com/HasanNugroho/coin-be/internal/modules/auth"
-	"github.com/HasanNugroho/coin-be/internal/modules/category"
-	"github.com/HasanNugroho/coin-be/internal/modules/health"
-	"github.com/HasanNugroho/coin-be/internal/modules/report"
-	"github.com/HasanNugroho/coin-be/internal/modules/target"
-	"github.com/HasanNugroho/coin-be/internal/modules/transaction"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
 )
 
@@ -62,12 +56,6 @@ func main() {
 	// Register modules
 	auth.Register(builder)
 	user.Register(builder)
-	health.Register(builder)
-	category.Register(builder)
-	allocation.Register(builder)
-	transaction.Register(builder)
-	target.Register(builder)
-	report.Register(builder)
 
 	appContainer := builder.Build()
 
@@ -83,22 +71,21 @@ func main() {
 
 	api := r.Group("/api")
 
-	// Auth routes (public)
-	authController := appContainer.Get("authController").(*auth.Controller)
-	authRoutes := api.Group("/auth")
-	auth.RegisterRoutes(authRoutes, authController)
-
 	// Get dependencies for middleware
 	jwtManager := appContainer.Get("jwtManager").(*utils.JWTManager)
 	mongoClient := appContainer.Get("mongo").(*mongo.Client)
 	cfg := appContainer.Get("config").(*config.Config)
 	db := mongoClient.Database(cfg.MongoDB)
 
+	// Auth routes (public)
+	authController := appContainer.Get("authController").(*auth.Controller)
+	authRoutes := api.Group("/v1/auth")
+	auth.RegisterRoutes(authRoutes, authController, jwtManager, db)
+
 	// User routes (protected)
 	userController := appContainer.Get("userController").(*user.Controller)
-	userRoutes := api.Group("/users")
+	userRoutes := api.Group("/v1/users")
 	userRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
-	userRoutes.Use(middleware.AdminMiddleware())
 	user.RegisterRoutes(userRoutes, userController)
 
 	log.Println("Server running on http://localhost:8080")

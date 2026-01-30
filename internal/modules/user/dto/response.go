@@ -3,16 +3,22 @@ package dto
 import "time"
 
 type UserResponse struct {
-	ID        string    `json:"id"`
-	Email     string    `json:"email"`
-	Phone     string    `json:"phone"`
-	Name      string    `json:"name"`
-	IsActive  bool      `json:"is_active"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Email       string    `json:"email"`
+	Phone       string    `json:"phone"`
+	TelegramId  string    `json:"telegramId"`
+	Currency    string    `json:"currency"`
+	BaseSalary  float64   `json:"baseSalary"`
+	SalaryCycle string    `json:"salaryCycle"`
+	SalaryDay   int       `json:"salaryDay"`
+	Language    string    `json:"language"`
+	IsActive    bool      `json:"is_active"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-type FinancialProfileResponse struct {
+type UserProfileResponse struct {
 	ID          string    `json:"id"`
 	UserID      string    `json:"user_id"`
 	BaseSalary  float64   `json:"base_salary"`

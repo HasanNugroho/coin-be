@@ -27,7 +27,7 @@ func NewController(s *Service) *Controller {
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 404 {object} map[string]interface{} "User not found"
 // @Security BearerAuth
-// @Router /users/profile [get]
+// @Router /v1/users/profile [get]
 func (c *Controller) GetProfile(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
@@ -36,7 +36,7 @@ func (c *Controller) GetProfile(ctx *gin.Context) {
 		return
 	}
 
-	user, err := c.service.GetUserByID(ctx, userID.(string))
+	user, err := c.service.GetUserProfile(ctx, userID.(string))
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusNotFound, err.Error())
 		ctx.JSON(http.StatusNotFound, resp)
@@ -58,7 +58,7 @@ func (c *Controller) GetProfile(ctx *gin.Context) {
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Security BearerAuth
-// @Router /users/profile [put]
+// @Router /v1/users/profile [put]
 func (c *Controller) UpdateProfile(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
@@ -97,7 +97,7 @@ func (c *Controller) UpdateProfile(ctx *gin.Context) {
 // @Failure 403 {object} map[string]interface{} "Admin access required"
 // @Failure 404 {object} map[string]interface{} "User not found"
 // @Security BearerAuth
-// @Router /users/{id} [get]
+// @Router /v1/users/{id} [get]
 func (c *Controller) GetUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 	user, err := c.service.GetUserByID(ctx, id)
@@ -122,7 +122,7 @@ func (c *Controller) GetUser(ctx *gin.Context) {
 // @Failure 400 {object} map[string]interface{} "Invalid user ID"
 // @Failure 403 {object} map[string]interface{} "Admin access required"
 // @Security BearerAuth
-// @Router /users/{id} [delete]
+// @Router /v1/users/{id} [delete]
 func (c *Controller) DeleteUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 	err := c.service.DeleteUser(ctx, id)
@@ -147,7 +147,7 @@ func (c *Controller) DeleteUser(ctx *gin.Context) {
 // @Success 200 {object} map[string]interface{} "Users retrieved successfully"
 // @Failure 403 {object} map[string]interface{} "Admin access required"
 // @Security BearerAuth
-// @Router /users [get]
+// @Router /v1/users [get]
 func (c *Controller) ListUsers(ctx *gin.Context) {
 	page := int64(1)
 	limit := int64(10)
@@ -189,7 +189,7 @@ func (c *Controller) ListUsers(ctx *gin.Context) {
 // @Failure 400 {object} map[string]interface{} "Invalid user ID"
 // @Failure 403 {object} map[string]interface{} "Admin access required"
 // @Security BearerAuth
-// @Router /users/{id}/disable [post]
+// @Router /v1/users/{id}/disable [post]
 func (c *Controller) DisableUser(ctx *gin.Context) {
 	userID := ctx.Param("id")
 
@@ -215,7 +215,7 @@ func (c *Controller) DisableUser(ctx *gin.Context) {
 // @Failure 400 {object} map[string]interface{} "Invalid user ID"
 // @Failure 403 {object} map[string]interface{} "Admin access required"
 // @Security BearerAuth
-// @Router /users/{id}/enable [post]
+// @Router /v1/users/{id}/enable [post]
 func (c *Controller) EnableUser(ctx *gin.Context) {
 	userID := ctx.Param("id")
 
