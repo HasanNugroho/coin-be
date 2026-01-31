@@ -1,0 +1,2061 @@
+basePath: /api
+definitions:
+  dto.CreateCategoryRequest:
+    properties:
+      color:
+        maxLength: 50
+        type: string
+      description:
+        maxLength: 500
+        type: string
+      icon:
+        maxLength: 100
+        type: string
+      is_default:
+        type: boolean
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      parent_id:
+        type: string
+      transaction_type:
+        enum:
+        - income
+        - expense
+        type: string
+      type:
+        enum:
+        - transaction
+        - pocket
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  dto.CreatePlatformRequest:
+    properties:
+      is_active:
+        type: boolean
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      type:
+        enum:
+        - BANK
+        - E_WALLET
+        - CASH
+        - ATM
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  dto.CreatePocketRequest:
+    properties:
+      background_color:
+        maxLength: 50
+        type: string
+      category_id:
+        type: string
+      icon:
+        maxLength: 100
+        type: string
+      icon_color:
+        maxLength: 50
+        type: string
+      name:
+        maxLength: 255
+        minLength: 2
+        type: string
+      type:
+        enum:
+        - main
+        - allocation
+        - saving
+        - debt
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  dto.CreatePocketTemplateRequest:
+    properties:
+      background_color:
+        maxLength: 50
+        type: string
+      category_id:
+        type: string
+      icon:
+        maxLength: 100
+        type: string
+      icon_color:
+        maxLength: 50
+        type: string
+      is_active:
+        type: boolean
+      is_default:
+        type: boolean
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      order:
+        maximum: 10000
+        minimum: 0
+        type: integer
+      type:
+        enum:
+        - main
+        - saving
+        - allocation
+        type: string
+    required:
+    - category_id
+    - name
+    - type
+    type: object
+  dto.CreateSystemPocketRequest:
+    properties:
+      background_color:
+        maxLength: 50
+        type: string
+      category_id:
+        type: string
+      icon:
+        maxLength: 100
+        type: string
+      icon_color:
+        maxLength: 50
+        type: string
+      name:
+        maxLength: 255
+        minLength: 2
+        type: string
+    required:
+    - name
+    type: object
+  dto.CreateTransactionRequest:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: string
+      date:
+        type: string
+      note:
+        maxLength: 500
+        type: string
+      platform_id:
+        type: string
+      pocket_from:
+        type: string
+      pocket_to:
+        type: string
+      ref:
+        maxLength: 100
+        type: string
+      type:
+        enum:
+        - INCOME
+        - EXPENSE
+        - TRANSFER
+        - DEBT_PAYMENT
+        - WITHDRAW
+        type: string
+    required:
+    - amount
+    - date
+    - type
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 255
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        minLength: 10
+        type: string
+    required:
+    - refresh_token
+    type: object
+  dto.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      password:
+        maxLength: 255
+        minLength: 6
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  dto.UpdateCategoryRequest:
+    properties:
+      color:
+        maxLength: 50
+        type: string
+      description:
+        maxLength: 500
+        type: string
+      icon:
+        maxLength: 100
+        type: string
+      is_default:
+        type: boolean
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      parent_id:
+        type: string
+      transaction_type:
+        enum:
+        - income
+        - expense
+        type: string
+      type:
+        enum:
+        - transaction
+        - pocket
+        type: string
+    type: object
+  dto.UpdatePlatformRequest:
+    properties:
+      is_active:
+        type: boolean
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      type:
+        enum:
+        - BANK
+        - E_WALLET
+        - CASH
+        - ATM
+        type: string
+    type: object
+  dto.UpdatePocketRequest:
+    properties:
+      background_color:
+        maxLength: 50
+        type: string
+      category_id:
+        type: string
+      icon:
+        maxLength: 100
+        type: string
+      icon_color:
+        maxLength: 50
+        type: string
+      is_active:
+        type: boolean
+      name:
+        maxLength: 255
+        minLength: 2
+        type: string
+      type:
+        enum:
+        - main
+        - allocation
+        - saving
+        - debt
+        type: string
+    type: object
+  dto.UpdatePocketTemplateRequest:
+    properties:
+      background_color:
+        maxLength: 50
+        type: string
+      category_id:
+        type: string
+      icon:
+        maxLength: 100
+        type: string
+      icon_color:
+        maxLength: 50
+        type: string
+      is_active:
+        type: boolean
+      is_default:
+        type: boolean
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      order:
+        maximum: 10000
+        minimum: 0
+        type: integer
+      type:
+        enum:
+        - main
+        - saving
+        - allocation
+        type: string
+    type: object
+  dto.UpdateUserRequest:
+    properties:
+      baseSalary:
+        minimum: 0
+        type: number
+      currency:
+        type: string
+      email:
+        type: string
+      language:
+        type: string
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+      salaryCycle:
+        enum:
+        - monthly
+        - weekly
+        - biweekly
+        type: string
+      salaryDay:
+        maximum: 28
+        minimum: 1
+        type: integer
+      telegramId:
+        maxLength: 100
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A comprehensive financial management system with smart allocation engine,
+    transaction tracking, and detailed reports
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Coin Backend API
+  version: "1.0"
+paths:
+  /v1/admin/pockets:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all pockets with pagination (admin only)
+      parameters:
+      - description: 'Limit (default: 10, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pockets retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all pockets (admin only)
+      tags:
+      - Pockets Admin
+  /v1/admin/pockets/{user_id}:
+    post:
+      consumes:
+      - application/json
+      description: Create a system pocket for a user (admin only)
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: System pocket details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateSystemPocketRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: System pocket created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create system pocket (admin only)
+      tags:
+      - Pockets Admin
+  /v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password, returns access and refresh
+        tokens
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: User login
+      tags:
+      - Auth
+  /v1/auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate the user's refresh token and end the session
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logged out successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: User logout
+      tags:
+      - Auth
+  /v1/auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the authenticated user's complete profile information
+        including user and profile data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user profile
+      tags:
+      - Auth
+  /v1/auth/refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: Generate a new access token using a valid refresh token
+      parameters:
+      - description: Refresh token details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token refreshed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Refresh access token
+      tags:
+      - Auth
+  /v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with email and password
+      parameters:
+      - description: Registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User registered successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register a new user
+      tags:
+      - Auth
+  /v1/auth/validate:
+    get:
+      consumes:
+      - application/json
+      description: Check if the provided token is valid
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token is valid
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Token is invalid
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Validate token
+      tags:
+      - Auth
+  /v1/categories:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of all categories
+      parameters:
+      - description: 'Limit (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Categories retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all categories
+      tags:
+      - Categories
+    post:
+      consumes:
+      - application/json
+      description: Create a new transaction or pocket category (admin only)
+      parameters:
+      - description: Category details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Category created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new category
+      tags:
+      - Categories
+  /v1/categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a category (admin only)
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid category ID
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Category not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete category
+      tags:
+      - Categories
+    get:
+      consumes:
+      - application/json
+      description: Get a specific category by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid category ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Category not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get category by ID
+      tags:
+      - Categories
+    put:
+      consumes:
+      - application/json
+      description: Update a category (admin only)
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Category update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Category not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update category
+      tags:
+      - Categories
+  /v1/categories/{parent_id}/subcategories:
+    get:
+      consumes:
+      - application/json
+      description: Get all subcategories of a parent category
+      parameters:
+      - description: Parent Category ID
+        in: path
+        name: parent_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Subcategories retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid parent ID
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List subcategories
+      tags:
+      - Categories
+  /v1/categories/type/{type}:
+    get:
+      consumes:
+      - application/json
+      description: Get categories filtered by type (transaction or pocket)
+      parameters:
+      - description: Category type (transaction or pocket)
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 'Limit (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Categories retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List categories by type
+      tags:
+      - Categories
+  /v1/platforms:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all platforms with pagination
+      parameters:
+      - description: 'Limit (default: 10, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Platforms retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all platforms
+      tags:
+      - Platforms
+    post:
+      consumes:
+      - application/json
+      description: Create a new platform (admin only)
+      parameters:
+      - description: Platform details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePlatformRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Platform created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new platform
+      tags:
+      - Platforms
+  /v1/platforms/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a platform (admin only)
+      parameters:
+      - description: Platform ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Platform deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Platform not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete platform
+      tags:
+      - Platforms
+    get:
+      consumes:
+      - application/json
+      description: Get a specific platform by ID
+      parameters:
+      - description: Platform ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Platform retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid platform ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Platform not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get platform by ID
+      tags:
+      - Platforms
+    put:
+      consumes:
+      - application/json
+      description: Update a platform (admin only)
+      parameters:
+      - description: Platform ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Platform update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePlatformRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Platform updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Platform not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update platform
+      tags:
+      - Platforms
+  /v1/platforms/active:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of active platforms with pagination
+      parameters:
+      - description: 'Limit (default: 10, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Active platforms retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List active platforms
+      tags:
+      - Platforms
+  /v1/platforms/type/{type}:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of platforms filtered by type with pagination
+      parameters:
+      - description: Platform type (BANK, E_WALLET, CASH, ATM)
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 'Limit (default: 10, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Platforms retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List platforms by type
+      tags:
+      - Platforms
+  /v1/pocket-templates:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all pocket templates with pagination
+      parameters:
+      - description: 'Limit (default: 10, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pocket templates retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all pocket templates
+      tags:
+      - Pocket Templates
+    post:
+      consumes:
+      - application/json
+      description: Create a new pocket template (admin only)
+      parameters:
+      - description: Pocket template details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePocketTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Pocket template created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new pocket template
+      tags:
+      - Pocket Templates
+  /v1/pocket-templates/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a pocket template (admin only)
+      parameters:
+      - description: Pocket Template ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pocket template deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid pocket template ID
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Pocket template not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete pocket template
+      tags:
+      - Pocket Templates
+    get:
+      consumes:
+      - application/json
+      description: Get a specific pocket template by ID
+      parameters:
+      - description: Pocket Template ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pocket template retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid pocket template ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Pocket template not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get pocket template by ID
+      tags:
+      - Pocket Templates
+    put:
+      consumes:
+      - application/json
+      description: Update a pocket template (admin only)
+      parameters:
+      - description: Pocket Template ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Pocket template update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePocketTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pocket template updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Pocket template not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update pocket template
+      tags:
+      - Pocket Templates
+  /v1/pocket-templates/active:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of active pocket templates with pagination
+      parameters:
+      - description: 'Limit (default: 10, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Active pocket templates retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List active pocket templates
+      tags:
+      - Pocket Templates
+  /v1/pocket-templates/type/{type}:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of pocket templates filtered by type with pagination
+      parameters:
+      - description: Pocket Template Type
+        enum:
+        - main
+        - saving
+        - allocation
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: 'Limit (default: 10, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pocket templates retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List pocket templates by type
+      tags:
+      - Pocket Templates
+  /v1/pockets:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of user pockets with pagination
+      parameters:
+      - description: 'Limit (default: 10, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pockets retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List user pockets
+      tags:
+      - Pockets
+    post:
+      consumes:
+      - application/json
+      description: Create a new pocket for the authenticated user
+      parameters:
+      - description: Pocket details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePocketRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Pocket created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new pocket
+      tags:
+      - Pockets
+  /v1/pockets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a pocket
+      parameters:
+      - description: Pocket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pocket deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Pocket not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete pocket
+      tags:
+      - Pockets
+    get:
+      consumes:
+      - application/json
+      description: Get a specific pocket by ID
+      parameters:
+      - description: Pocket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pocket retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Pocket not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get pocket by ID
+      tags:
+      - Pockets
+    put:
+      consumes:
+      - application/json
+      description: Update a pocket
+      parameters:
+      - description: Pocket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Pocket update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePocketRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pocket updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Pocket not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update pocket
+      tags:
+      - Pockets
+  /v1/pockets/active:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of active user pockets with pagination
+      parameters:
+      - description: 'Limit (default: 10, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Active pockets retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List active user pockets
+      tags:
+      - Pockets
+  /v1/pockets/main:
+    get:
+      consumes:
+      - application/json
+      description: Get the user's main pocket
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Main pocket retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Main pocket not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get main pocket
+      tags:
+      - Pockets
+  /v1/transactions:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of user transactions with pagination
+      parameters:
+      - description: 'Limit (default: 10, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transactions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List user transactions
+      tags:
+      - Transactions
+    post:
+      consumes:
+      - application/json
+      description: Create a new transaction for the authenticated user
+      parameters:
+      - description: Transaction details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Transaction created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new transaction
+      tags:
+      - Transactions
+  /v1/transactions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft delete a transaction
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Transaction not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete transaction
+      tags:
+      - Transactions
+    get:
+      consumes:
+      - application/json
+      description: Get a specific transaction by ID
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Transaction not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get transaction by ID
+      tags:
+      - Transactions
+  /v1/transactions/pocket/{pocket_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of transactions for a specific pocket
+      parameters:
+      - description: Pocket ID
+        in: path
+        name: pocket_id
+        required: true
+        type: string
+      - description: 'Limit (default: 10, max: 1000)'
+        in: query
+        name: limit
+        type: integer
+      - description: 'Skip (default: 0)'
+        in: query
+        name: skip
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transactions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List pocket transactions
+      tags:
+      - Transactions
+  /v1/users:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of all users (admin access required)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Users retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all users (admin only)
+      tags:
+      - Users
+  /v1/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user account (admin access required)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete user (admin only)
+      tags:
+      - Users
+    get:
+      consumes:
+      - application/json
+      description: Get a specific user's information (admin access required)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user by ID (admin only)
+      tags:
+      - Users
+  /v1/users/{id}/disable:
+    post:
+      consumes:
+      - application/json
+      description: Disable a user account (admin access required)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User disabled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Disable user (admin only)
+      tags:
+      - Users
+  /v1/users/{id}/enable:
+    post:
+      consumes:
+      - application/json
+      description: Enable a user account (admin access required)
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User enabled successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Enable user (admin only)
+      tags:
+      - Users
+  /v1/users/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get the authenticated user's profile information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: Update the authenticated user's profile information
+      parameters:
+      - description: Profile update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - Users
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

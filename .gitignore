@@ -43,8 +43,8 @@ dist/
 *.log
 
 # Swagger
-docs/swagger.json
-docs/swagger.yaml
+# docs/swagger.json
+# docs/swagger.yaml
 
 api
 main
