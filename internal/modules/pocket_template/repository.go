@@ -130,3 +130,18 @@ func (r *Repository) ListPocketTemplatesByType(ctx context.Context, templateType
 	}
 	return templates, nil
 }
+
+func (r *Repository) GetActiveTemplatesSorted(ctx context.Context) ([]*PocketTemplate, error) {
+	opts := options.Find().SetSort(bson.M{"order": 1})
+	cursor, err := r.pocketTemplates.Find(ctx, bson.M{"deleted_at": nil, "is_active": true}, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var templates []*PocketTemplate
+	if err = cursor.All(ctx, &templates); err != nil {
+		return nil, err
+	}
+	return templates, nil
+}

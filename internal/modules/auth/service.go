@@ -3,27 +3,35 @@ package auth
 import (
 	"context"
 	"errors"
+	"log"
+	"sort"
 
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	authDTO "github.com/HasanNugroho/coin-be/internal/modules/auth/dto"
+	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
+	"github.com/HasanNugroho/coin-be/internal/modules/pocket_template"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Service struct {
-	userRepo    *user.Repository
-	redis       *redis.Client
-	jwtManager  *utils.JWTManager
-	passwordMgr *utils.PasswordManager
+	userRepo           *user.Repository
+	pocketRepo         *pocket.Repository
+	pocketTemplateRepo *pocket_template.Repository
+	redis              *redis.Client
+	jwtManager         *utils.JWTManager
+	passwordMgr        *utils.PasswordManager
 }
 
-func NewService(userRepo *user.Repository, redis *redis.Client, jwtManager *utils.JWTManager, passwordMgr *utils.PasswordManager) *Service {
+func NewService(userRepo *user.Repository, pocketRepo *pocket.Repository, pocketTemplateRepo *pocket_template.Repository, redis *redis.Client, jwtManager *utils.JWTManager, passwordMgr *utils.PasswordManager) *Service {
 	return &Service{
-		userRepo:    userRepo,
-		redis:       redis,
-		jwtManager:  jwtManager,
-		passwordMgr: passwordMgr,
+		userRepo:           userRepo,
+		pocketRepo:         pocketRepo,
+		pocketTemplateRepo: pocketTemplateRepo,
+		redis:              redis,
+		jwtManager:         jwtManager,
+		passwordMgr:        passwordMgr,
 	}
 }
 
@@ -80,7 +88,87 @@ func (s *Service) Register(ctx context.Context, req *authDTO.RegisterRequest) (*
 		return nil, err
 	}
 
+	// Create default pockets from active templates
+	err = s.createDefaultPockets(ctx, newUser.ID)
+	if err != nil {
+		// Rollback user creation on pocket creation failure
+		_ = s.userRepo.DeleteUser(ctx, newUser.ID)
+		return nil, err
+	}
+
 	return newUser, nil
+}
+
+func (s *Service) createDefaultPockets(ctx context.Context, userID primitive.ObjectID) error {
+	// Fetch all active pocket templates sorted by order
+	templates, err := s.pocketTemplateRepo.GetActiveTemplatesSorted(ctx)
+	if err != nil {
+		log.Printf("failed to fetch active pocket templates for user %s: %v", userID.Hex(), err)
+		return errors.New("failed to fetch pocket templates")
+	}
+
+	if len(templates) == 0 {
+		log.Printf("no active pocket templates found for user %s", userID.Hex())
+		return errors.New("no active pocket templates available")
+	}
+
+	// Validate that at least one MAIN pocket template exists
+	hasMainTemplate := false
+	var mainTemplate *pocket_template.PocketTemplate
+	for _, t := range templates {
+		if t.Type == string(pocket_template.TypeMain) {
+			hasMainTemplate = true
+			if mainTemplate == nil {
+				mainTemplate = t
+			}
+		}
+	}
+
+	if !hasMainTemplate {
+		log.Printf("no MAIN pocket template found for user %s", userID.Hex())
+		return errors.New("no MAIN pocket template configured")
+	}
+
+	// If multiple MAIN templates, use the one with lowest order
+	var mainTemplates []*pocket_template.PocketTemplate
+	for _, t := range templates {
+		if t.Type == string(pocket_template.TypeMain) && t.IsDefault {
+			mainTemplates = append(mainTemplates, t)
+		}
+	}
+
+	if len(mainTemplates) > 1 {
+		sort.Slice(mainTemplates, func(i, j int) bool {
+			return mainTemplates[i].Order < mainTemplates[j].Order
+		})
+		log.Printf("warning: multiple MAIN pocket templates found for user %s, using lowest order", userID.Hex())
+		mainTemplate = mainTemplates[0]
+	}
+
+	// Create pockets from templates
+	for _, template := range templates {
+		newPocket := &pocket.Pocket{
+			UserID:          userID,
+			Name:            template.Name,
+			Type:            template.Type,
+			CategoryID:      template.CategoryID,
+			Balance:         pocket.NewDecimal128(0),
+			IsDefault:       template.IsDefault,
+			IsActive:        true,
+			IsLocked:        template.Type == string(pocket_template.TypeMain),
+			Icon:            template.Icon,
+			IconColor:       template.IconColor,
+			BackgroundColor: template.BackgroundColor,
+		}
+
+		err := s.pocketRepo.CreatePocket(ctx, newPocket)
+		if err != nil {
+			log.Printf("failed to create pocket from template %s for user %s: %v", template.ID.Hex(), userID.Hex(), err)
+			return errors.New("failed to create default pockets")
+		}
+	}
+
+	return nil
 }
 
 func (s *Service) Login(ctx context.Context, req *authDTO.LoginRequest) (*authDTO.LoginResponse, error) {

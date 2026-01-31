@@ -3,6 +3,8 @@ package auth
 import (
 	"github.com/HasanNugroho/coin-be/internal/core/config"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
+	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
+	"github.com/HasanNugroho/coin-be/internal/modules/pocket_template"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
 	"github.com/redis/go-redis/v9"
 	"github.com/sarulabs/di/v2"
@@ -13,11 +15,13 @@ func Register(builder *di.Builder) {
 		Name: "authService",
 		Build: func(ctn di.Container) (interface{}, error) {
 			userRepo := ctn.Get("userRepository").(*user.Repository)
+			pocketRepo := ctn.Get("pocketRepository").(*pocket.Repository)
+			pocketTemplateRepo := ctn.Get("pocketTemplateRepository").(*pocket_template.Repository)
 			redisClient := ctn.Get("redis").(*redis.Client)
 			cfg := ctn.Get("config").(*config.Config)
 			jwtManager := utils.NewJWTManager(cfg)
 			passwordMgr := utils.NewPasswordManager()
-			return NewService(userRepo, redisClient, jwtManager, passwordMgr), nil
+			return NewService(userRepo, pocketRepo, pocketTemplateRepo, redisClient, jwtManager, passwordMgr), nil
 		},
 	})
 

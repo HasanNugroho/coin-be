@@ -16,8 +16,10 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/auth"
 	"github.com/HasanNugroho/coin-be/internal/modules/category"
+	"github.com/HasanNugroho/coin-be/internal/modules/platform"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket_template"
+	"github.com/HasanNugroho/coin-be/internal/modules/transaction"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
 )
 
@@ -60,8 +62,10 @@ func main() {
 	auth.Register(builder)
 	user.Register(builder)
 	category.Register(builder)
+	platform.Register(builder)
 	pocket_template.Register(builder)
 	pocket.Register(builder)
+	transaction.Register(builder)
 
 	appContainer := builder.Build()
 
@@ -100,6 +104,12 @@ func main() {
 	categoryRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
 	category.RegisterRoutes(categoryRoutes, categoryController)
 
+	// Platform routes (protected)
+	platformController := appContainer.Get("platformController").(*platform.Controller)
+	platformRoutes := api.Group("/v1/platforms")
+	platformRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	platform.RegisterRoutes(platformRoutes, platformController)
+
 	// Pocket Template routes (protected, admin only)
 	pocketTemplateController := appContainer.Get("pocketTemplateController").(*pocket_template.Controller)
 	pocketTemplateRoutes := api.Group("/v1/pocket-templates")
@@ -111,6 +121,12 @@ func main() {
 	pocketRoutes := api.Group("/v1/pockets")
 	pocketRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
 	pocket.RegisterRoutes(pocketRoutes, pocketController)
+
+	// Transaction routes (protected)
+	transactionController := appContainer.Get("transactionController").(*transaction.Controller)
+	transactionRoutes := api.Group("/v1/transactions")
+	transactionRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	transaction.RegisterRoutes(transactionRoutes, transactionController)
 
 	log.Println("Server running on http://localhost:8080")
 	log.Println("Swagger docs available at http://localhost:8080/swagger/index.html")
