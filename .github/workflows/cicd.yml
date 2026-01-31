@@ -1,4 +1,4 @@
-name: CI/CD Clinic backend
+name: CI/CD Coin backend
 
 on:
   push:
