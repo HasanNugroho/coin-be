@@ -15,7 +15,7 @@ func Register(builder *di.Builder) {
 			userRepo := ctn.Get("userRepository").(*user.Repository)
 			redisClient := ctn.Get("redis").(*redis.Client)
 			cfg := ctn.Get("config").(*config.Config)
-			jwtManager := utils.NewJWTManager(cfg.JWTSecret)
+			jwtManager := utils.NewJWTManager(cfg)
 			passwordMgr := utils.NewPasswordManager()
 			return NewService(userRepo, redisClient, jwtManager, passwordMgr), nil
 		},

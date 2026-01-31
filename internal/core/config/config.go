@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -17,16 +18,27 @@ type Config struct {
 	RedisPass string
 	RedisDB   int
 
-	JWTSecret string
+	JWTSecret          string
+	JWTDuration        time.Duration
+	JWTRefreshDuration time.Duration
 }
 
 func Load() *Config {
 	_ = godotenv.Load()
 
 	redisDB, _ := strconv.Atoi(os.Getenv("REDIS_DB"))
+	jwtDuration, err := time.ParseDuration(os.Getenv("JWT_DURATION"))
+	if err != nil {
+		panic("invalid JWT_DURATION")
+	}
+
+	jwtRefreshDuration, err := time.ParseDuration(os.Getenv("JWT_REFRESH_DURATION"))
+	if err != nil {
+		panic("invalid JWT_REFRESH_DURATION")
+	}
 
 	return &Config{
-		AppPort:   os.Getenv("APP_PORT"),
+		AppPort:  os.Getenv("APP_PORT"),
 		MongoURI: os.Getenv("MONGO_URI"),
 		MongoDB:  os.Getenv("MONGO_DB"),
 
@@ -34,6 +46,8 @@ func Load() *Config {
 		RedisPass: os.Getenv("REDIS_PASSWORD"),
 		RedisDB:   redisDB,
 
-		JWTSecret: os.Getenv("JWT_SECRET"),
+		JWTSecret:          os.Getenv("JWT_SECRET"),
+		JWTDuration:        jwtDuration,
+		JWTRefreshDuration: jwtRefreshDuration,
 	}
 }

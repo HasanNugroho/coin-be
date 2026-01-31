@@ -12,8 +12,9 @@ A comprehensive financial management system with smart allocation engine, transa
 ## Table of Contents
 1. [Authentication Endpoints](#authentication-endpoints)
 2. [User Endpoints](#user-endpoints)
-3. [Error Responses](#error-responses)
-4. [Data Models](#data-models)
+3. [Category Endpoints](#category-endpoints)
+4. [Error Responses](#error-responses)
+5. [Data Models](#data-models)
 
 ---
 
@@ -562,6 +563,355 @@ POST /v1/users/697ce57ea135e8c451bb2b46/enable
 
 ---
 
+## Category Endpoints
+
+### 1. Create Category (Admin Only)
+Create a new transaction or pocket category.
+
+**Endpoint:** `POST /v1/categories`
+
+**Authentication:** Required (Bearer Token - Admin)
+
+**Request Body:**
+```json
+{
+  "name": "Food & Dining",
+  "type": "transaction",
+  "is_default": true,
+  "parent_id": ""
+}
+```
+
+**Request Parameters:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| name | string | Yes | Category name (must be unique) |
+| type | string | Yes | Category type: `transaction` or `pocket` |
+| is_default | boolean | No | Mark as default category (default: false) |
+| parent_id | string | No | Parent category ID for subcategories |
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "statusCode": 201,
+  "message": "Category created successfully",
+  "data": {
+    "id": "697ce57ea135e8c451bb2b46",
+    "name": "Food & Dining",
+    "type": "transaction",
+    "is_default": true,
+    "parent_id": null,
+    "created_at": "2026-01-31T10:30:00Z",
+    "updated_at": "2026-01-31T10:30:00Z",
+    "deleted_at": null
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Invalid category type or missing required fields
+- `400 Bad Request` - Category name already exists
+- `401 Unauthorized` - Missing or invalid token
+- `403 Forbidden` - Admin access required
+
+---
+
+### 2. Get Category by ID
+Get a specific category by ID.
+
+**Endpoint:** `GET /v1/categories/{id}`
+
+**Authentication:** Required (Bearer Token)
+
+**Path Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | string | Yes | Category ID (MongoDB ObjectID) |
+
+**Example Request:**
+```
+GET /v1/categories/697ce57ea135e8c451bb2b46
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Category retrieved successfully",
+  "data": {
+    "id": "697ce57ea135e8c451bb2b46",
+    "name": "Food & Dining",
+    "type": "transaction",
+    "is_default": true,
+    "parent_id": null,
+    "created_at": "2026-01-31T10:30:00Z",
+    "updated_at": "2026-01-31T10:30:00Z",
+    "deleted_at": null
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Invalid category ID format
+- `401 Unauthorized` - Missing or invalid token
+- `404 Not Found` - Category not found or deleted
+
+---
+
+### 3. Update Category (Admin Only)
+Update an existing category.
+
+**Endpoint:** `PUT /v1/categories/{id}`
+
+**Authentication:** Required (Bearer Token - Admin)
+
+**Path Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | string | Yes | Category ID (MongoDB ObjectID) |
+
+**Request Body:**
+```json
+{
+  "name": "Food & Dining Updated",
+  "type": "transaction",
+  "is_default": false,
+  "parent_id": ""
+}
+```
+
+**Request Parameters:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| name | string | No | Updated category name |
+| type | string | No | Updated category type |
+| is_default | boolean | No | Update default status |
+| parent_id | string | No | Update parent category |
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Category updated successfully",
+  "data": {
+    "id": "697ce57ea135e8c451bb2b46",
+    "name": "Food & Dining Updated",
+    "type": "transaction",
+    "is_default": false,
+    "parent_id": null,
+    "created_at": "2026-01-31T10:30:00Z",
+    "updated_at": "2026-01-31T10:35:00Z",
+    "deleted_at": null
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Invalid category ID or invalid data
+- `400 Bad Request` - Category name already exists
+- `401 Unauthorized` - Missing or invalid token
+- `403 Forbidden` - Admin access required
+- `404 Not Found` - Category not found
+
+---
+
+### 4. Delete Category (Admin Only - Soft Delete)
+Soft delete a category (marks as deleted without removing from database).
+
+**Endpoint:** `DELETE /v1/categories/{id}`
+
+**Authentication:** Required (Bearer Token - Admin)
+
+**Path Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | string | Yes | Category ID (MongoDB ObjectID) |
+
+**Example Request:**
+```
+DELETE /v1/categories/697ce57ea135e8c451bb2b46
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Category deleted successfully",
+  "data": null
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Invalid category ID
+- `401 Unauthorized` - Missing or invalid token
+- `403 Forbidden` - Admin access required
+- `404 Not Found` - Category not found
+
+---
+
+### 5. List All Categories
+Get a paginated list of all active categories.
+
+**Endpoint:** `GET /v1/categories`
+
+**Authentication:** Required (Bearer Token)
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| limit | integer | No | Number of results per page (default: 10) |
+| skip | integer | No | Number of results to skip (default: 0) |
+
+**Example Request:**
+```
+GET /v1/categories?limit=20&skip=0
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Categories retrieved successfully",
+  "data": [
+    {
+      "id": "697ce57ea135e8c451bb2b46",
+      "name": "Food & Dining",
+      "type": "transaction",
+      "is_default": true,
+      "parent_id": null,
+      "created_at": "2026-01-31T10:30:00Z",
+      "updated_at": "2026-01-31T10:30:00Z",
+      "deleted_at": null
+    },
+    {
+      "id": "697ce57ea135e8c451bb2b47",
+      "name": "Transportation",
+      "type": "transaction",
+      "is_default": false,
+      "parent_id": null,
+      "created_at": "2026-01-31T10:31:00Z",
+      "updated_at": "2026-01-31T10:31:00Z",
+      "deleted_at": null
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Invalid pagination parameters
+- `401 Unauthorized` - Missing or invalid token
+
+---
+
+### 6. List Categories by Type
+Get categories filtered by type (transaction or pocket).
+
+**Endpoint:** `GET /v1/categories/type/{type}`
+
+**Authentication:** Required (Bearer Token)
+
+**Path Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| type | string | Yes | Category type: `transaction` or `pocket` |
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| limit | integer | No | Number of results per page (default: 10) |
+| skip | integer | No | Number of results to skip (default: 0) |
+
+**Example Request:**
+```
+GET /v1/categories/type/transaction?limit=20&skip=0
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Categories retrieved successfully",
+  "data": [
+    {
+      "id": "697ce57ea135e8c451bb2b46",
+      "name": "Food & Dining",
+      "type": "transaction",
+      "is_default": true,
+      "parent_id": null,
+      "created_at": "2026-01-31T10:30:00Z",
+      "updated_at": "2026-01-31T10:30:00Z",
+      "deleted_at": null
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Invalid category type
+- `401 Unauthorized` - Missing or invalid token
+
+---
+
+### 7. List Subcategories
+Get all subcategories of a parent category.
+
+**Endpoint:** `GET /v1/categories/{parent_id}/subcategories`
+
+**Authentication:** Required (Bearer Token)
+
+**Path Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| parent_id | string | Yes | Parent category ID (MongoDB ObjectID) |
+
+**Example Request:**
+```
+GET /v1/categories/697ce57ea135e8c451bb2b46/subcategories
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Subcategories retrieved successfully",
+  "data": [
+    {
+      "id": "697ce57ea135e8c451bb2b48",
+      "name": "Restaurants",
+      "type": "transaction",
+      "is_default": false,
+      "parent_id": "697ce57ea135e8c451bb2b46",
+      "created_at": "2026-01-31T10:32:00Z",
+      "updated_at": "2026-01-31T10:32:00Z",
+      "deleted_at": null
+    },
+    {
+      "id": "697ce57ea135e8c451bb2b49",
+      "name": "Groceries",
+      "type": "transaction",
+      "is_default": false,
+      "parent_id": "697ce57ea135e8c451bb2b46",
+      "created_at": "2026-01-31T10:33:00Z",
+      "updated_at": "2026-01-31T10:33:00Z",
+      "deleted_at": null
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Invalid parent ID format
+- `401 Unauthorized` - Missing or invalid token
+
+---
+
 ## Error Responses
 
 ### Standard Error Response Format
@@ -615,6 +965,20 @@ All error responses follow this format:
 {
   "access_token": "string (JWT token)",
   "refresh_token": "string (JWT token)"
+}
+```
+
+### Category Response Model
+```json
+{
+  "id": "string (MongoDB ObjectID)",
+  "name": "string",
+  "type": "string (transaction, pocket)",
+  "is_default": "boolean",
+  "parent_id": "string (MongoDB ObjectID) or null",
+  "created_at": "string (ISO 8601 datetime)",
+  "updated_at": "string (ISO 8601 datetime)",
+  "deleted_at": "string (ISO 8601 datetime) or null"
 }
 ```
 

@@ -4,11 +4,12 @@ import (
 	"errors"
 	"time"
 
+	"github.com/HasanNugroho/coin-be/internal/core/config"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type JWTConfig struct {
-	Secret           string
+	Secret          string
 	AccessDuration  time.Duration
 	RefreshDuration time.Duration
 }
@@ -23,12 +24,12 @@ type JWTManager struct {
 	config JWTConfig
 }
 
-func NewJWTManager(secret string) *JWTManager {
+func NewJWTManager(config *config.Config) *JWTManager {
 	return &JWTManager{
 		config: JWTConfig{
-			Secret:           secret,
-			AccessDuration:  15 * time.Minute,
-			RefreshDuration: 7 * 24 * time.Hour,
+			Secret:          config.JWTSecret,
+			AccessDuration:  config.JWTDuration,
+			RefreshDuration: config.JWTRefreshDuration,
 		},
 	}
 }

@@ -50,7 +50,7 @@ func BuildContainer() (di.Container, error) {
 		Name: "jwtManager",
 		Build: func(ctn di.Container) (interface{}, error) {
 			cfg := ctn.Get("config").(*config.Config)
-			return utils.NewJWTManager(cfg.JWTSecret), nil
+			return utils.NewJWTManager(cfg), nil
 		},
 	})
 

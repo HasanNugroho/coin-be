@@ -15,6 +15,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/core/middleware"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/auth"
+	"github.com/HasanNugroho/coin-be/internal/modules/category"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
 )
 
@@ -56,6 +57,7 @@ func main() {
 	// Register modules
 	auth.Register(builder)
 	user.Register(builder)
+	category.Register(builder)
 
 	appContainer := builder.Build()
 
@@ -87,6 +89,12 @@ func main() {
 	userRoutes := api.Group("/v1/users")
 	userRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
 	user.RegisterRoutes(userRoutes, userController)
+
+	// Category routes (protected)
+	categoryController := appContainer.Get("categoryController").(*category.Controller)
+	categoryRoutes := api.Group("/v1/categories")
+	categoryRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	category.RegisterRoutes(categoryRoutes, categoryController)
 
 	log.Println("Server running on http://localhost:8080")
 	log.Println("Swagger docs available at http://localhost:8080/swagger/index.html")
