@@ -16,6 +16,8 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/auth"
 	"github.com/HasanNugroho/coin-be/internal/modules/category"
+	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
+	"github.com/HasanNugroho/coin-be/internal/modules/pocket_template"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
 )
 
@@ -58,6 +60,8 @@ func main() {
 	auth.Register(builder)
 	user.Register(builder)
 	category.Register(builder)
+	pocket_template.Register(builder)
+	pocket.Register(builder)
 
 	appContainer := builder.Build()
 
@@ -95,6 +99,18 @@ func main() {
 	categoryRoutes := api.Group("/v1/categories")
 	categoryRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
 	category.RegisterRoutes(categoryRoutes, categoryController)
+
+	// Pocket Template routes (protected, admin only)
+	pocketTemplateController := appContainer.Get("pocketTemplateController").(*pocket_template.Controller)
+	pocketTemplateRoutes := api.Group("/v1/pocket-templates")
+	pocketTemplateRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	pocket_template.RegisterRoutes(pocketTemplateRoutes, pocketTemplateController)
+
+	// Pocket routes (protected)
+	pocketController := appContainer.Get("pocketController").(*pocket.Controller)
+	pocketRoutes := api.Group("/v1/pockets")
+	pocketRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	pocket.RegisterRoutes(pocketRoutes, pocketController)
 
 	log.Println("Server running on http://localhost:8080")
 	log.Println("Swagger docs available at http://localhost:8080/swagger/index.html")

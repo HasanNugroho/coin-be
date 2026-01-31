@@ -36,6 +36,12 @@ func (c *Controller) Register(ctx *gin.Context) {
 		return
 	}
 
+	if err := utils.ValidateRequest(&req); err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
 	user, err := c.service.Register(ctx, &req)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
@@ -61,6 +67,12 @@ func (c *Controller) Register(ctx *gin.Context) {
 func (c *Controller) Login(ctx *gin.Context) {
 	var req dto.LoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	if err := utils.ValidateRequest(&req); err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
 		return
@@ -92,6 +104,12 @@ func (c *Controller) Login(ctx *gin.Context) {
 func (c *Controller) RefreshToken(ctx *gin.Context) {
 	var req dto.RefreshTokenRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	if err := utils.ValidateRequest(&req); err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
 		return

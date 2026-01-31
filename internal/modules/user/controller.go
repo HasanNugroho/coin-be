@@ -74,6 +74,12 @@ func (c *Controller) UpdateProfile(ctx *gin.Context) {
 		return
 	}
 
+	if err := utils.ValidateRequest(&req); err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
 	user, err := c.service.UpdateUser(ctx, userID.(string), &req)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())

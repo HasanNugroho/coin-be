@@ -37,6 +37,12 @@ func (c *Controller) CreateCategory(ctx *gin.Context) {
 		return
 	}
 
+	if err := utils.ValidateRequest(&req); err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
 	category, err := c.service.CreateCategory(ctx, &req)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
@@ -95,6 +101,12 @@ func (c *Controller) UpdateCategory(ctx *gin.Context) {
 
 	var req dto.UpdateCategoryRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	if err := utils.ValidateRequest(&req); err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
 		return
