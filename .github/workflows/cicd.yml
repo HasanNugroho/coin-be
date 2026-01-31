@@ -1,9 +1,12 @@
 name: CI/CD Coin backend
 
+# on:
+#   push:
+#     tags:
+#       - "v*.*.*"
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches: [master]
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKER_IMAGE }}
@@ -14,7 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: deploy
     env:
-      IMAGE_TAG: ${{ github.ref_name }} 
+      # IMAGE_TAG: ${{ github.ref_name }} 
+      IMAGE_TAG: ${{ github.sha }}
 
     steps:
       - name: Checkout repository
