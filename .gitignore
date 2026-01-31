@@ -45,3 +45,6 @@ dist/
 # Swagger
 docs/swagger.json
 docs/swagger.yaml
+
+api
+main

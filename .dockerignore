@@ -49,3 +49,4 @@ docker-compose.yml
 # Misc
 .air.toml
 Makefile
+api

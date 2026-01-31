@@ -1,0 +1,92 @@
+.PHONY: docker-help docker-build docker-up docker-down docker-logs docker-ps docker-clean \
+	docker-dev docker-prod docker-staging docker-restart docker-health docker-shell \
+	docker-mongodb docker-redis docker-app docker-backup docker-restore
+
+# Docker targets
+docker-help:
+	@echo "Docker Commands:"
+	@echo "  make docker-build          - Build Docker image"
+	@echo "  make docker-up             - Start all services"
+	@echo "  make docker-down           - Stop all services"
+	@echo "  make docker-logs           - View application logs"
+	@echo "  make docker-ps             - Show running containers"
+	@echo "  make docker-clean          - Remove containers and volumes"
+	@echo "  make docker-dev            - Start with development environment"
+	@echo "  make docker-prod           - Start with production environment"
+	@echo "  make docker-staging        - Start with staging environment"
+	@echo "  make docker-restart        - Restart all services"
+	@echo "  make docker-health         - Check service health"
+	@echo "  make docker-shell          - Open shell in app container"
+	@echo "  make docker-mongodb        - Open MongoDB shell"
+	@echo "  make docker-redis          - Open Redis CLI"
+	@echo "  make docker-backup         - Backup database volumes"
+	@echo "  make docker-restore        - Restore database volumes"
+
+docker-build:
+	docker build -t coin-be:latest .
+
+docker-up:
+	docker-compose up -d
+
+docker-down:
+	docker-compose down
+
+docker-logs:
+	docker-compose logs -f app
+
+docker-ps:
+	docker-compose ps
+
+docker-clean:
+	docker-compose down -v
+	docker system prune -f
+
+docker-dev:
+	cp .env.development .env
+	docker-compose up -d
+
+docker-prod:
+	cp .env.production .env
+	docker-compose up -d
+
+docker-staging:
+	cp .env.staging .env
+	docker-compose up -d
+
+docker-restart:
+	docker-compose restart
+
+docker-health:
+	@echo "Checking MongoDB..."
+	docker-compose exec mongodb mongosh localhost:27017/test --eval "db.runCommand('ping')" || echo "MongoDB unhealthy"
+	@echo "\nChecking Redis..."
+	docker-compose exec redis redis-cli ping || echo "Redis unhealthy"
+	@echo "\nChecking App..."
+	curl -s http://localhost:8080/api/health | jq . || echo "App unhealthy"
+
+docker-shell:
+	docker-compose exec app sh
+
+docker-mongodb:
+	docker-compose exec mongodb mongosh
+
+docker-redis:
+	docker-compose exec redis redis-cli
+
+docker-backup:
+	@echo "Backing up MongoDB..."
+	docker run --rm -v coin-be_mongodb_data:/data -v $$(pwd):/backup \
+		alpine tar czf /backup/mongodb_backup_$$(date +%Y%m%d_%H%M%S).tar.gz -C /data .
+	@echo "Backing up Redis..."
+	docker run --rm -v coin-be_redis_data:/data -v $$(pwd):/backup \
+		alpine tar czf /backup/redis_backup_$$(date +%Y%m%d_%H%M%S).tar.gz -C /data .
+
+docker-restore:
+	@echo "Restoring MongoDB..."
+	@read -p "Enter MongoDB backup filename: " file; \
+	docker run --rm -v coin-be_mongodb_data:/data -v $$(pwd):/backup \
+		alpine tar xzf /backup/$$file -C /data
+	@echo "Restoring Redis..."
+	@read -p "Enter Redis backup filename: " file; \
+	docker run --rm -v coin-be_redis_data:/data -v $$(pwd):/backup \
+		alpine tar xzf /backup/$$file -C /data
