@@ -8,6 +8,10 @@ RUN go mod download
 
 COPY . .
 
+# install swag
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
+RUN swag init -g cmd/api/main.go --output docs
 RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/api
 # RUN CGO_ENABLED=0 GOOS=linux go build -o seeder ./cmd/seeder
 
@@ -17,6 +21,7 @@ WORKDIR /root
 RUN apk add --no-cache ca-certificates wget
 
 COPY --from=builder /app/main .
+COPY --from=builder /app/docs .
 # COPY --from=builder /app/seeder .
 
 EXPOSE 8080
