@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Repository struct {
@@ -43,6 +44,73 @@ func (r *Repository) FindByID(ctx context.Context, id primitive.ObjectID, userID
 
 func (r *Repository) FindAllByUserID(ctx context.Context, userID primitive.ObjectID) ([]*UserCategory, error) {
 	cursor, err := r.categories.Find(ctx, bson.M{"user_id": userID, "is_deleted": false})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var categories []*UserCategory
+	if err = cursor.All(ctx, &categories); err != nil {
+		return nil, err
+	}
+	return categories, nil
+}
+
+func (r *Repository) FindAllParent(ctx context.Context, userID primitive.ObjectID, transactionType *string) ([]*UserCategory, error) {
+	filter := bson.M{
+		"user_id":    userID,
+		"is_deleted": false,
+		"parent_id":  nil,
+	}
+
+	if transactionType != nil && *transactionType != "" {
+		filter["transaction_type"] = *transactionType
+	}
+
+	opts := options.Find().SetProjection(bson.M{
+		"_id":              1,
+		"user_id":          1,
+		"parent_id":        1,
+		"name":             1,
+		"transaction_type": 1,
+		"color":            1,
+		"icon":             1,
+	})
+
+	cursor, err := r.categories.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var categories []*UserCategory
+	if err = cursor.All(ctx, &categories); err != nil {
+		return nil, err
+	}
+	return categories, nil
+}
+
+func (r *Repository) FindAllDropdown(ctx context.Context, userID primitive.ObjectID, transactionType *string) ([]*UserCategory, error) {
+	filter := bson.M{
+		"user_id":    userID,
+		"is_deleted": false,
+	}
+
+	if transactionType != nil && *transactionType != "" {
+		filter["transaction_type"] = *transactionType
+	}
+
+	opts := options.Find().SetProjection(bson.M{
+		"_id":              1,
+		"user_id":          1,
+		"parent_id":        1,
+		"name":             1,
+		"transaction_type": 1,
+		"color":            1,
+		"icon":             1,
+	})
+
+	cursor, err := r.categories.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}

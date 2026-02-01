@@ -436,7 +436,7 @@ func (c *Controller) mapToResponse(pocket *Pocket) *dto.PocketResponse {
 		Name:            pocket.Name,
 		Type:            pocket.Type,
 		CategoryID:      categoryID,
-		Balance:         pocket.Balance.Value(),
+		Balance:         utils.Decimal128ToFloat64(pocket.Balance),
 		IsDefault:       pocket.IsDefault,
 		IsActive:        pocket.IsActive,
 		IsLocked:        pocket.IsLocked,

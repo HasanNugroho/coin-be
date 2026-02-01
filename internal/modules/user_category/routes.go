@@ -8,6 +8,8 @@ func RegisterRoutes(r *gin.RouterGroup, controller *Controller) {
 	protected := r.Group("")
 	{
 		protected.GET("", controller.GetUserCategories)
+		protected.GET("/parent", controller.FindAllParent)
+		protected.GET("/dropdown", controller.FindAllDropdown)
 		protected.GET("/:id", controller.GetUserCategoryByID)
 		protected.POST("", controller.CreateUserCategory)
 		protected.PUT("/:id", controller.UpdateUserCategory)

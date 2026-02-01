@@ -14,7 +14,7 @@ type Pocket struct {
 	Type       string              `bson:"type" json:"type" enums:"main,allocation,saving,debt,system"`
 	CategoryID *primitive.ObjectID `bson:"category_id,omitempty" json:"category_id,omitempty"`
 
-	Balance decimal128 `bson:"balance" json:"balance"`
+	Balance primitive.Decimal128 `bson:"balance" json:"balance"`
 
 	IsDefault bool `bson:"is_default" json:"is_default"`
 	IsActive  bool `bson:"is_active" json:"is_active"`
@@ -38,15 +38,3 @@ const (
 	TypeDebt       PocketType = "debt"
 	TypeSystem     PocketType = "system"
 )
-
-type decimal128 struct {
-	value float64
-}
-
-func NewDecimal128(value float64) decimal128 {
-	return decimal128{value: value}
-}
-
-func (d decimal128) Value() float64 {
-	return d.value
-}

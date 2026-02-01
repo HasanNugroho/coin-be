@@ -10,8 +10,8 @@ import (
 )
 
 type Service struct {
-	repo                  *Repository
-	categoryTemplateDB    *mongo.Database
+	repo               *Repository
+	categoryTemplateDB *mongo.Database
 }
 
 func NewService(r *Repository, db *mongo.Database) *Service {
@@ -102,6 +102,24 @@ func (s *Service) GetUserCategories(ctx context.Context, userID string) ([]*User
 	}
 
 	return s.repo.FindAllByUserID(ctx, userObjID)
+}
+
+func (s *Service) FindAllParent(ctx context.Context, userID string, transactionType *string) ([]*UserCategory, error) {
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user id")
+	}
+
+	return s.repo.FindAllParent(ctx, userObjID, transactionType)
+}
+
+func (s *Service) FindAllDropdown(ctx context.Context, userID string, transactionType *string) ([]*UserCategory, error) {
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user id")
+	}
+
+	return s.repo.FindAllDropdown(ctx, userObjID, transactionType)
 }
 
 func (s *Service) UpdateUserCategory(ctx context.Context, id string, userID string, req *dto.UpdateUserCategoryRequest) (*UserCategory, error) {

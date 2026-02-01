@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket/dto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -46,7 +47,7 @@ func (s *Service) CreatePocket(ctx context.Context, userID string, req *dto.Crea
 		Name:            req.Name,
 		Type:            req.Type,
 		CategoryID:      categoryID,
-		Balance:         NewDecimal128(0),
+		Balance:         utils.NewDecimal128FromFloat(0),
 		IsDefault:       req.Type == string(TypeMain),
 		IsActive:        true,
 		IsLocked:        false,
@@ -183,7 +184,7 @@ func (s *Service) ToggleLockPocket(ctx context.Context, userID string, pocketID 
 		return errors.New("pocket is already " + state)
 	}
 
-	if pocket.Balance.value != 0 {
+	if utils.Decimal128ToFloat64(pocket.Balance) != 0 {
 		return errors.New("pocket balance is not zero")
 	}
 
@@ -226,7 +227,7 @@ func (s *Service) DeletePocket(ctx context.Context, userID string, pocketID stri
 		return errors.New("pocket is locked")
 	}
 
-	if pocket.Balance.value != 0 {
+	if utils.Decimal128ToFloat64(pocket.Balance) != 0 {
 		return errors.New("pocket balance is not zero")
 	}
 
@@ -289,7 +290,7 @@ func (s *Service) CreateSystemPocket(ctx context.Context, userID string, req *dt
 		Name:            req.Name,
 		Type:            string(TypeSystem),
 		CategoryID:      categoryID,
-		Balance:         NewDecimal128(0),
+		Balance:         utils.NewDecimal128FromFloat(0),
 		IsDefault:       false,
 		IsActive:        true,
 		IsLocked:        true,

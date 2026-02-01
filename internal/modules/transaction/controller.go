@@ -169,30 +169,30 @@ func (c *Controller) ListPocketTransactions(ctx *gin.Context) {
 
 	pocketID := ctx.Param("pocket_id")
 
-	limit := int64(10)
-	skip := int64(0)
+	// Parse pagination parameters
+	pagination := utils.ParsePaginationParams(ctx, 10)
 
-	if l := ctx.Query("limit"); l != "" {
-		if parsed, err := strconv.ParseInt(l, 10, 64); err == nil {
-			limit = parsed
-		}
-	}
+	// Parse sorting parameters (allowed fields: date, amount)
+	allowedFields := []string{"date", "amount"}
+	sorting := utils.ParseSortParams(ctx, allowedFields, "date")
 
-	if s := ctx.Query("skip"); s != "" {
-		if parsed, err := strconv.ParseInt(s, 10, 64); err == nil {
-			skip = parsed
-		}
-	}
-
-	transactions, err := c.service.GetPocketTransactions(ctx, userID.(string), pocketID, limit, skip)
+	// Fetch transactions with pagination and sorting
+	transactions, total, err := c.service.GetPocketTransactionsWithSort(ctx, userID.(string), pocketID, pagination.Page, pagination.PageSize, sorting.SortBy, sorting.SortOrder)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
+	// Convert to response DTOs
 	txsResp := c.mapToResponseList(transactions)
-	resp := utils.NewSuccessResponse("Transactions retrieved successfully", txsResp)
+
+	// Calculate pagination metadata
+	meta := utils.CalculatePaginationMeta(total, pagination.Page, pagination.PageSize)
+
+	// Build paginated response
+	respData := utils.BuildPaginatedResponse(txsResp, meta)
+	resp := utils.NewSuccessResponse("Transactions retrieved successfully", respData)
 	ctx.JSON(http.StatusOK, resp)
 }
 

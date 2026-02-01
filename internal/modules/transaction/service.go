@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction/dto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -226,7 +227,7 @@ func (s *Service) validateSufficientBalance(ctx context.Context, txType string, 
 		return err
 	}
 
-	if pocket.Balance.Value() < amount {
+	if utils.Decimal128ToFloat64(pocket.Balance) < amount {
 		return errors.New("insufficient balance")
 	}
 
@@ -241,7 +242,9 @@ func (s *Service) updatePocketBalances(ctx context.Context, txType string, pocke
 			if err != nil {
 				return err
 			}
-			pocketData.Balance = pocket.NewDecimal128(pocketData.Balance.Value() + amount)
+
+			pocketData.Balance = utils.AddDecimal128(pocketData.Balance, amount)
+
 			if err := s.pocketRepo.UpdatePocket(ctx, *pocketTo, pocketData); err != nil {
 				return err
 			}
@@ -253,7 +256,7 @@ func (s *Service) updatePocketBalances(ctx context.Context, txType string, pocke
 			if err != nil {
 				return err
 			}
-			pocketData.Balance = pocket.NewDecimal128(pocketData.Balance.Value() - amount)
+			pocketData.Balance = utils.AddDecimal128(pocketData.Balance, -amount)
 			if err := s.pocketRepo.UpdatePocket(ctx, *pocketFrom, pocketData); err != nil {
 				return err
 			}
@@ -265,7 +268,7 @@ func (s *Service) updatePocketBalances(ctx context.Context, txType string, pocke
 			if err != nil {
 				return err
 			}
-			pocketFromData.Balance = pocket.NewDecimal128(pocketFromData.Balance.Value() - amount)
+			pocketFromData.Balance = utils.AddDecimal128(pocketFromData.Balance, -amount)
 			if err := s.pocketRepo.UpdatePocket(ctx, *pocketFrom, pocketFromData); err != nil {
 				return err
 			}
@@ -276,7 +279,7 @@ func (s *Service) updatePocketBalances(ctx context.Context, txType string, pocke
 			if err != nil {
 				return err
 			}
-			pocketToData.Balance = pocket.NewDecimal128(pocketToData.Balance.Value() + amount)
+			pocketToData.Balance = utils.AddDecimal128(pocketToData.Balance, amount)
 			if err := s.pocketRepo.UpdatePocket(ctx, *pocketTo, pocketToData); err != nil {
 				return err
 			}
@@ -288,7 +291,7 @@ func (s *Service) updatePocketBalances(ctx context.Context, txType string, pocke
 			if err != nil {
 				return err
 			}
-			pocketData.Balance = pocket.NewDecimal128(pocketData.Balance.Value() - amount)
+			pocketData.Balance = utils.AddDecimal128(pocketData.Balance, -amount)
 			if err := s.pocketRepo.UpdatePocket(ctx, *pocketFrom, pocketData); err != nil {
 				return err
 			}
@@ -300,7 +303,7 @@ func (s *Service) updatePocketBalances(ctx context.Context, txType string, pocke
 			if err != nil {
 				return err
 			}
-			pocketData.Balance = pocket.NewDecimal128(pocketData.Balance.Value() - amount)
+			pocketData.Balance = utils.AddDecimal128(pocketData.Balance, -amount)
 			if err := s.pocketRepo.UpdatePocket(ctx, *pocketFrom, pocketData); err != nil {
 				return err
 			}
@@ -363,6 +366,29 @@ func (s *Service) GetPocketTransactions(ctx context.Context, userID string, pock
 	}
 
 	return s.repo.GetTransactionsByPocketID(ctx, pocketObjID, limit, skip)
+}
+
+func (s *Service) GetPocketTransactionsWithSort(ctx context.Context, userID string, pocketID string, page int64, pageSize int64, sortBy string, sortOrder string) ([]*Transaction, int64, error) {
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, 0, errors.New("invalid user id")
+	}
+
+	pocketObjID, err := primitive.ObjectIDFromHex(pocketID)
+	if err != nil {
+		return nil, 0, errors.New("invalid pocket id")
+	}
+
+	pocket, err := s.pocketRepo.GetPocketByID(ctx, pocketObjID)
+	if err != nil {
+		return nil, 0, errors.New("pocket not found")
+	}
+
+	if pocket.UserID != userObjID {
+		return nil, 0, errors.New("unauthorized")
+	}
+
+	return s.repo.GetTransactionsByPocketIDWithSort(ctx, pocketObjID, page, pageSize, sortBy, sortOrder)
 }
 
 func (s *Service) DeleteTransaction(ctx context.Context, userID string, transactionID string) error {

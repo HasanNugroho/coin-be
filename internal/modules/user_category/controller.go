@@ -98,6 +98,70 @@ func (c *Controller) GetUserCategoryByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+func (c *Controller) FindAllParent(ctx *gin.Context) {
+	transactionType := ctx.Query("type")
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		resp := utils.NewErrorResponse(http.StatusUnauthorized, "user id not found in context")
+		ctx.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+
+	// Prepare filter
+	var typeFilter *string
+	if transactionType != "" {
+		typeFilter = &transactionType
+	}
+
+	userIDStr := userID.(string)
+	categories, err := c.service.FindAllParent(ctx, userIDStr, typeFilter)
+	if err != nil {
+		resp := utils.NewErrorResponse(http.StatusNotFound, err.Error())
+		ctx.JSON(http.StatusNotFound, resp)
+		return
+	}
+
+	categoryResps := make([]*dto.SimpleUserCategoryResponse, len(categories))
+	for i, category := range categories {
+		categoryResps[i] = c.mapToSimpleResponse(category)
+	}
+
+	resp := utils.NewSuccessResponse("User category retrieved successfully", categoryResps)
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func (c *Controller) FindAllDropdown(ctx *gin.Context) {
+	transactionType := ctx.Query("type")
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		resp := utils.NewErrorResponse(http.StatusUnauthorized, "user id not found in context")
+		ctx.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+
+	// Prepare filter
+	var typeFilter *string
+	if transactionType != "" {
+		typeFilter = &transactionType
+	}
+
+	userIDStr := userID.(string)
+	categories, err := c.service.FindAllDropdown(ctx, userIDStr, typeFilter)
+	if err != nil {
+		resp := utils.NewErrorResponse(http.StatusNotFound, err.Error())
+		ctx.JSON(http.StatusNotFound, resp)
+		return
+	}
+
+	categoryResps := make([]*dto.SimpleUserCategoryResponse, len(categories))
+	for i, category := range categories {
+		categoryResps[i] = c.mapToSimpleResponse(category)
+	}
+
+	resp := utils.NewSuccessResponse("User category retrieved successfully", categoryResps)
+	ctx.JSON(http.StatusOK, resp)
+}
+
 func (c *Controller) UpdateUserCategory(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
@@ -183,5 +247,21 @@ func (c *Controller) mapToResponse(category *UserCategory) *dto.UserCategoryResp
 		CreatedAt:       category.CreatedAt,
 		UpdatedAt:       category.UpdatedAt,
 		DeletedAt:       category.DeletedAt,
+	}
+}
+
+func (c *Controller) mapToSimpleResponse(category *UserCategory) *dto.SimpleUserCategoryResponse {
+	var parentID string
+	if category.ParentID != nil {
+		parentID = category.ParentID.Hex()
+	}
+
+	return &dto.SimpleUserCategoryResponse{
+		ID:       category.ID.Hex(),
+		UserID:   category.UserID.Hex(),
+		ParentID: parentID,
+		Name:     category.Name,
+		Color:    category.Color,
+		Icon:     category.Icon,
 	}
 }
