@@ -345,6 +345,15 @@ func (s *Service) GetUserTransactions(ctx context.Context, userID string, limit 
 	return s.repo.GetTransactionsByUserID(ctx, userObjID, limit, skip)
 }
 
+func (s *Service) GetUserTransactionsWithSort(ctx context.Context, userID string, txType *string, search *string, page int64, pageSize int64, sortBy string, sortOrder string) ([]*Transaction, int64, error) {
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, 0, errors.New("invalid user id")
+	}
+
+	return s.repo.GetTransactionsByUserIDWithSort(ctx, userObjID, txType, search, page, pageSize, sortBy, sortOrder)
+}
+
 func (s *Service) GetPocketTransactions(ctx context.Context, userID string, pocketID string, limit int64, skip int64) ([]*Transaction, error) {
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {

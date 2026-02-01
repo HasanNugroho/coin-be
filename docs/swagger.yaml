@@ -1,38 +1,5 @@
 basePath: /api
 definitions:
-  dto.CreateCategoryRequest:
-    properties:
-      color:
-        maxLength: 50
-        type: string
-      description:
-        maxLength: 500
-        type: string
-      icon:
-        maxLength: 100
-        type: string
-      is_default:
-        type: boolean
-      name:
-        maxLength: 255
-        minLength: 1
-        type: string
-      parent_id:
-        type: string
-      transaction_type:
-        enum:
-        - income
-        - expense
-        type: string
-      type:
-        enum:
-        - transaction
-        - pocket
-        type: string
-    required:
-    - name
-    - type
-    type: object
   dto.CreatePlatformRequest:
     properties:
       is_active:
@@ -85,8 +52,6 @@ definitions:
       background_color:
         maxLength: 50
         type: string
-      category_id:
-        type: string
       icon:
         maxLength: 100
         type: string
@@ -112,7 +77,6 @@ definitions:
         - allocation
         type: string
     required:
-    - category_id
     - name
     - type
     type: object
@@ -158,11 +122,11 @@ definitions:
         type: string
       type:
         enum:
-        - INCOME
-        - EXPENSE
-        - TRANSFER
-        - DEBT_PAYMENT
-        - WITHDRAW
+        - income
+        - expense
+        - transfer
+        - dp
+        - withdraw
         type: string
     required:
     - amount
@@ -208,36 +172,6 @@ definitions:
     - email
     - name
     - password
-    type: object
-  dto.UpdateCategoryRequest:
-    properties:
-      color:
-        maxLength: 50
-        type: string
-      description:
-        maxLength: 500
-        type: string
-      icon:
-        maxLength: 100
-        type: string
-      is_default:
-        type: boolean
-      name:
-        maxLength: 255
-        minLength: 1
-        type: string
-      parent_id:
-        type: string
-      transaction_type:
-        enum:
-        - income
-        - expense
-        type: string
-      type:
-        enum:
-        - transaction
-        - pocket
-        type: string
     type: object
   dto.UpdatePlatformRequest:
     properties:
@@ -286,8 +220,6 @@ definitions:
     properties:
       background_color:
         maxLength: 50
-        type: string
-      category_id:
         type: string
       icon:
         maxLength: 100
@@ -615,254 +547,6 @@ paths:
       summary: Validate token
       tags:
       - Auth
-  /v1/categories:
-    get:
-      consumes:
-      - application/json
-      description: Get a paginated list of all categories
-      parameters:
-      - description: 'Limit (default: 10)'
-        in: query
-        name: limit
-        type: integer
-      - description: 'Skip (default: 0)'
-        in: query
-        name: skip
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Categories retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: List all categories
-      tags:
-      - Categories
-    post:
-      consumes:
-      - application/json
-      description: Create a new transaction or pocket category (admin only)
-      parameters:
-      - description: Category details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateCategoryRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Category created successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Admin access required
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Create a new category
-      tags:
-      - Categories
-  /v1/categories/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Soft delete a category (admin only)
-      parameters:
-      - description: Category ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Category deleted successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid category ID
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Admin access required
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Category not found
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Delete category
-      tags:
-      - Categories
-    get:
-      consumes:
-      - application/json
-      description: Get a specific category by ID
-      parameters:
-      - description: Category ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Category retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid category ID
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Category not found
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get category by ID
-      tags:
-      - Categories
-    put:
-      consumes:
-      - application/json
-      description: Update a category (admin only)
-      parameters:
-      - description: Category ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Category update details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.UpdateCategoryRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Category updated successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties: true
-            type: object
-        "403":
-          description: Admin access required
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Category not found
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Update category
-      tags:
-      - Categories
-  /v1/categories/{parent_id}/subcategories:
-    get:
-      consumes:
-      - application/json
-      description: Get all subcategories of a parent category
-      parameters:
-      - description: Parent Category ID
-        in: path
-        name: parent_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Subcategories retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Invalid parent ID
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: List subcategories
-      tags:
-      - Categories
-  /v1/categories/type/{type}:
-    get:
-      consumes:
-      - application/json
-      description: Get categories filtered by type (transaction or pocket)
-      parameters:
-      - description: Category type (transaction or pocket)
-        in: query
-        name: type
-        required: true
-        type: string
-      - description: 'Limit (default: 10)'
-        in: query
-        name: limit
-        type: integer
-      - description: 'Skip (default: 0)'
-        in: query
-        name: skip
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Categories retrieved successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: List categories by type
-      tags:
-      - Categories
   /v1/platforms:
     get:
       consumes:

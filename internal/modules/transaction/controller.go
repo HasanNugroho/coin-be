@@ -2,7 +2,6 @@ package transaction
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction/dto"
@@ -118,30 +117,45 @@ func (c *Controller) ListUserTransactions(ctx *gin.Context) {
 		return
 	}
 
-	limit := int64(10)
-	skip := int64(0)
+	// Get query parameters
+	transactionType := ctx.Query("type")
 
-	if l := ctx.Query("limit"); l != "" {
-		if parsed, err := strconv.ParseInt(l, 10, 64); err == nil {
-			limit = parsed
-		}
+	// Parse pagination parameters
+	pagination := utils.ParsePaginationParams(ctx, 10)
+
+	// Parse sorting parameters (allowed fields: date, amount)
+	allowedFields := []string{"date", "amount"}
+	sorting := utils.ParseSortParams(ctx, allowedFields, "date")
+
+	// Prepare filter
+	var typeFilter *string
+	if transactionType != "" {
+		typeFilter = &transactionType
 	}
 
-	if s := ctx.Query("skip"); s != "" {
-		if parsed, err := strconv.ParseInt(s, 10, 64); err == nil {
-			skip = parsed
-		}
+	search := ctx.Query("search")
+	var searchFilter *string
+	if search != "" {
+		searchFilter = &search
 	}
 
-	transactions, err := c.service.GetUserTransactions(ctx, userID.(string), limit, skip)
+	// Fetch transactions with filter, pagination and sorting
+	transactions, total, err := c.service.GetUserTransactionsWithSort(ctx, userID.(string), typeFilter, searchFilter, pagination.Page, pagination.PageSize, sorting.SortBy, sorting.SortOrder)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
+	// Convert to response DTOs
 	txsResp := c.mapToResponseList(transactions)
-	resp := utils.NewSuccessResponse("Transactions retrieved successfully", txsResp)
+
+	// Calculate pagination metadata
+	meta := utils.CalculatePaginationMeta(total, pagination.Page, pagination.PageSize)
+
+	// Build paginated response
+	respData := utils.BuildPaginatedResponse(txsResp, meta)
+	resp := utils.NewSuccessResponse("Transactions retrieved successfully", respData)
 	ctx.JSON(http.StatusOK, resp)
 }
 

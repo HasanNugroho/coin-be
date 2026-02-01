@@ -3,6 +3,8 @@ package transaction
 import (
 	"context"
 	"errors"
+	"regexp"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -54,6 +56,73 @@ func (r *Repository) GetTransactionsByUserID(ctx context.Context, userID primiti
 		return nil, err
 	}
 	return transactions, nil
+}
+
+func (r *Repository) GetTransactionsByUserIDWithSort(
+	ctx context.Context,
+	userID primitive.ObjectID,
+	txType *string,
+	search *string,
+	page int64,
+	pageSize int64,
+	sortBy string,
+	sortOrder string,
+) ([]*Transaction, int64, error) {
+
+	filter := bson.M{
+		"user_id":    userID,
+		"deleted_at": nil,
+	}
+
+	if txType != nil && *txType != "" {
+		filter["type"] = *txType
+	}
+
+	if search != nil && *search != "" {
+		keyword := regexp.QuoteMeta(strings.TrimSpace(*search))
+
+		filter["$or"] = []bson.M{
+			{"note": bson.M{"$regex": keyword, "$options": "i"}},
+			{"ref": bson.M{"$regex": keyword, "$options": "i"}},
+		}
+	}
+
+	// total count
+	total, err := r.transactions.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// sort order
+	sortValue := int32(-1)
+	if sortOrder == "asc" {
+		sortValue = 1
+	}
+
+	skip := (page - 1) * pageSize
+	if skip < 0 {
+		skip = 0
+	}
+
+	sort := bson.D{{Key: sortBy, Value: sortValue}}
+
+	opts := options.Find().
+		SetLimit(pageSize).
+		SetSkip(skip).
+		SetSort(sort)
+
+	cursor, err := r.transactions.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var transactions []*Transaction
+	if err := cursor.All(ctx, &transactions); err != nil {
+		return nil, 0, err
+	}
+
+	return transactions, total, nil
 }
 
 func (r *Repository) GetTransactionsByPocketID(ctx context.Context, pocketID primitive.ObjectID, limit int64, skip int64) ([]*Transaction, error) {
@@ -162,4 +231,20 @@ func (r *Repository) GetTransactionsByUserIDAndType(ctx context.Context, userID 
 		return nil, err
 	}
 	return transactions, nil
+}
+
+func (r *Repository) EnsureIndexes(ctx context.Context) error {
+	indexes := []mongo.IndexModel{
+		{
+			Keys: bson.D{
+				{Key: "note", Value: "text"},
+				{Key: "ref", Value: "text"},
+			},
+			Options: options.Index().
+				SetName("idx_transactions_note_ref_text"),
+		},
+	}
+
+	_, err := r.transactions.Indexes().CreateMany(ctx, indexes)
+	return err
 }

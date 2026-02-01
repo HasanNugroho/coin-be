@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"context"
+
 	"github.com/HasanNugroho/coin-be/internal/core/config"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/sarulabs/di/v2"
@@ -13,7 +15,13 @@ func Register(builder *di.Builder) {
 		Build: func(ctn di.Container) (interface{}, error) {
 			cfg := ctn.Get("config").(*config.Config)
 			client := ctn.Get("mongo").(*mongo.Client)
-			return NewRepository(client.Database(cfg.MongoDB)), nil
+			repo := NewRepository(client.Database(cfg.MongoDB))
+
+			if err := repo.EnsureIndexes(context.Background()); err != nil {
+				return nil, err
+			}
+
+			return repo, nil
 		},
 	})
 
