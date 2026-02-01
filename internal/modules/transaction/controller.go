@@ -147,14 +147,11 @@ func (c *Controller) ListUserTransactions(ctx *gin.Context) {
 		return
 	}
 
-	// Convert to response DTOs
-	txsResp := c.mapToResponseList(transactions)
-
 	// Calculate pagination metadata
 	meta := utils.CalculatePaginationMeta(total, pagination.Page, pagination.PageSize)
 
 	// Build paginated response
-	respData := utils.BuildPaginatedResponse(txsResp, meta)
+	respData := utils.BuildPaginatedResponse(transactions, meta)
 	resp := utils.NewSuccessResponse("Transactions retrieved successfully", respData)
 	ctx.JSON(http.StatusOK, resp)
 }
@@ -198,14 +195,11 @@ func (c *Controller) ListPocketTransactions(ctx *gin.Context) {
 		return
 	}
 
-	// Convert to response DTOs
-	txsResp := c.mapToResponseList(transactions)
-
 	// Calculate pagination metadata
 	meta := utils.CalculatePaginationMeta(total, pagination.Page, pagination.PageSize)
 
 	// Build paginated response
-	respData := utils.BuildPaginatedResponse(txsResp, meta)
+	respData := utils.BuildPaginatedResponse(transactions, meta)
 	resp := utils.NewSuccessResponse("Transactions retrieved successfully", respData)
 	ctx.JSON(http.StatusOK, resp)
 }

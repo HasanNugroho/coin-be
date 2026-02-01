@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/HasanNugroho/coin-be/internal/modules/transaction/dto"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -67,34 +68,28 @@ func (r *Repository) GetTransactionsByUserIDWithSort(
 	pageSize int64,
 	sortBy string,
 	sortOrder string,
-) ([]*Transaction, int64, error) {
+) ([]*dto.TransactionResponse, int64, error) {
 
-	filter := bson.M{
+	// 1. Build match filter
+	match := bson.M{
 		"user_id":    userID,
 		"deleted_at": nil,
 	}
 
 	if txType != nil && *txType != "" {
-		filter["type"] = *txType
+		match["type"] = *txType
 	}
 
 	if search != nil && *search != "" {
 		keyword := regexp.QuoteMeta(strings.TrimSpace(*search))
-
-		filter["$or"] = []bson.M{
+		match["$or"] = []bson.M{
 			{"note": bson.M{"$regex": keyword, "$options": "i"}},
 			{"ref": bson.M{"$regex": keyword, "$options": "i"}},
 		}
 	}
 
-	// total count
-	total, err := r.transactions.CountDocuments(ctx, filter)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// sort order
-	sortValue := int32(-1)
+	// 2. Sort order
+	sortValue := -1
 	if sortOrder == "asc" {
 		sortValue = 1
 	}
@@ -104,21 +99,70 @@ func (r *Repository) GetTransactionsByUserIDWithSort(
 		skip = 0
 	}
 
-	sort := bson.D{{Key: sortBy, Value: sortValue}}
+	// 3. Build aggregation pipeline
+	pipeline := mongo.Pipeline{
+		// Match stage
+		{{Key: "$match", Value: match}},
 
-	opts := options.Find().
-		SetLimit(pageSize).
-		SetSkip(skip).
-		SetSort(sort)
+		// Lookup category
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         "user_categories",
+				"localField":   "category_id",
+				"foreignField": "_id",
+				"as":           "category",
+			},
+		}},
 
-	cursor, err := r.transactions.Find(ctx, filter, opts)
+		// Unwind category array
+		{{Key: "$unwind", Value: bson.M{"path": "$category", "preserveNullAndEmptyArrays": true}}},
+
+		// Sort
+		{{Key: "$sort", Value: bson.D{{Key: sortBy, Value: sortValue}}}},
+
+		// Pagination
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: pageSize}},
+
+		// Project fields to TransactionResponse
+		{{
+			Key: "$project",
+			Value: bson.M{
+				"id":            bson.M{"$toString": "$_id"},
+				"user_id":       bson.M{"$toString": "$user_id"},
+				"type":          "$type",
+				"amount":        "$amount",
+				"pocket_from":   "$pocket_from",
+				"pocket_to":     "$pocket_to",
+				"category_id":   bson.M{"$toString": "$category_id"},
+				"category_name": "$category.name",
+				"platform_id":   "$platform_id",
+				"note":          "$note",
+				"date":          "$date",
+				"ref":           "$ref",
+				"created_at":    "$created_at",
+				"updated_at":    "$updated_at",
+				"deleted_at":    "$deleted_at",
+			},
+		}},
+	}
+
+	// 4. Execute aggregation
+	cursor, err := r.transactions.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, 0, err
 	}
 	defer cursor.Close(ctx)
 
-	var transactions []*Transaction
+	var transactions []*dto.TransactionResponse
 	if err := cursor.All(ctx, &transactions); err != nil {
+		return nil, 0, err
+	}
+
+	// 5. Count total documents (for pagination metadata)
+	total, err := r.transactions.CountDocuments(ctx, match)
+	if err != nil {
 		return nil, 0, err
 	}
 
