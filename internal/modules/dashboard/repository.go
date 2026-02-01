@@ -129,9 +129,7 @@ func (r *Repository) GetLiveDeltaSummary(ctx context.Context, userID primitive.O
 		{{Key: "$match", Value: bson.M{
 			"user_id":    userID,
 			"deleted_at": nil,
-			"date": bson.M{
-				"$gte": startDate,
-			},
+			"date":       bson.M{"$gte": startDate},
 		}}},
 		{{Key: "$group", Value: bson.M{
 			"_id": bson.M{
@@ -160,49 +158,68 @@ func (r *Repository) GetLiveDeltaSummary(ctx context.Context, userID primitive.O
 		return 0, 0, nil, err
 	}
 
-	var totalIncome, totalExpense float64
-	categoryMap := make(map[string]*CategoryBreakdown)
-
-	for _, result := range results {
-		txType := result.ID.Type
-		amount := result.Amount
-
-		if txType == "income" {
-			totalIncome += amount
-		} else if txType == "expense" {
-			totalExpense += amount
+	categoryIDs := make([]primitive.ObjectID, 0)
+	for _, r := range results {
+		if r.ID.CategoryID != nil {
+			categoryIDs = append(categoryIDs, *r.ID.CategoryID)
 		}
+	}
 
-		if txType == "income" || txType == "expense" {
-			key := txType + "_"
-			if result.ID.CategoryID != nil {
-				key += result.ID.CategoryID.Hex()
-			} else {
-				key += "uncategorized"
+	categoryMapDB := make(map[primitive.ObjectID]string)
+	if len(categoryIDs) > 0 {
+		cursor, err := r.userCategories.Find(ctx, bson.M{"_id": bson.M{"$in": categoryIDs}})
+		if err == nil {
+			defer cursor.Close(ctx)
+			var categories []struct {
+				ID   primitive.ObjectID `bson:"_id"`
+				Name string             `bson:"name"`
 			}
-
-			categoryName := "Uncategorized"
-			if result.ID.CategoryID != nil {
-				var category struct {
-					Name string `bson:"name"`
+			if err := cursor.All(ctx, &categories); err == nil {
+				for _, cat := range categories {
+					categoryMapDB[cat.ID] = cat.Name
 				}
-				err := r.userCategories.FindOne(ctx, bson.M{"_id": result.ID.CategoryID}).Decode(&category)
-				if err == nil {
-					categoryName = category.Name
-				}
-			}
-
-			categoryMap[key] = &CategoryBreakdown{
-				CategoryID:   result.ID.CategoryID,
-				CategoryName: categoryName,
-				Type:         txType,
-				Amount:       amount,
 			}
 		}
 	}
 
-	categories := make([]CategoryBreakdown, 0, len(categoryMap))
-	for _, cat := range categoryMap {
+	totalIncome, totalExpense := 0.0, 0.0
+	categoryBreakdowns := make(map[string]*CategoryBreakdown)
+
+	for _, r := range results {
+		amount := r.Amount
+		txType := r.ID.Type
+
+		switch txType {
+		case "income":
+			totalIncome += amount
+		case "expense":
+			totalExpense += amount
+		}
+
+		key := txType + "_"
+		if r.ID.CategoryID != nil {
+			key += r.ID.CategoryID.Hex()
+		} else {
+			key += "uncategorized"
+		}
+
+		categoryName := "Uncategorized"
+		if r.ID.CategoryID != nil {
+			if name, ok := categoryMapDB[*r.ID.CategoryID]; ok {
+				categoryName = name
+			}
+		}
+
+		categoryBreakdowns[key] = &CategoryBreakdown{
+			CategoryID:   r.ID.CategoryID,
+			CategoryName: categoryName,
+			Type:         txType,
+			Amount:       amount,
+		}
+	}
+
+	categories := make([]CategoryBreakdown, 0, len(categoryBreakdowns))
+	for _, cat := range categoryBreakdowns {
 		categories = append(categories, *cat)
 	}
 
