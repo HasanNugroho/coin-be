@@ -32,6 +32,33 @@ func Register(builder *di.Builder) {
 			return NewAggregationHelper(client.Database(cfg.MongoDB)), nil
 		},
 	})
+
+	builder.Add(di.Def{
+		Name: "dashboardService",
+		Build: func(ctn di.Container) (interface{}, error) {
+			repo := ctn.Get("reportingRepository").(*Repository)
+			aggregationHelper := ctn.Get("reportingAggregationHelper").(*AggregationHelper)
+			return NewService(repo, aggregationHelper), nil
+		},
+	})
+
+	builder.Add(di.Def{
+		Name: "dashboardController",
+		Build: func(ctn di.Container) (interface{}, error) {
+			dashboardService := ctn.Get("dashboardService").(*DashboardService)
+			return NewDashboardController(dashboardService), nil
+		},
+	})
+
+	builder.Add(di.Def{
+		Name: "reportingCronScheduler",
+		Build: func(ctn di.Container) (interface{}, error) {
+			cfg := ctn.Get("config").(*config.Config)
+			client := ctn.Get("mongo").(*mongo.Client)
+			repo := ctn.Get("reportingRepository").(*Repository)
+			return NewCronScheduler(client.Database(cfg.MongoDB), repo), nil
+		},
+	})
 }
 
 // EnsureIndexes creates all necessary indexes for reporting collections

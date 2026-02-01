@@ -10,10 +10,10 @@ import (
 )
 
 type DashboardController struct {
-	service *Service
+	service *DashboardService
 }
 
-func NewDashboardController(service *Service) *DashboardController {
+func NewDashboardController(service *DashboardService) *DashboardController {
 	return &DashboardController{service: service}
 }
 

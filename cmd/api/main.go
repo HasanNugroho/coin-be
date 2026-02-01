@@ -2,6 +2,9 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sarulabs/di/v2"
@@ -19,6 +22,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/modules/platform"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket_template"
+	"github.com/HasanNugroho/coin-be/internal/modules/reporting"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
 	"github.com/HasanNugroho/coin-be/internal/modules/user_category"
@@ -68,6 +72,7 @@ func main() {
 	pocket_template.Register(builder)
 	pocket.Register(builder)
 	transaction.Register(builder)
+	reporting.Register(builder)
 
 	appContainer := builder.Build()
 
@@ -136,7 +141,33 @@ func main() {
 	transactionRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
 	transaction.RegisterRoutes(transactionRoutes, transactionController)
 
+	// Reporting routes (protected)
+	dashboardController := appContainer.Get("dashboardController").(*reporting.DashboardController)
+	reportingRoutes := api.Group("/v1/dashboard")
+	reportingRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	reporting.RegisterRoutes(reportingRoutes, dashboardController)
+
+	// Start cron scheduler for reporting jobs
+	cronScheduler := appContainer.Get("reportingCronScheduler").(*reporting.CronScheduler)
+	if err := cronScheduler.Start(); err != nil {
+		log.Fatalf("Failed to start cron scheduler: %v", err)
+	}
+	log.Println("[Main] Reporting cron scheduler started")
+
+	// Graceful shutdown handler
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-sigChan
+		log.Printf("[Main] Shutdown signal received: %v", sig)
+		cronScheduler.Stop()
+		log.Println("[Main] Cron scheduler stopped")
+		os.Exit(0)
+	}()
+
 	log.Println("Server running on http://localhost:8080")
 	log.Println("Swagger docs available at http://localhost:8080/swagger/index.html")
+	log.Println("Dashboard API available at http://localhost:8080/api/v1/dashboard")
 	r.Run(":8080")
 }

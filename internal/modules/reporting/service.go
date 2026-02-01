@@ -8,13 +8,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Service struct {
+type DashboardService struct {
 	repo              *Repository
 	aggregationHelper *AggregationHelper
 }
 
-func NewService(repo *Repository, aggregationHelper *AggregationHelper) *Service {
-	return &Service{
+func NewService(repo *Repository, aggregationHelper *AggregationHelper) *DashboardService {
+	return &DashboardService{
 		repo:              repo,
 		aggregationHelper: aggregationHelper,
 	}
@@ -32,7 +32,7 @@ type DashboardKPIs struct {
 	MonthlyNetChange primitive.Decimal128 `json:"monthly_net_change"`
 }
 
-func (s *Service) GetDashboardKPIs(ctx context.Context, userID primitive.ObjectID) (*DashboardKPIs, error) {
+func (s *DashboardService) GetDashboardKPIs(ctx context.Context, userID primitive.ObjectID) (*DashboardKPIs, error) {
 	now := time.Now()
 	month := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 
@@ -71,7 +71,7 @@ type DashboardCharts struct {
 	CategoryDistribution interface{} `json:"category_distribution"`
 }
 
-func (s *Service) GetDashboardCharts(ctx context.Context, userID primitive.ObjectID) (*DashboardCharts, error) {
+func (s *DashboardService) GetDashboardCharts(ctx context.Context, userID primitive.ObjectID) (*DashboardCharts, error) {
 	incomeExpenseChart, err := s.aggregationHelper.GetMonthlyIncomeExpenseChart(ctx, userID, 12)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (s *Service) GetDashboardCharts(ctx context.Context, userID primitive.Objec
 }
 
 // ============================================================================
-// REPORTING SERVICE
+// REPORTING DashboardService
 // ============================================================================
 
 type ReportSummary struct {
@@ -110,7 +110,7 @@ type ReportSummary struct {
 	TransactionCount int32                `json:"transaction_count"`
 }
 
-func (s *Service) GetDailyReportSummary(ctx context.Context, userID primitive.ObjectID, reportDate time.Time) (*ReportSummary, error) {
+func (s *DashboardService) GetDailyReportSummary(ctx context.Context, userID primitive.ObjectID, reportDate time.Time) (*ReportSummary, error) {
 	report, err := s.repo.GetDailyReport(ctx, userID, reportDate)
 	if err != nil {
 		return nil, err
@@ -133,7 +133,7 @@ func (s *Service) GetDailyReportSummary(ctx context.Context, userID primitive.Ob
 	}, nil
 }
 
-func (s *Service) GetMonthlyReportSummary(ctx context.Context, userID primitive.ObjectID, month time.Time) (*ReportSummary, error) {
+func (s *DashboardService) GetMonthlyReportSummary(ctx context.Context, userID primitive.ObjectID, month time.Time) (*ReportSummary, error) {
 	summary, err := s.repo.GetMonthlySummary(ctx, userID, month)
 	if err != nil {
 		return nil, err
@@ -164,7 +164,7 @@ type AnomalySummary struct {
 	TotalAnomalousAmount primitive.Decimal128 `json:"total_anomalous_amount"`
 }
 
-func (s *Service) GetAnomalySummary(ctx context.Context, userID primitive.ObjectID, days int) (*AnomalySummary, error) {
+func (s *DashboardService) GetAnomalySummary(ctx context.Context, userID primitive.ObjectID, days int) (*AnomalySummary, error) {
 	result, err := s.aggregationHelper.GetAnomalySummary(ctx, userID, days)
 	if err != nil {
 		return nil, err
@@ -192,7 +192,7 @@ type SpendingInsight struct {
 	IsEssential        bool                 `json:"is_essential"`
 }
 
-func (s *Service) GetTopSpendingInsights(ctx context.Context, userID primitive.ObjectID, limit int) ([]SpendingInsight, error) {
+func (s *DashboardService) GetTopSpendingInsights(ctx context.Context, userID primitive.ObjectID, limit int) ([]SpendingInsight, error) {
 	patterns, err := s.aggregationHelper.GetSpendingTrendsByCategory(ctx, userID, limit)
 	if err != nil {
 		return nil, err
@@ -215,7 +215,7 @@ func (s *Service) GetTopSpendingInsights(ctx context.Context, userID primitive.O
 	return insights, nil
 }
 
-func (s *Service) GetRecurringExpensesSummary(ctx context.Context, userID primitive.ObjectID) (primitive.Decimal128, error) {
+func (s *DashboardService) GetRecurringExpensesSummary(ctx context.Context, userID primitive.ObjectID) (primitive.Decimal128, error) {
 	return s.aggregationHelper.GetRecurringExpensesSummary(ctx, userID)
 }
 
@@ -229,7 +229,7 @@ type FinancialContext struct {
 	GeneratedAt           time.Time               `json:"generated_at"`
 }
 
-func (s *Service) GetAIFinancialContext(ctx context.Context, userID primitive.ObjectID) (*FinancialContext, error) {
+func (s *DashboardService) GetAIFinancialContext(ctx context.Context, userID primitive.ObjectID) (*FinancialContext, error) {
 	now := time.Now()
 	month := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 
