@@ -1,0 +1,90 @@
+package user_category
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+type Repository struct {
+	categories *mongo.Collection
+}
+
+func NewRepository(db *mongo.Database) *Repository {
+	return &Repository{
+		categories: db.Collection("user_categories"),
+	}
+}
+
+func (r *Repository) Create(ctx context.Context, category *UserCategory) error {
+	category.ID = primitive.NewObjectID()
+	category.CreatedAt = time.Now()
+	category.UpdatedAt = time.Now()
+	category.IsDeleted = false
+	_, err := r.categories.InsertOne(ctx, category)
+	return err
+}
+
+func (r *Repository) FindByID(ctx context.Context, id primitive.ObjectID, userID primitive.ObjectID) (*UserCategory, error) {
+	var category UserCategory
+	err := r.categories.FindOne(ctx, bson.M{"_id": id, "user_id": userID, "is_deleted": false}).Decode(&category)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New("user category not found")
+		}
+		return nil, err
+	}
+	return &category, nil
+}
+
+func (r *Repository) FindAllByUserID(ctx context.Context, userID primitive.ObjectID) ([]*UserCategory, error) {
+	cursor, err := r.categories.Find(ctx, bson.M{"user_id": userID, "is_deleted": false})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var categories []*UserCategory
+	if err = cursor.All(ctx, &categories); err != nil {
+		return nil, err
+	}
+	return categories, nil
+}
+
+func (r *Repository) Update(ctx context.Context, id primitive.ObjectID, userID primitive.ObjectID, category *UserCategory) error {
+	category.UpdatedAt = time.Now()
+	result, err := r.categories.UpdateOne(ctx, bson.M{"_id": id, "user_id": userID, "is_deleted": false}, bson.M{"$set": category})
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return errors.New("user category not found")
+	}
+	return nil
+}
+
+func (r *Repository) SoftDelete(ctx context.Context, id primitive.ObjectID, userID primitive.ObjectID) error {
+	now := time.Now()
+	result, err := r.categories.UpdateOne(
+		ctx,
+		bson.M{"_id": id, "user_id": userID, "is_deleted": false},
+		bson.M{
+			"$set": bson.M{
+				"is_deleted": true,
+				"deleted_at": now,
+				"updated_at": now,
+			},
+		},
+	)
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return errors.New("user category not found")
+	}
+	return nil
+}

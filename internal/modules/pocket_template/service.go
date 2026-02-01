@@ -19,26 +19,23 @@ func NewService(r *Repository) *Service {
 }
 
 func (s *Service) CreatePocketTemplate(ctx context.Context, req *dto.CreatePocketTemplateRequest) (*PocketTemplate, error) {
-	categoryID, err := primitive.ObjectIDFromHex(req.CategoryID)
-	if err != nil {
-		return nil, errors.New("invalid category id")
-	}
-
 	existing, _ := s.repo.GetPocketTemplateByName(ctx, req.Name)
 	if existing != nil {
 		return nil, errors.New("pocket template name already exists")
 	}
 
 	template := &PocketTemplate{
-		Name:       req.Name,
-		Type:       req.Type,
-		CategoryID: &categoryID,
-		IsDefault:  req.IsDefault,
-		IsActive:   req.IsActive,
-		Order:      req.Order,
+		Name:            req.Name,
+		Type:            req.Type,
+		Icon:            req.Icon,
+		IconColor:       req.IconColor,
+		BackgroundColor: req.BackgroundColor,
+		IsDefault:       req.IsDefault,
+		IsActive:        req.IsActive,
+		Order:           req.Order,
 	}
 
-	err = s.repo.CreatePocketTemplate(ctx, template)
+	err := s.repo.CreatePocketTemplate(ctx, template)
 	if err != nil {
 		return nil, err
 	}
@@ -77,24 +74,16 @@ func (s *Service) UpdatePocketTemplate(ctx context.Context, id string, req *dto.
 		template.Type = req.Type
 	}
 
-	if req.CategoryID != "" {
-		categoryID, err := primitive.ObjectIDFromHex(req.CategoryID)
-		if err != nil {
-			return nil, errors.New("invalid category id")
-		}
-		template.CategoryID = &categoryID
-	}
-
 	if req.Icon != "" {
-		template.Icon = &req.Icon
+		template.Icon = req.Icon
 	}
 
 	if req.IconColor != "" {
-		template.IconColor = &req.IconColor
+		template.IconColor = req.IconColor
 	}
 
 	if req.BackgroundColor != "" {
-		template.BackgroundColor = &req.BackgroundColor
+		template.BackgroundColor = req.BackgroundColor
 	}
 
 	template.IsDefault = req.IsDefault

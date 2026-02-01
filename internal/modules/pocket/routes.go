@@ -15,6 +15,8 @@ func RegisterRoutes(r *gin.RouterGroup, controller *Controller) {
 		protected.GET("/active", controller.ListActivePockets)
 		protected.GET("/:id", controller.GetPocket)
 		protected.PUT("/:id", controller.UpdatePocket)
+		protected.PUT("/:id/lock", controller.LockPocket)
+		protected.PUT("/:id/unlock", controller.UnlockPocket)
 		protected.DELETE("/:id", controller.DeletePocket)
 	}
 

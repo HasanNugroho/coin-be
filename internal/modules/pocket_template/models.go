@@ -18,9 +18,9 @@ type PocketTemplate struct {
 
 	Order int `bson:"order" json:"order"`
 
-	Icon            *string `bson:"icon,omitempty" json:"icon,omitempty"`
-	IconColor       *string `bson:"icon_color,omitempty" json:"icon_color,omitempty"`
-	BackgroundColor *string `bson:"background_color,omitempty" json:"background_color,omitempty"`
+	Icon            string `bson:"icon,omitempty" json:"icon,omitempty"`
+	IconColor       string `bson:"icon_color,omitempty" json:"icon_color,omitempty"`
+	BackgroundColor string `bson:"background_color,omitempty" json:"background_color,omitempty"`
 
 	CreatedAt time.Time  `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time  `bson:"updated_at" json:"updated_at"`

@@ -1,4 +1,4 @@
-package category
+package category_template
 
 import (
 	"github.com/sarulabs/di/v2"
@@ -9,7 +9,7 @@ import (
 
 func Register(builder *di.Builder) {
 	builder.Add(di.Def{
-		Name: "categoryRepository",
+		Name: "categoryTemplateRepository",
 		Build: func(ctn di.Container) (interface{}, error) {
 			cfg := ctn.Get("config").(*config.Config)
 			client := ctn.Get("mongo").(*mongo.Client)
@@ -18,17 +18,17 @@ func Register(builder *di.Builder) {
 	})
 
 	builder.Add(di.Def{
-		Name: "categoryService",
+		Name: "categoryTemplateService",
 		Build: func(ctn di.Container) (interface{}, error) {
-			repo := ctn.Get("categoryRepository").(*Repository)
+			repo := ctn.Get("categoryTemplateRepository").(*Repository)
 			return NewService(repo), nil
 		},
 	})
 
 	builder.Add(di.Def{
-		Name: "categoryController",
+		Name: "categoryTemplateController",
 		Build: func(ctn di.Container) (interface{}, error) {
-			svc := ctn.Get("categoryService").(*Service)
+			svc := ctn.Get("categoryTemplateService").(*Service)
 			return NewController(svc), nil
 		},
 	})

@@ -20,9 +20,9 @@ type Pocket struct {
 	IsActive  bool `bson:"is_active" json:"is_active"`
 	IsLocked  bool `bson:"is_locked" json:"is_locked"`
 
-	Icon            *string `bson:"icon,omitempty" json:"icon,omitempty"`
-	IconColor       *string `bson:"icon_color,omitempty" json:"icon_color,omitempty"`
-	BackgroundColor *string `bson:"background_color,omitempty" json:"background_color,omitempty"`
+	Icon            string `bson:"icon,omitempty" json:"icon,omitempty"`
+	IconColor       string `bson:"icon_color,omitempty" json:"icon_color,omitempty"`
+	BackgroundColor string `bson:"background_color,omitempty" json:"background_color,omitempty"`
 
 	CreatedAt time.Time  `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time  `bson:"updated_at" json:"updated_at"`

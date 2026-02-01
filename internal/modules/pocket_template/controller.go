@@ -275,16 +275,10 @@ func (c *Controller) ListPocketTemplatesByType(ctx *gin.Context) {
 }
 
 func (c *Controller) mapToResponse(template *PocketTemplate) *dto.PocketTemplateResponse {
-	var categoryID *string
-	if template.CategoryID != nil {
-		id := template.CategoryID.Hex()
-		categoryID = &id
-	}
 	return &dto.PocketTemplateResponse{
 		ID:              template.ID.Hex(),
 		Name:            template.Name,
 		Type:            template.Type,
-		CategoryID:      categoryID,
 		Icon:            template.Icon,
 		IconColor:       template.IconColor,
 		BackgroundColor: template.BackgroundColor,

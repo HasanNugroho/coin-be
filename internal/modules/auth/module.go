@@ -3,9 +3,11 @@ package auth
 import (
 	"github.com/HasanNugroho/coin-be/internal/core/config"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
+	"github.com/HasanNugroho/coin-be/internal/modules/category_template"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket_template"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
+	"github.com/HasanNugroho/coin-be/internal/modules/user_category"
 	"github.com/redis/go-redis/v9"
 	"github.com/sarulabs/di/v2"
 )
@@ -17,11 +19,13 @@ func Register(builder *di.Builder) {
 			userRepo := ctn.Get("userRepository").(*user.Repository)
 			pocketRepo := ctn.Get("pocketRepository").(*pocket.Repository)
 			pocketTemplateRepo := ctn.Get("pocketTemplateRepository").(*pocket_template.Repository)
+			categoryTemplateRepo := ctn.Get("categoryTemplateRepository").(*category_template.Repository)
+			userCategoryRepo := ctn.Get("userCategoryRepository").(*user_category.Repository)
 			redisClient := ctn.Get("redis").(*redis.Client)
 			cfg := ctn.Get("config").(*config.Config)
 			jwtManager := utils.NewJWTManager(cfg)
 			passwordMgr := utils.NewPasswordManager()
-			return NewService(userRepo, pocketRepo, pocketTemplateRepo, redisClient, jwtManager, passwordMgr), nil
+			return NewService(userRepo, pocketRepo, pocketTemplateRepo, categoryTemplateRepo, userCategoryRepo, redisClient, jwtManager, passwordMgr), nil
 		},
 	})
 

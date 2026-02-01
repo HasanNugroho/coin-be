@@ -12,9 +12,9 @@ type PocketResponse struct {
 	IsDefault       bool       `json:"is_default"`
 	IsActive        bool       `json:"is_active"`
 	IsLocked        bool       `json:"is_locked"`
-	Icon            *string    `json:"icon,omitempty"`
-	IconColor       *string    `json:"icon_color,omitempty"`
-	BackgroundColor *string    `json:"background_color,omitempty"`
+	Icon            string     `json:"icon,omitempty"`
+	IconColor       string     `json:"icon_color,omitempty"`
+	BackgroundColor string     `json:"background_color,omitempty"`
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 	DeletedAt       *time.Time `json:"deleted_at,omitempty"`

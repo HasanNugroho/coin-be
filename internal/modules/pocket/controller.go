@@ -62,6 +62,38 @@ func (c *Controller) CreatePocket(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, resp)
 }
 
+func (c *Controller) LockPocket(ctx *gin.Context) {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		resp := utils.NewErrorResponse(http.StatusUnauthorized, "unauthorized")
+		ctx.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+
+	id := ctx.Param("id")
+
+	c.service.ToggleLockPocket(ctx, userID.(string), id, true)
+
+	resp := utils.NewSuccessResponse("Pocket locked successfully", nil)
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func (c *Controller) UnlockPocket(ctx *gin.Context) {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		resp := utils.NewErrorResponse(http.StatusUnauthorized, "unauthorized")
+		ctx.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+
+	id := ctx.Param("id")
+
+	c.service.ToggleLockPocket(ctx, userID.(string), id, false)
+
+	resp := utils.NewSuccessResponse("Pocket unlocked successfully", nil)
+	ctx.JSON(http.StatusOK, resp)
+}
+
 // GetPocket godoc
 // @Summary Get pocket by ID
 // @Description Get a specific pocket by ID

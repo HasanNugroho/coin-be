@@ -15,12 +15,13 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/core/middleware"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/auth"
-	"github.com/HasanNugroho/coin-be/internal/modules/category"
+	"github.com/HasanNugroho/coin-be/internal/modules/category_template"
 	"github.com/HasanNugroho/coin-be/internal/modules/platform"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket_template"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
+	"github.com/HasanNugroho/coin-be/internal/modules/user_category"
 )
 
 // @title Coin Backend API
@@ -61,7 +62,8 @@ func main() {
 	// Register modules
 	auth.Register(builder)
 	user.Register(builder)
-	category.Register(builder)
+	category_template.Register(builder)
+	user_category.Register(builder)
 	platform.Register(builder)
 	pocket_template.Register(builder)
 	pocket.Register(builder)
@@ -98,11 +100,17 @@ func main() {
 	userRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
 	user.RegisterRoutes(userRoutes, userController)
 
-	// Category routes (protected)
-	categoryController := appContainer.Get("categoryController").(*category.Controller)
-	categoryRoutes := api.Group("/v1/categories")
-	categoryRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
-	category.RegisterRoutes(categoryRoutes, categoryController)
+	// Category Template routes (protected)
+	categoryTemplateController := appContainer.Get("categoryTemplateController").(*category_template.Controller)
+	categoryTemplateRoutes := api.Group("/v1/category-templates")
+	categoryTemplateRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	category_template.RegisterRoutes(categoryTemplateRoutes, categoryTemplateController)
+
+	// User Category routes (protected)
+	userCategoryController := appContainer.Get("userCategoryController").(*user_category.Controller)
+	userCategoryRoutes := api.Group("/v1/user-categories")
+	userCategoryRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	user_category.RegisterRoutes(userCategoryRoutes, userCategoryController)
 
 	// Platform routes (protected)
 	platformController := appContainer.Get("platformController").(*platform.Controller)
