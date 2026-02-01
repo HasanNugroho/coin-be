@@ -16,6 +16,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/auth"
 	"github.com/HasanNugroho/coin-be/internal/modules/category_template"
+	"github.com/HasanNugroho/coin-be/internal/modules/dashboard"
 	"github.com/HasanNugroho/coin-be/internal/modules/platform"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket_template"
@@ -68,6 +69,7 @@ func main() {
 	pocket_template.Register(builder)
 	pocket.Register(builder)
 	transaction.Register(builder)
+	dashboard.Register(builder)
 
 	appContainer := builder.Build()
 
@@ -135,6 +137,18 @@ func main() {
 	transactionRoutes := api.Group("/v1/transactions")
 	transactionRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
 	transaction.RegisterRoutes(transactionRoutes, transactionController)
+
+	// Dashboard routes (protected)
+	dashboardController := appContainer.Get("dashboardController").(*dashboard.Controller)
+	dashboardRoutes := api.Group("/v1/dashboard")
+	dashboardRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	dashboard.RegisterRoutes(dashboardRoutes, dashboardController)
+
+	// Start dashboard cron job for daily summaries
+	dashboardService := appContainer.Get("dashboardService").(*dashboard.Service)
+	cronJob := dashboard.NewCronJob(dashboardService)
+	cronJob.Start()
+	defer cronJob.Stop()
 
 	log.Println("Server running on http://localhost:8080")
 	log.Println("Swagger docs available at http://localhost:8080/swagger/index.html")
