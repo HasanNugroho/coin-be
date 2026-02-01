@@ -24,6 +24,346 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/ai/financial-context": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get precomputed financial context for AI chatbot",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI"
+                ],
+                "summary": "Get AI-ready financial context",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/reporting.AIFinancialContext"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dashboard/charts/expense-by-category": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get pie chart data for expense distribution",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get expense distribution by category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Month (YYYY-MM), defaults to current",
+                        "name": "month",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dashboard/charts/monthly-trend": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get 12-month trend of income vs expense",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get monthly income vs expense trend",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of months (default 12, max 36)",
+                        "name": "months",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dashboard/charts/pocket-distribution": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get pie chart data for pocket balance distribution",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get balance distribution per pocket",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dashboard/kpis": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get key performance indicators for dashboard",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get dashboard KPI cards",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Month (YYYY-MM), defaults to current",
+                        "name": "month",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/health/reporting": {
+            "get": {
+                "description": "Check if reporting service is healthy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health check for reporting service",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/reports/daily": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get precomputed daily financial report for a specific date",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Get daily financial report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report date (YYYY-MM-DD)",
+                        "name": "date",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Include detailed breakdowns",
+                        "name": "include_details",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/reporting.DailyFinancialReport"
+                        }
+                    },
+                    "202": {
+                        "description": "Report queued for generation",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/reports/daily/generate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Trigger generation of daily financial report for a specific date",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Generate daily financial report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Report date (YYYY-MM-DD)",
+                        "name": "date",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/reporting.DailyFinancialReport"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/admin/pockets": {
             "get": {
                 "security": [
@@ -2604,6 +2944,283 @@ const docTemplate = `{
                 "telegramId": {
                     "type": "string",
                     "maxLength": 100
+                }
+            }
+        },
+        "reporting.AIFinancialContext": {
+            "type": "object",
+            "properties": {
+                "alerts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/reporting.Alert"
+                    }
+                },
+                "context_date": {
+                    "type": "string"
+                },
+                "current_balance": {
+                    "type": "number"
+                },
+                "free_money": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_30_days": {
+                    "$ref": "#/definitions/reporting.Last30DaysMetrics"
+                },
+                "pockets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/reporting.AIPocketData"
+                    }
+                },
+                "spending_patterns": {
+                    "$ref": "#/definitions/reporting.SpendingPatterns"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "year_to_date": {
+                    "$ref": "#/definitions/reporting.YearToDateMetrics"
+                }
+            }
+        },
+        "reporting.AIPocketData": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "number"
+                },
+                "monthly_trend": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/reporting.MonthlyBalance"
+                    }
+                },
+                "percentage_of_total": {
+                    "type": "number"
+                },
+                "pocket_id": {
+                    "type": "string"
+                },
+                "pocket_name": {
+                    "type": "string"
+                },
+                "pocket_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "reporting.Alert": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "reporting.CategoryBreakdown": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "category_id": {
+                    "type": "string"
+                },
+                "category_name": {
+                    "type": "string"
+                },
+                "transaction_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "reporting.DailyFinancialReport": {
+            "type": "object",
+            "properties": {
+                "closing_balance": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "expense_by_category": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/reporting.CategoryBreakdown"
+                    }
+                },
+                "generated_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_final": {
+                    "type": "boolean"
+                },
+                "opening_balance": {
+                    "type": "number"
+                },
+                "report_date": {
+                    "type": "string"
+                },
+                "total_expense": {
+                    "type": "number"
+                },
+                "total_income": {
+                    "type": "number"
+                },
+                "total_transfer_in": {
+                    "type": "number"
+                },
+                "total_transfer_out": {
+                    "type": "number"
+                },
+                "transactions_grouped_by_pocket": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/reporting.PocketBreakdown"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "reporting.Last30DaysMetrics": {
+            "type": "object",
+            "properties": {
+                "average_daily_expense": {
+                    "type": "number"
+                },
+                "net_change": {
+                    "type": "number"
+                },
+                "top_expense_categories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/reporting.TopCategory"
+                    }
+                },
+                "total_expense": {
+                    "type": "number"
+                },
+                "total_income": {
+                    "type": "number"
+                },
+                "transaction_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "reporting.MonthlyBalance": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "number"
+                },
+                "month": {
+                    "type": "string"
+                }
+            }
+        },
+        "reporting.PocketBreakdown": {
+            "type": "object",
+            "properties": {
+                "expense": {
+                    "type": "number"
+                },
+                "income": {
+                    "type": "number"
+                },
+                "pocket_balance": {
+                    "type": "number"
+                },
+                "pocket_id": {
+                    "type": "string"
+                },
+                "pocket_name": {
+                    "type": "string"
+                },
+                "pocket_type": {
+                    "type": "string"
+                },
+                "transaction_count": {
+                    "type": "integer"
+                },
+                "transfer_in": {
+                    "type": "number"
+                },
+                "transfer_out": {
+                    "type": "number"
+                }
+            }
+        },
+        "reporting.SpendingPatterns": {
+            "type": "object",
+            "properties": {
+                "average_transaction_amount": {
+                    "type": "number"
+                },
+                "highest_expense_category": {
+                    "type": "string"
+                },
+                "highest_expense_day_of_week": {
+                    "type": "string"
+                },
+                "largest_transaction": {
+                    "type": "number"
+                },
+                "smallest_transaction": {
+                    "type": "number"
+                }
+            }
+        },
+        "reporting.TopCategory": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "category_name": {
+                    "type": "string"
+                },
+                "percentage": {
+                    "type": "number"
+                }
+            }
+        },
+        "reporting.YearToDateMetrics": {
+            "type": "object",
+            "properties": {
+                "average_monthly_expense": {
+                    "type": "number"
+                },
+                "net_change": {
+                    "type": "number"
+                },
+                "total_expense": {
+                    "type": "number"
+                },
+                "total_income": {
+                    "type": "number"
                 }
             }
         }

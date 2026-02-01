@@ -142,6 +142,7 @@ func main() {
 	transaction.RegisterRoutes(transactionRoutes, transactionController)
 
 	// Reporting routes (protected)
+<<<<<<< Updated upstream
 	dashboardController := appContainer.Get("dashboardController").(*reporting.DashboardController)
 	reportingRoutes := api.Group("/v1/dashboard")
 	reportingRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
@@ -165,6 +166,12 @@ func main() {
 		log.Println("[Main] Cron scheduler stopped")
 		os.Exit(0)
 	}()
+=======
+	reportingController := appContainer.Get("reportingController").(*reporting.Controller)
+	reportingRoutes := api.Group("/v1/reports")
+	reportingRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	reporting.RegisterRoutes(reportingRoutes, reportingController)
+>>>>>>> Stashed changes
 
 	log.Println("Server running on http://localhost:8080")
 	log.Println("Swagger docs available at http://localhost:8080/swagger/index.html")

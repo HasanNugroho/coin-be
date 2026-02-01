@@ -278,6 +278,187 @@ definitions:
         maxLength: 100
         type: string
     type: object
+  reporting.AIFinancialContext:
+    properties:
+      alerts:
+        items:
+          $ref: '#/definitions/reporting.Alert'
+        type: array
+      context_date:
+        type: string
+      current_balance:
+        type: number
+      free_money:
+        type: number
+      id:
+        type: string
+      last_30_days:
+        $ref: '#/definitions/reporting.Last30DaysMetrics'
+      pockets:
+        items:
+          $ref: '#/definitions/reporting.AIPocketData'
+        type: array
+      spending_patterns:
+        $ref: '#/definitions/reporting.SpendingPatterns'
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      year_to_date:
+        $ref: '#/definitions/reporting.YearToDateMetrics'
+    type: object
+  reporting.AIPocketData:
+    properties:
+      balance:
+        type: number
+      monthly_trend:
+        items:
+          $ref: '#/definitions/reporting.MonthlyBalance'
+        type: array
+      percentage_of_total:
+        type: number
+      pocket_id:
+        type: string
+      pocket_name:
+        type: string
+      pocket_type:
+        type: string
+    type: object
+  reporting.Alert:
+    properties:
+      message:
+        type: string
+      severity:
+        type: string
+      type:
+        type: string
+    type: object
+  reporting.CategoryBreakdown:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: string
+      category_name:
+        type: string
+      transaction_count:
+        type: integer
+    type: object
+  reporting.DailyFinancialReport:
+    properties:
+      closing_balance:
+        type: number
+      created_at:
+        type: string
+      expense_by_category:
+        items:
+          $ref: '#/definitions/reporting.CategoryBreakdown'
+        type: array
+      generated_at:
+        type: string
+      id:
+        type: string
+      is_final:
+        type: boolean
+      opening_balance:
+        type: number
+      report_date:
+        type: string
+      total_expense:
+        type: number
+      total_income:
+        type: number
+      total_transfer_in:
+        type: number
+      total_transfer_out:
+        type: number
+      transactions_grouped_by_pocket:
+        items:
+          $ref: '#/definitions/reporting.PocketBreakdown'
+        type: array
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  reporting.Last30DaysMetrics:
+    properties:
+      average_daily_expense:
+        type: number
+      net_change:
+        type: number
+      top_expense_categories:
+        items:
+          $ref: '#/definitions/reporting.TopCategory'
+        type: array
+      total_expense:
+        type: number
+      total_income:
+        type: number
+      transaction_count:
+        type: integer
+    type: object
+  reporting.MonthlyBalance:
+    properties:
+      balance:
+        type: number
+      month:
+        type: string
+    type: object
+  reporting.PocketBreakdown:
+    properties:
+      expense:
+        type: number
+      income:
+        type: number
+      pocket_balance:
+        type: number
+      pocket_id:
+        type: string
+      pocket_name:
+        type: string
+      pocket_type:
+        type: string
+      transaction_count:
+        type: integer
+      transfer_in:
+        type: number
+      transfer_out:
+        type: number
+    type: object
+  reporting.SpendingPatterns:
+    properties:
+      average_transaction_amount:
+        type: number
+      highest_expense_category:
+        type: string
+      highest_expense_day_of_week:
+        type: string
+      largest_transaction:
+        type: number
+      smallest_transaction:
+        type: number
+    type: object
+  reporting.TopCategory:
+    properties:
+      amount:
+        type: number
+      category_name:
+        type: string
+      percentage:
+        type: number
+    type: object
+  reporting.YearToDateMetrics:
+    properties:
+      average_monthly_expense:
+        type: number
+      net_change:
+        type: number
+      total_expense:
+        type: number
+      total_income:
+        type: number
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -293,6 +474,221 @@ info:
   title: Coin Backend API
   version: "1.0"
 paths:
+  /api/v1/ai/financial-context:
+    get:
+      description: Get precomputed financial context for AI chatbot
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/reporting.AIFinancialContext'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get AI-ready financial context
+      tags:
+      - AI
+  /api/v1/dashboard/charts/expense-by-category:
+    get:
+      description: Get pie chart data for expense distribution
+      parameters:
+      - description: Month (YYYY-MM), defaults to current
+        in: query
+        name: month
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get expense distribution by category
+      tags:
+      - Dashboard
+  /api/v1/dashboard/charts/monthly-trend:
+    get:
+      description: Get 12-month trend of income vs expense
+      parameters:
+      - description: Number of months (default 12, max 36)
+        in: query
+        name: months
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get monthly income vs expense trend
+      tags:
+      - Dashboard
+  /api/v1/dashboard/charts/pocket-distribution:
+    get:
+      description: Get pie chart data for pocket balance distribution
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get balance distribution per pocket
+      tags:
+      - Dashboard
+  /api/v1/dashboard/kpis:
+    get:
+      description: Get key performance indicators for dashboard
+      parameters:
+      - description: Month (YYYY-MM), defaults to current
+        in: query
+        name: month
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get dashboard KPI cards
+      tags:
+      - Dashboard
+  /api/v1/health/reporting:
+    get:
+      description: Check if reporting service is healthy
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check for reporting service
+      tags:
+      - Health
+  /api/v1/reports/daily:
+    get:
+      description: Get precomputed daily financial report for a specific date
+      parameters:
+      - description: Report date (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      - description: Include detailed breakdowns
+        in: query
+        name: include_details
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/reporting.DailyFinancialReport'
+        "202":
+          description: Report queued for generation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get daily financial report
+      tags:
+      - Reports
+  /api/v1/reports/daily/generate:
+    post:
+      description: Trigger generation of daily financial report for a specific date
+      parameters:
+      - description: Report date (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/reporting.DailyFinancialReport'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Generate daily financial report
+      tags:
+      - Reports
   /v1/admin/pockets:
     get:
       consumes:
