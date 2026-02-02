@@ -18,7 +18,10 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/api
 FROM alpine:latest
 
 WORKDIR /root
-RUN apk add --no-cache ca-certificates wget
+RUN apk add --no-cache ca-certificates wget tzdata
+
+ENV TZ=Asia/Jakarta
+RUN cp /usr/share/zoneinfo/Asia/Jakarta /etc/localtime && echo "Asia/Jakarta" > /etc/timezone
 
 COPY --from=builder /app/main .
 COPY --from=builder /app/docs .
