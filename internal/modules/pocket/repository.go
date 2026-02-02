@@ -29,6 +29,23 @@ func (r *Repository) CreatePocket(ctx context.Context, pocket *Pocket) error {
 	return err
 }
 
+func (r *Repository) CreatePocketBulk(ctx context.Context, pockets []*Pocket) error {
+	for _, pocket := range pockets {
+		pocket.ID = primitive.NewObjectID()
+		pocket.CreatedAt = time.Now()
+		pocket.UpdatedAt = time.Now()
+	}
+
+	// Convert []*Pocket to []interface{}
+	docs := make([]interface{}, len(pockets))
+	for i, pocket := range pockets {
+		docs[i] = pocket
+	}
+
+	_, err := r.pockets.InsertMany(ctx, docs)
+	return err
+}
+
 func (r *Repository) GetPocketByID(ctx context.Context, id primitive.ObjectID) (*Pocket, error) {
 	var pocket Pocket
 	err := r.pockets.FindOne(ctx, bson.M{"_id": id, "deleted_at": nil}).Decode(&pocket)

@@ -256,6 +256,7 @@ func (s *Service) createDefaultPockets(ctx context.Context, userID primitive.Obj
 		mainTemplate = mainTemplates[0]
 	}
 
+	pockets := make([]*pocket.Pocket, 0, len(templates))
 	// Create pockets from templates
 	for _, template := range templates {
 		newPocket := &pocket.Pocket{
@@ -272,9 +273,14 @@ func (s *Service) createDefaultPockets(ctx context.Context, userID primitive.Obj
 			BackgroundColor: template.BackgroundColor,
 		}
 
-		err := s.pocketRepo.CreatePocket(ctx, newPocket)
+		pockets = append(pockets, newPocket)
+	}
+
+	if len(pockets) > 0 {
+		// Bulk insert all pockets at once
+		err := s.pocketRepo.CreatePocketBulk(ctx, pockets)
 		if err != nil {
-			log.Printf("failed to create pocket from template %s for user %s: %v", template.ID.Hex(), userID.Hex(), err)
+			log.Printf("failed to create default pockets for user %s: %v", userID.Hex(), err)
 			return errors.New("failed to create default pockets")
 		}
 	}
@@ -290,7 +296,9 @@ func (s *Service) createDefaultUserPlatforms(ctx context.Context, userID primiti
 		return errors.New("failed to fetch default platforms")
 	}
 
-	// Create UserPlatform for each default platform
+	// Create UserPlatform slice for bulk insert
+	userPlatforms := make([]*user_platform.UserPlatform, 0, len(defaultPlatforms))
+
 	for _, platform := range defaultPlatforms {
 		aliasName := platform.Name
 		userPlatform := &user_platform.UserPlatform{
@@ -300,10 +308,14 @@ func (s *Service) createDefaultUserPlatforms(ctx context.Context, userID primiti
 			Balance:    utils.NewDecimal128FromFloat(0),
 			IsActive:   true,
 		}
+		userPlatforms = append(userPlatforms, userPlatform)
+	}
 
-		err := s.userPlatformRepo.CreateUserPlatform(ctx, userPlatform)
+	// Bulk insert all user platforms at once
+	if len(userPlatforms) > 0 {
+		err := s.userPlatformRepo.CreateUserPlatformBulk(ctx, userPlatforms)
 		if err != nil {
-			log.Printf("failed to create user platform from platform %s for user %s: %v", platform.ID.Hex(), userID.Hex(), err)
+			log.Printf("failed to create default user platforms for user %s: %v", userID.Hex(), err)
 			return errors.New("failed to create default user platforms")
 		}
 	}

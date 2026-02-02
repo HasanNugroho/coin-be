@@ -28,6 +28,23 @@ func (r *UserPlatformRepository) CreateUserPlatform(ctx context.Context, userPla
 	return err
 }
 
+func (r *UserPlatformRepository) CreateUserPlatformBulk(ctx context.Context, userPlatforms []*UserPlatform) error {
+	for _, userPlatform := range userPlatforms {
+		userPlatform.ID = primitive.NewObjectID()
+		userPlatform.CreatedAt = time.Now()
+		userPlatform.UpdatedAt = time.Now()
+	}
+
+	// Convert []*UserPlatform to []interface{}
+	docs := make([]interface{}, len(userPlatforms))
+	for i, userPlatform := range userPlatforms {
+		docs[i] = userPlatform
+	}
+
+	_, err := r.userPlatforms.InsertMany(ctx, docs)
+	return err
+}
+
 func (r *UserPlatformRepository) GetUserPlatformByID(ctx context.Context, id primitive.ObjectID) (*UserPlatform, error) {
 	var userPlatform UserPlatform
 	err := r.userPlatforms.FindOne(ctx, bson.M{"_id": id, "deleted_at": nil}).Decode(&userPlatform)
