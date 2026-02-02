@@ -59,6 +59,11 @@ func (s *Service) GetUserProfile(ctx context.Context, id string) (*dto.UserRespo
 		resp.SalaryCycle = profile.SalaryCycle
 		resp.SalaryDay = profile.SalaryDay
 		resp.Language = profile.Lang
+		resp.AutoInputPayroll = profile.AutoInputPayroll
+		if profile.DefaultUserPlatformID != nil {
+			id := profile.DefaultUserPlatformID.Hex()
+			resp.DefaultUserPlatformID = &id
+		}
 	}
 
 	return resp, nil
@@ -110,6 +115,16 @@ func (s *Service) UpdateUser(ctx context.Context, id string, req *dto.UpdateUser
 		if req.Language != "" {
 			profile.Lang = req.Language
 		}
+		if req.AutoInputPayroll != nil {
+			profile.AutoInputPayroll = *req.AutoInputPayroll
+		}
+		if req.DefaultUserPlatformID != "" {
+			userPlatformID, err := primitive.ObjectIDFromHex(req.DefaultUserPlatformID)
+			if err != nil {
+				return nil, errors.New("invalid default_user_platform_id")
+			}
+			profile.DefaultUserPlatformID = &userPlatformID
+		}
 
 		err = s.repo.UpdateUserProfile(ctx, objID, profile)
 		if err != nil {
@@ -134,6 +149,11 @@ func (s *Service) UpdateUser(ctx context.Context, id string, req *dto.UpdateUser
 		resp.SalaryCycle = profile.SalaryCycle
 		resp.SalaryDay = profile.SalaryDay
 		resp.Language = profile.Lang
+		resp.AutoInputPayroll = profile.AutoInputPayroll
+		if profile.DefaultUserPlatformID != nil {
+			id := profile.DefaultUserPlatformID.Hex()
+			resp.DefaultUserPlatformID = &id
+		}
 	}
 
 	return resp, nil

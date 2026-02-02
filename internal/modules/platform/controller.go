@@ -280,6 +280,7 @@ func (c *Controller) mapToResponse(platform *Platform) *dto.PlatformResponse {
 		Name:      platform.Name,
 		Type:      platform.Type,
 		IsActive:  platform.IsActive,
+		IsDefault: platform.IsDefault,
 		CreatedAt: platform.CreatedAt,
 		UpdatedAt: platform.UpdatedAt,
 		DeletedAt: platform.DeletedAt,

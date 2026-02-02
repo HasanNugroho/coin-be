@@ -1,8 +1,32 @@
 basePath: /api
 definitions:
+  dto.CreateAllocationRequest:
+    properties:
+      allocation_type:
+        enum:
+        - PERCENTAGE
+        - NOMINAL
+        type: string
+      nominal:
+        type: number
+      pocket_id:
+        type: string
+      priority:
+        maximum: 3
+        minimum: 1
+        type: integer
+      user_platform_id:
+        type: string
+    required:
+    - allocation_type
+    - nominal
+    - priority
+    type: object
   dto.CreatePlatformRequest:
     properties:
       is_active:
+        type: boolean
+      is_default:
         type: boolean
       name:
         maxLength: 255
@@ -36,6 +60,8 @@ definitions:
         maxLength: 255
         minLength: 2
         type: string
+      target_balance:
+        type: number
       type:
         enum:
         - main
@@ -125,13 +151,26 @@ definitions:
         - income
         - expense
         - transfer
-        - dp
-        - withdraw
+        type: string
+      user_platform_from:
+        type: string
+      user_platform_to:
         type: string
     required:
     - amount
     - date
     - type
+    type: object
+  dto.CreateUserPlatformRequest:
+    properties:
+      alias_name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      platform_id:
+        type: string
+    required:
+    - platform_id
     type: object
   dto.LoginRequest:
     properties:
@@ -173,9 +212,31 @@ definitions:
     - name
     - password
     type: object
+  dto.UpdateAllocationRequest:
+    properties:
+      allocation_type:
+        enum:
+        - PERCENTAGE
+        - NOMINAL
+        type: string
+      is_active:
+        type: boolean
+      nominal:
+        type: number
+      pocket_id:
+        type: string
+      priority:
+        maximum: 3
+        minimum: 1
+        type: integer
+      user_platform_id:
+        type: string
+    type: object
   dto.UpdatePlatformRequest:
     properties:
       is_active:
+        type: boolean
+      is_default:
         type: boolean
       name:
         maxLength: 255
@@ -208,6 +269,8 @@ definitions:
         maxLength: 255
         minLength: 2
         type: string
+      target_balance:
+        type: number
       type:
         enum:
         - main
@@ -246,12 +309,25 @@ definitions:
         - allocation
         type: string
     type: object
+  dto.UpdateUserPlatformRequest:
+    properties:
+      alias_name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      is_active:
+        type: boolean
+    type: object
   dto.UpdateUserRequest:
     properties:
+      autoInputPayroll:
+        type: boolean
       baseSalary:
         minimum: 0
         type: number
       currency:
+        type: string
+      defaultUserPlatformId:
         type: string
       email:
         type: string
@@ -370,6 +446,178 @@ paths:
       summary: Create system pocket (admin only)
       tags:
       - Pockets Admin
+  /v1/allocations:
+    get:
+      description: Get all allocations for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Allocations retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all allocations
+      tags:
+      - Allocations
+    post:
+      consumes:
+      - application/json
+      description: Create a new salary allocation rule
+      parameters:
+      - description: Allocation details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAllocationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Allocation created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new allocation
+      tags:
+      - Allocations
+  /v1/allocations/{id}:
+    delete:
+      description: Delete an allocation
+      parameters:
+      - description: Allocation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Allocation deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete allocation
+      tags:
+      - Allocations
+    get:
+      description: Get a specific allocation by ID
+      parameters:
+      - description: Allocation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Allocation retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get allocation by ID
+      tags:
+      - Allocations
+    put:
+      consumes:
+      - application/json
+      description: Update an allocation
+      parameters:
+      - description: Allocation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateAllocationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Allocation updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update allocation
+      tags:
+      - Allocations
   /v1/auth/login:
     post:
       consumes:
@@ -547,6 +795,70 @@ paths:
       summary: Validate token
       tags:
       - Auth
+  /v1/dashboard/charts:
+    get:
+      consumes:
+      - application/json
+      description: Get cash flow trends and category breakdown charts using Hybrid
+        Logic
+      parameters:
+      - default: 7d
+        description: Date range (7d, 30d, 90d)
+        in: query
+        name: range
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dashboard charts retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get dashboard charts data
+      tags:
+      - Dashboard
+  /v1/dashboard/summary:
+    get:
+      consumes:
+      - application/json
+      description: Get real-time dashboard summary with total net worth and monthly
+        income/expense using Hybrid Logic
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dashboard summary retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get dashboard summary
+      tags:
+      - Dashboard
   /v1/platforms:
     get:
       consumes:
@@ -1500,6 +1812,199 @@ paths:
       summary: List pocket transactions
       tags:
       - Transactions
+  /v1/user-platforms:
+    get:
+      description: Get all user platforms for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User platforms retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all user platforms
+      tags:
+      - User Platforms
+    post:
+      consumes:
+      - application/json
+      description: Create a new user platform for the authenticated user
+      parameters:
+      - description: Platform details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUserPlatformRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User platform created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new user platform
+      tags:
+      - User Platforms
+  /v1/user-platforms/{id}:
+    delete:
+      description: Delete a user platform
+      parameters:
+      - description: User Platform ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User platform deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete user platform
+      tags:
+      - User Platforms
+    get:
+      description: Get a specific user platform by ID
+      parameters:
+      - description: User Platform ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User platform retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user platform by ID
+      tags:
+      - User Platforms
+    put:
+      consumes:
+      - application/json
+      description: Update a user platform
+      parameters:
+      - description: User Platform ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserPlatformRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User platform updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user platform
+      tags:
+      - User Platforms
+  /v1/user-platforms/dropdown/list:
+    get:
+      description: Get all user platforms for dropdown with platform data lookup
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User platforms retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List user platforms for dropdown
+      tags:
+      - User Platforms
   /v1/users:
     get:
       consumes:

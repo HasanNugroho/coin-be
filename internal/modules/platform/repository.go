@@ -134,3 +134,21 @@ func (r *Repository) ListPlatformsByType(ctx context.Context, platformType strin
 func (r *Repository) CountPlatforms(ctx context.Context) (int64, error) {
 	return r.platforms.CountDocuments(ctx, bson.M{"deleted_at": nil})
 }
+
+func (r *Repository) GetDefaultPlatforms(ctx context.Context) ([]*Platform, error) {
+	cursor, err := r.platforms.Find(ctx, bson.M{
+		"is_active":  true,
+		"is_default": true,
+		"deleted_at": nil,
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var platforms []*Platform
+	if err = cursor.All(ctx, &platforms); err != nil {
+		return nil, err
+	}
+	return platforms, nil
+}

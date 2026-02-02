@@ -8,18 +8,23 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction/dto"
+	"github.com/HasanNugroho/coin-be/internal/modules/user_platform"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Service struct {
-	repo       *Repository
-	pocketRepo *pocket.Repository
+	repo             *Repository
+	pocketRepo       *pocket.Repository
+	userPlatformRepo *user_platform.UserPlatformRepository
+	balanceProcessor *BalanceProcessor
 }
 
-func NewService(r *Repository, pr *pocket.Repository) *Service {
+func NewService(r *Repository, pr *pocket.Repository, upr *user_platform.UserPlatformRepository) *Service {
 	return &Service{
-		repo:       r,
-		pocketRepo: pr,
+		repo:             r,
+		pocketRepo:       pr,
+		userPlatformRepo: upr,
+		balanceProcessor: NewBalanceProcessor(pr, upr),
 	}
 }
 
@@ -44,6 +49,8 @@ func (s *Service) CreateTransaction(ctx context.Context, userID string, req *dto
 
 	var pocketFrom *primitive.ObjectID
 	var pocketTo *primitive.ObjectID
+	var userPlatformFrom *primitive.ObjectID
+	var userPlatformTo *primitive.ObjectID
 
 	if req.PocketFrom != "" {
 		pocketFromID, err := primitive.ObjectIDFromHex(req.PocketFrom)
@@ -59,6 +66,22 @@ func (s *Service) CreateTransaction(ctx context.Context, userID string, req *dto
 			return nil, errors.New("invalid pocket_to id")
 		}
 		pocketTo = &pocketToID
+	}
+
+	if req.UserPlatformFrom != "" {
+		userPlatformFromID, err := primitive.ObjectIDFromHex(req.UserPlatformFrom)
+		if err != nil {
+			return nil, errors.New("invalid user_platform_from id")
+		}
+		userPlatformFrom = &userPlatformFromID
+	}
+
+	if req.UserPlatformTo != "" {
+		userPlatformToID, err := primitive.ObjectIDFromHex(req.UserPlatformTo)
+		if err != nil {
+			return nil, errors.New("invalid user_platform_to id")
+		}
+		userPlatformTo = &userPlatformToID
 	}
 
 	var categoryID *primitive.ObjectID
@@ -79,71 +102,104 @@ func (s *Service) CreateTransaction(ctx context.Context, userID string, req *dto
 		platformID = &platID
 	}
 
-	if err := s.validateTransactionRules(ctx, req.Type, userObjID, pocketFrom, pocketTo); err != nil {
+	// Validate transaction rules based on type and provided fields
+	if err := s.validateTransactionRules(ctx, req.Type, userObjID, pocketFrom, pocketTo, userPlatformFrom, userPlatformTo); err != nil {
 		return nil, err
 	}
 
+	// Validate ownership of all pockets
 	if err := s.validatePocketOwnership(ctx, userObjID, pocketFrom, pocketTo); err != nil {
 		return nil, err
 	}
 
+	// Validate ownership of all user platforms
+	if err := s.validateUserPlatformOwnership(ctx, userObjID, userPlatformFrom, userPlatformTo); err != nil {
+		return nil, err
+	}
+
+	// Validate pocket status (active, not locked)
 	if err := s.validatePocketStatus(ctx, pocketFrom, pocketTo); err != nil {
 		return nil, err
 	}
 
-	if err := s.validateSufficientBalance(ctx, req.Type, pocketFrom, req.Amount); err != nil {
+	// Validate user platform status (active)
+	if err := s.validateUserPlatformStatus(ctx, userPlatformFrom, userPlatformTo); err != nil {
+		return nil, err
+	}
+
+	// Validate sufficient balance in source pockets and platforms
+	if err := s.validateSufficientBalance(ctx, req.Type, pocketFrom, userPlatformFrom, req.Amount); err != nil {
 		return nil, err
 	}
 
 	transaction := &Transaction{
-		UserID:     userObjID,
-		Type:       req.Type,
-		Amount:     req.Amount,
-		PocketFrom: pocketFrom,
-		PocketTo:   pocketTo,
-		CategoryID: categoryID,
-		PlatformID: platformID,
-		Note:       stringPtr(req.Note),
-		Date:       date,
-		Ref:        stringPtr(req.Ref),
+		UserID:           userObjID,
+		Type:             req.Type,
+		Amount:           req.Amount,
+		PocketFrom:       pocketFrom,
+		PocketTo:         pocketTo,
+		UserPlatformFrom: userPlatformFrom,
+		UserPlatformTo:   userPlatformTo,
+		CategoryID:       categoryID,
+		PlatformID:       platformID,
+		Note:             stringPtr(req.Note),
+		Date:             date,
+		Ref:              stringPtr(req.Ref),
 	}
 
+	// Create transaction record
 	if err := s.repo.CreateTransaction(ctx, transaction); err != nil {
 		return nil, err
 	}
 
-	if err := s.updatePocketBalances(ctx, req.Type, pocketFrom, pocketTo, req.Amount); err != nil {
+	// Process balance updates through centralized processor
+	if err := s.balanceProcessor.ProcessTransaction(ctx, req.Type, req.Amount, pocketFrom, pocketTo, userPlatformFrom, userPlatformTo); err != nil {
 		s.repo.DeleteTransaction(ctx, transaction.ID)
-		return nil, errors.New("failed to update pocket balances")
+		return nil, err
 	}
 
 	return transaction, nil
 }
 
-func (s *Service) validateTransactionRules(ctx context.Context, txType string, userID primitive.ObjectID, pocketFrom, pocketTo *primitive.ObjectID) error {
+func (s *Service) validateTransactionRules(ctx context.Context, txType string, userID primitive.ObjectID, pocketFrom, pocketTo, userPlatformFrom, userPlatformTo *primitive.ObjectID) error {
 	switch txType {
 	case string(TypeIncome):
-		if pocketTo == nil {
-			return errors.New("pocket_to is required for INCOME transactions")
+		// Income must have destination (pocket or platform)
+		if pocketTo == nil && userPlatformTo == nil {
+			return errors.New("pocket_to or user_platform_to is required for INCOME transactions")
 		}
-		if pocketFrom != nil {
-			return errors.New("pocket_from must be null for INCOME transactions")
+		// Income cannot have source
+		if pocketFrom != nil || userPlatformFrom != nil {
+			return errors.New("pocket_from and user_platform_from must be null for INCOME transactions")
 		}
 
 	case string(TypeExpense):
-		if pocketFrom == nil {
-			return errors.New("pocket_from is required for EXPENSE transactions")
+		// Expense must have source (pocket or platform)
+		if pocketFrom == nil && userPlatformFrom == nil {
+			return errors.New("pocket_from or user_platform_from is required for EXPENSE transactions")
 		}
-		if pocketTo != nil {
-			return errors.New("pocket_to must be null for EXPENSE transactions")
+		// Expense cannot have destination
+		if pocketTo != nil || userPlatformTo != nil {
+			return errors.New("pocket_to and user_platform_to must be null for EXPENSE transactions")
 		}
 
 	case string(TypeTransfer):
-		if pocketFrom == nil || pocketTo == nil {
-			return errors.New("both pocket_from and pocket_to are required for TRANSFER transactions")
+		// Transfer requires either (pocket-to-pocket) or (platform-to-platform) or (both pairs)
+		hasPocketPair := pocketFrom != nil && pocketTo != nil
+		hasPlatformPair := userPlatformFrom != nil && userPlatformTo != nil
+
+		if !hasPocketPair && !hasPlatformPair {
+			return errors.New("TRANSFER requires either (pocket_from + pocket_to) or (user_platform_from + user_platform_to) or both pairs")
 		}
-		if pocketFrom.Hex() == pocketTo.Hex() {
+
+		// Validate pocket pair if present
+		if hasPocketPair && pocketFrom.Hex() == pocketTo.Hex() {
 			return errors.New("pocket_from and pocket_to cannot be the same")
+		}
+
+		// Validate platform pair if present
+		if hasPlatformPair && userPlatformFrom.Hex() == userPlatformTo.Hex() {
+			return errors.New("user_platform_from and user_platform_to cannot be the same")
 		}
 	}
 
@@ -168,6 +224,30 @@ func (s *Service) validatePocketOwnership(ctx context.Context, userID primitive.
 		}
 		if pocket.UserID != userID {
 			return errors.New("unauthorized: pocket_to does not belong to user")
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) validateUserPlatformOwnership(ctx context.Context, userID primitive.ObjectID, userPlatformFrom, userPlatformTo *primitive.ObjectID) error {
+	if userPlatformFrom != nil {
+		userPlatform, err := s.userPlatformRepo.GetUserPlatformByID(ctx, *userPlatformFrom)
+		if err != nil {
+			return errors.New("user_platform_from not found")
+		}
+		if userPlatform.UserID != userID {
+			return errors.New("unauthorized: user_platform_from does not belong to user")
+		}
+	}
+
+	if userPlatformTo != nil {
+		userPlatform, err := s.userPlatformRepo.GetUserPlatformByID(ctx, *userPlatformTo)
+		if err != nil {
+			return errors.New("user_platform_to not found")
+		}
+		if userPlatform.UserID != userID {
+			return errors.New("unauthorized: user_platform_to does not belong to user")
 		}
 	}
 
@@ -204,72 +284,52 @@ func (s *Service) validatePocketStatus(ctx context.Context, pocketFrom, pocketTo
 	return nil
 }
 
-func (s *Service) validateSufficientBalance(ctx context.Context, txType string, pocketFrom *primitive.ObjectID, amount float64) error {
-	if pocketFrom == nil {
-		return nil
+func (s *Service) validateUserPlatformStatus(ctx context.Context, userPlatformFrom, userPlatformTo *primitive.ObjectID) error {
+	if userPlatformFrom != nil {
+		userPlatform, err := s.userPlatformRepo.GetUserPlatformByID(ctx, *userPlatformFrom)
+		if err != nil {
+			return err
+		}
+		if !userPlatform.IsActive {
+			return errors.New("user_platform_from is not active")
+		}
 	}
 
-	pocket, err := s.pocketRepo.GetPocketByID(ctx, *pocketFrom)
-	if err != nil {
-		return err
-	}
-
-	if utils.Decimal128ToFloat64(pocket.Balance) < amount {
-		return errors.New("insufficient balance")
+	if userPlatformTo != nil {
+		userPlatform, err := s.userPlatformRepo.GetUserPlatformByID(ctx, *userPlatformTo)
+		if err != nil {
+			return err
+		}
+		if !userPlatform.IsActive {
+			return errors.New("user_platform_to is not active")
+		}
 	}
 
 	return nil
 }
 
-func (s *Service) updatePocketBalances(ctx context.Context, txType string, pocketFrom, pocketTo *primitive.ObjectID, amount float64) error {
-	switch txType {
-	case string(TypeIncome):
-		if pocketTo != nil {
-			pocketData, err := s.pocketRepo.GetPocketByID(ctx, *pocketTo)
-			if err != nil {
-				return err
-			}
-
-			pocketData.Balance = utils.AddDecimal128(pocketData.Balance, amount)
-
-			if err := s.pocketRepo.UpdatePocket(ctx, *pocketTo, pocketData); err != nil {
-				return err
-			}
+func (s *Service) validateSufficientBalance(ctx context.Context, txType string, pocketFrom, userPlatformFrom *primitive.ObjectID, amount float64) error {
+	// Check pocket balance if provided
+	if pocketFrom != nil {
+		pocket, err := s.pocketRepo.GetPocketByID(ctx, *pocketFrom)
+		if err != nil {
+			return err
 		}
 
-	case string(TypeExpense):
-		if pocketFrom != nil {
-			pocketData, err := s.pocketRepo.GetPocketByID(ctx, *pocketFrom)
-			if err != nil {
-				return err
-			}
-			pocketData.Balance = utils.AddDecimal128(pocketData.Balance, -amount)
-			if err := s.pocketRepo.UpdatePocket(ctx, *pocketFrom, pocketData); err != nil {
-				return err
-			}
+		if utils.Decimal128ToFloat64(pocket.Balance) < amount {
+			return errors.New("insufficient pocket balance")
+		}
+	}
+
+	// Check user platform balance if provided
+	if userPlatformFrom != nil {
+		userPlatform, err := s.userPlatformRepo.GetUserPlatformByID(ctx, *userPlatformFrom)
+		if err != nil {
+			return err
 		}
 
-	case string(TypeTransfer):
-		if pocketFrom != nil {
-			pocketFromData, err := s.pocketRepo.GetPocketByID(ctx, *pocketFrom)
-			if err != nil {
-				return err
-			}
-			pocketFromData.Balance = utils.AddDecimal128(pocketFromData.Balance, -amount)
-			if err := s.pocketRepo.UpdatePocket(ctx, *pocketFrom, pocketFromData); err != nil {
-				return err
-			}
-		}
-
-		if pocketTo != nil {
-			pocketToData, err := s.pocketRepo.GetPocketByID(ctx, *pocketTo)
-			if err != nil {
-				return err
-			}
-			pocketToData.Balance = utils.AddDecimal128(pocketToData.Balance, amount)
-			if err := s.pocketRepo.UpdatePocket(ctx, *pocketTo, pocketToData); err != nil {
-				return err
-			}
+		if utils.Decimal128ToFloat64(userPlatform.Balance) < amount {
+			return errors.New("insufficient user platform balance")
 		}
 	}
 

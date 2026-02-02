@@ -251,6 +251,18 @@ func (c *Controller) mapToResponse(transaction *Transaction) *dto.TransactionRes
 		pocketTo = &id
 	}
 
+	var userPlatformFrom *string
+	if transaction.UserPlatformFrom != nil {
+		id := transaction.UserPlatformFrom.Hex()
+		userPlatformFrom = &id
+	}
+
+	var userPlatformTo *string
+	if transaction.UserPlatformTo != nil {
+		id := transaction.UserPlatformTo.Hex()
+		userPlatformTo = &id
+	}
+
 	var categoryID *string
 	if transaction.CategoryID != nil {
 		id := transaction.CategoryID.Hex()
@@ -264,20 +276,22 @@ func (c *Controller) mapToResponse(transaction *Transaction) *dto.TransactionRes
 	}
 
 	return &dto.TransactionResponse{
-		ID:         transaction.ID.Hex(),
-		UserID:     transaction.UserID.Hex(),
-		Type:       transaction.Type,
-		Amount:     transaction.Amount,
-		PocketFrom: pocketFrom,
-		PocketTo:   pocketTo,
-		CategoryID: categoryID,
-		PlatformID: platformID,
-		Note:       transaction.Note,
-		Date:       transaction.Date,
-		Ref:        transaction.Ref,
-		CreatedAt:  transaction.CreatedAt,
-		UpdatedAt:  transaction.UpdatedAt,
-		DeletedAt:  transaction.DeletedAt,
+		ID:               transaction.ID.Hex(),
+		UserID:           transaction.UserID.Hex(),
+		Type:             transaction.Type,
+		Amount:           transaction.Amount,
+		PocketFrom:       pocketFrom,
+		PocketTo:         pocketTo,
+		UserPlatformFrom: userPlatformFrom,
+		UserPlatformTo:   userPlatformTo,
+		CategoryID:       categoryID,
+		PlatformID:       platformID,
+		Note:             transaction.Note,
+		Date:             transaction.Date,
+		Ref:              transaction.Ref,
+		CreatedAt:        transaction.CreatedAt,
+		UpdatedAt:        transaction.UpdatedAt,
+		DeletedAt:        transaction.DeletedAt,
 	}
 }
 

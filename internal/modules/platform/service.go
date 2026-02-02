@@ -33,9 +33,10 @@ func (s *Service) CreatePlatform(ctx context.Context, req *dto.CreatePlatformReq
 	}
 
 	platform := &Platform{
-		Name:     req.Name,
-		Type:     req.Type,
-		IsActive: req.IsActive,
+		Name:      req.Name,
+		Type:      req.Type,
+		IsActive:  req.IsActive,
+		IsDefault: req.IsDefault,
 	}
 
 	err := s.repo.CreatePlatform(ctx, platform)
@@ -82,6 +83,10 @@ func (s *Service) UpdatePlatform(ctx context.Context, id string, req *dto.Update
 
 	if req.IsActive != nil {
 		platform.IsActive = *req.IsActive
+	}
+
+	if req.IsDefault != nil {
+		platform.IsDefault = *req.IsDefault
 	}
 
 	err = s.repo.UpdatePlatform(ctx, objID, platform)

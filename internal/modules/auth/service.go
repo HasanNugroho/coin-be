@@ -9,10 +9,12 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	authDTO "github.com/HasanNugroho/coin-be/internal/modules/auth/dto"
 	"github.com/HasanNugroho/coin-be/internal/modules/category_template"
+	"github.com/HasanNugroho/coin-be/internal/modules/platform"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket_template"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
 	"github.com/HasanNugroho/coin-be/internal/modules/user_category"
+	"github.com/HasanNugroho/coin-be/internal/modules/user_platform"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -23,18 +25,22 @@ type Service struct {
 	pocketTemplateRepo   *pocket_template.Repository
 	categoryTemplateRepo *category_template.Repository
 	userCategoryRepo     *user_category.Repository
+	platformRepo         *platform.Repository
+	userPlatformRepo     *user_platform.UserPlatformRepository
 	redis                *redis.Client
 	jwtManager           *utils.JWTManager
 	passwordMgr          *utils.PasswordManager
 }
 
-func NewService(userRepo *user.Repository, pocketRepo *pocket.Repository, pocketTemplateRepo *pocket_template.Repository, categoryTemplateRepo *category_template.Repository, userCategoryRepo *user_category.Repository, redis *redis.Client, jwtManager *utils.JWTManager, passwordMgr *utils.PasswordManager) *Service {
+func NewService(userRepo *user.Repository, pocketRepo *pocket.Repository, pocketTemplateRepo *pocket_template.Repository, categoryTemplateRepo *category_template.Repository, userCategoryRepo *user_category.Repository, platformRepo *platform.Repository, userPlatformRepo *user_platform.UserPlatformRepository, redis *redis.Client, jwtManager *utils.JWTManager, passwordMgr *utils.PasswordManager) *Service {
 	return &Service{
 		userRepo:             userRepo,
 		pocketRepo:           pocketRepo,
 		pocketTemplateRepo:   pocketTemplateRepo,
 		categoryTemplateRepo: categoryTemplateRepo,
 		userCategoryRepo:     userCategoryRepo,
+		platformRepo:         platformRepo,
+		userPlatformRepo:     userPlatformRepo,
 		redis:                redis,
 		jwtManager:           jwtManager,
 		passwordMgr:          passwordMgr,
@@ -103,10 +109,17 @@ func (s *Service) Register(ctx context.Context, req *authDTO.RegisterRequest) (*
 	}
 
 	// Create default category from active category templates
-
 	err = s.createDefaultCategories(ctx, newUser.ID)
 	if err != nil {
 		// Rollback user creation on category creation failure
+		_ = s.userRepo.DeleteUser(ctx, newUser.ID)
+		return nil, err
+	}
+
+	// Auto-generate UserPlatforms from default platforms
+	err = s.createDefaultUserPlatforms(ctx, newUser.ID)
+	if err != nil {
+		// Rollback user creation on user platform creation failure
 		_ = s.userRepo.DeleteUser(ctx, newUser.ID)
 		return nil, err
 	}
@@ -263,6 +276,35 @@ func (s *Service) createDefaultPockets(ctx context.Context, userID primitive.Obj
 		if err != nil {
 			log.Printf("failed to create pocket from template %s for user %s: %v", template.ID.Hex(), userID.Hex(), err)
 			return errors.New("failed to create default pockets")
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) createDefaultUserPlatforms(ctx context.Context, userID primitive.ObjectID) error {
+	// Fetch all default platforms (is_active = true, is_default = true)
+	defaultPlatforms, err := s.platformRepo.GetDefaultPlatforms(ctx)
+	if err != nil {
+		log.Printf("failed to fetch default platforms for user %s: %v", userID.Hex(), err)
+		return errors.New("failed to fetch default platforms")
+	}
+
+	// Create UserPlatform for each default platform
+	for _, platform := range defaultPlatforms {
+		aliasName := platform.Name
+		userPlatform := &user_platform.UserPlatform{
+			UserID:     userID,
+			PlatformID: platform.ID,
+			AliasName:  &aliasName,
+			Balance:    utils.NewDecimal128FromFloat(0),
+			IsActive:   true,
+		}
+
+		err := s.userPlatformRepo.CreateUserPlatform(ctx, userPlatform)
+		if err != nil {
+			log.Printf("failed to create user platform from platform %s for user %s: %v", platform.ID.Hex(), userID.Hex(), err)
+			return errors.New("failed to create default user platforms")
 		}
 	}
 

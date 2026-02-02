@@ -13,7 +13,11 @@ type Transaction struct {
 	Amount     float64             `bson:"amount" json:"amount"`
 	PocketFrom *primitive.ObjectID `bson:"pocket_from,omitempty" json:"pocket_from,omitempty"`
 	PocketTo   *primitive.ObjectID `bson:"pocket_to,omitempty" json:"pocket_to,omitempty"`
-	CategoryID *primitive.ObjectID `bson:"category_id,omitempty" json:"category_id,omitempty"`
+	// UserPlatformFrom and UserPlatformTo hold user-specific platform references for balance updates
+	UserPlatformFrom *primitive.ObjectID `bson:"user_platform_from,omitempty" json:"user_platform_from,omitempty"`
+	UserPlatformTo   *primitive.ObjectID `bson:"user_platform_to,omitempty" json:"user_platform_to,omitempty"`
+	CategoryID       *primitive.ObjectID `bson:"category_id,omitempty" json:"category_id,omitempty"`
+	// PlatformID is reference-only (AdminPlatform), not used for balance logic
 	PlatformID *primitive.ObjectID `bson:"platform_id,omitempty" json:"platform_id,omitempty"`
 	Note       *string             `bson:"note,omitempty" json:"note,omitempty"`
 	Date       time.Time           `bson:"date" json:"date"`

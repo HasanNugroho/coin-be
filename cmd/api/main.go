@@ -14,15 +14,18 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/core/container"
 	"github.com/HasanNugroho/coin-be/internal/core/middleware"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
+	"github.com/HasanNugroho/coin-be/internal/modules/allocation"
 	"github.com/HasanNugroho/coin-be/internal/modules/auth"
 	"github.com/HasanNugroho/coin-be/internal/modules/category_template"
 	"github.com/HasanNugroho/coin-be/internal/modules/dashboard"
+	"github.com/HasanNugroho/coin-be/internal/modules/payroll"
 	"github.com/HasanNugroho/coin-be/internal/modules/platform"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket_template"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
 	"github.com/HasanNugroho/coin-be/internal/modules/user_category"
+	"github.com/HasanNugroho/coin-be/internal/modules/user_platform"
 )
 
 // @title Coin Backend API
@@ -66,9 +69,12 @@ func main() {
 	category_template.Register(builder)
 	user_category.Register(builder)
 	platform.Register(builder)
+	user_platform.Register(builder)
 	pocket_template.Register(builder)
 	pocket.Register(builder)
+	allocation.Register(builder)
 	transaction.Register(builder)
+	payroll.Register(builder)
 	dashboard.Register(builder)
 
 	appContainer := builder.Build()
@@ -120,6 +126,12 @@ func main() {
 	platformRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
 	platform.RegisterRoutes(platformRoutes, platformController)
 
+	// User Platform routes (protected)
+	userPlatformController := appContainer.Get("userPlatformController").(*user_platform.Controller)
+	userPlatformRoutes := api.Group("/v1/user-platforms")
+	userPlatformRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	user_platform.RegisterRoutes(userPlatformRoutes, userPlatformController)
+
 	// Pocket Template routes (protected, admin only)
 	pocketTemplateController := appContainer.Get("pocketTemplateController").(*pocket_template.Controller)
 	pocketTemplateRoutes := api.Group("/v1/pocket-templates")
@@ -131,6 +143,12 @@ func main() {
 	pocketRoutes := api.Group("/v1/pockets")
 	pocketRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
 	pocket.RegisterRoutes(pocketRoutes, pocketController)
+
+	// Allocation routes (protected)
+	allocationController := appContainer.Get("allocationController").(*allocation.Controller)
+	allocationRoutes := api.Group("/v1/allocations")
+	allocationRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	allocation.RegisterRoutes(allocationRoutes, allocationController)
 
 	// Transaction routes (protected)
 	transactionController := appContainer.Get("transactionController").(*transaction.Controller)
@@ -146,9 +164,15 @@ func main() {
 
 	// Start dashboard cron job for daily summaries
 	dashboardService := appContainer.Get("dashboardService").(*dashboard.Service)
-	cronJob := dashboard.NewCronJob(dashboardService)
-	cronJob.Start()
-	defer cronJob.Stop()
+	dashboardCronJob := dashboard.NewCronJob(dashboardService)
+	dashboardCronJob.Start()
+	defer dashboardCronJob.Stop()
+
+	// Start payroll cron job for daily payroll processing
+	payrollService := appContainer.Get("payrollService").(*payroll.Service)
+	payrollCronJob := payroll.NewCronJob(payrollService)
+	payrollCronJob.Start()
+	defer payrollCronJob.Stop()
 
 	log.Println("Server running on http://localhost:8080")
 	log.Println("Swagger docs available at http://localhost:8080/swagger/index.html")

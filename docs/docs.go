@@ -142,6 +142,267 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/allocations": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all allocations for the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Allocations"
+                ],
+                "summary": "List all allocations",
+                "responses": {
+                    "200": {
+                        "description": "Allocations retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new salary allocation rule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Allocations"
+                ],
+                "summary": "Create a new allocation",
+                "parameters": [
+                    {
+                        "description": "Allocation details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateAllocationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Allocation created successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/allocations/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a specific allocation by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Allocations"
+                ],
+                "summary": "Get allocation by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Allocation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Allocation retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update an allocation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Allocations"
+                ],
+                "summary": "Update allocation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Allocation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateAllocationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Allocation updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete an allocation",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Allocations"
+                ],
+                "summary": "Delete allocation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Allocation ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Allocation deleted successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/auth/login": {
             "post": {
                 "description": "Authenticate user with email and password, returns access and refresh tokens",
@@ -401,6 +662,101 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Token is invalid",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dashboard/charts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get cash flow trends and category breakdown charts using Hybrid Logic",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get dashboard charts data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "7d",
+                        "description": "Date range (7d, 30d, 90d)",
+                        "name": "range",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dashboard charts retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dashboard/summary": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get real-time dashboard summary with total net worth and monthly income/expense using Hybrid Logic",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get dashboard summary",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard summary retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1862,6 +2218,300 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/user-platforms": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all user platforms for the authenticated user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Platforms"
+                ],
+                "summary": "List all user platforms",
+                "responses": {
+                    "200": {
+                        "description": "User platforms retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new user platform for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Platforms"
+                ],
+                "summary": "Create a new user platform",
+                "parameters": [
+                    {
+                        "description": "Platform details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateUserPlatformRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User platform created successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user-platforms/dropdown/list": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all user platforms for dropdown with platform data lookup",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Platforms"
+                ],
+                "summary": "List user platforms for dropdown",
+                "responses": {
+                    "200": {
+                        "description": "User platforms retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user-platforms/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a specific user platform by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Platforms"
+                ],
+                "summary": "Get user platform by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User Platform ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User platform retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update a user platform",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Platforms"
+                ],
+                "summary": "Update user platform",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User Platform ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateUserPlatformRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User platform updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a user platform",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Platforms"
+                ],
+                "summary": "Delete user platform",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User Platform ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User platform deleted successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users": {
             "get": {
                 "security": [
@@ -2224,6 +2874,37 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.CreateAllocationRequest": {
+            "type": "object",
+            "required": [
+                "allocation_type",
+                "nominal",
+                "priority"
+            ],
+            "properties": {
+                "allocation_type": {
+                    "type": "string",
+                    "enum": [
+                        "PERCENTAGE",
+                        "NOMINAL"
+                    ]
+                },
+                "nominal": {
+                    "type": "number"
+                },
+                "pocket_id": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer",
+                    "maximum": 3,
+                    "minimum": 1
+                },
+                "user_platform_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreatePlatformRequest": {
             "type": "object",
             "required": [
@@ -2232,6 +2913,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "is_active": {
+                    "type": "boolean"
+                },
+                "is_default": {
                     "type": "boolean"
                 },
                 "name": {
@@ -2276,6 +2960,9 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 2
+                },
+                "target_balance": {
+                    "type": "number"
                 },
                 "type": {
                     "type": "string",
@@ -2402,6 +3089,28 @@ const docTemplate = `{
                         "expense",
                         "transfer"
                     ]
+                },
+                "user_platform_from": {
+                    "type": "string"
+                },
+                "user_platform_to": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateUserPlatformRequest": {
+            "type": "object",
+            "required": [
+                "platform_id"
+            ],
+            "properties": {
+                "alias_name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
+                },
+                "platform_id": {
+                    "type": "string"
                 }
             }
         },
@@ -2461,10 +3170,42 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateAllocationRequest": {
+            "type": "object",
+            "properties": {
+                "allocation_type": {
+                    "type": "string",
+                    "enum": [
+                        "PERCENTAGE",
+                        "NOMINAL"
+                    ]
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "nominal": {
+                    "type": "number"
+                },
+                "pocket_id": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer",
+                    "maximum": 3,
+                    "minimum": 1
+                },
+                "user_platform_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.UpdatePlatformRequest": {
             "type": "object",
             "properties": {
                 "is_active": {
+                    "type": "boolean"
+                },
+                "is_default": {
                     "type": "boolean"
                 },
                 "name": {
@@ -2508,6 +3249,9 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 2
+                },
+                "target_balance": {
+                    "type": "number"
                 },
                 "type": {
                     "type": "string",
@@ -2561,14 +3305,33 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateUserPlatformRequest": {
+            "type": "object",
+            "properties": {
+                "alias_name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
+                },
+                "is_active": {
+                    "type": "boolean"
+                }
+            }
+        },
         "dto.UpdateUserRequest": {
             "type": "object",
             "properties": {
+                "autoInputPayroll": {
+                    "type": "boolean"
+                },
                 "baseSalary": {
                     "type": "number",
                     "minimum": 0
                 },
                 "currency": {
+                    "type": "string"
+                },
+                "defaultUserPlatformId": {
                     "type": "string"
                 },
                 "email": {

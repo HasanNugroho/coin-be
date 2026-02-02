@@ -11,6 +11,7 @@ type Platform struct {
 	Name      string             `bson:"name" json:"name"`
 	Type      string             `bson:"type" json:"type" enums:"BANK,E_WALLET,CASH,ATM"`
 	IsActive  bool               `bson:"is_active" json:"is_active"`
+	IsDefault bool               `bson:"is_default" json:"is_default"`
 	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
 	DeletedAt *time.Time         `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
