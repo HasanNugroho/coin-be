@@ -145,19 +145,6 @@ func (s *Service) validateTransactionRules(ctx context.Context, txType string, u
 		if pocketFrom.Hex() == pocketTo.Hex() {
 			return errors.New("pocket_from and pocket_to cannot be the same")
 		}
-
-	case string(TypeDebtPayment):
-		if pocketFrom == nil {
-			return errors.New("pocket_from is required for DEBT_PAYMENT transactions")
-		}
-
-	case string(TypeWithdraw):
-		if pocketFrom == nil {
-			return errors.New("pocket_from is required for WITHDRAW transactions")
-		}
-		if pocketTo != nil {
-			return errors.New("pocket_to must be null for WITHDRAW transactions")
-		}
 	}
 
 	return nil
@@ -281,30 +268,6 @@ func (s *Service) updatePocketBalances(ctx context.Context, txType string, pocke
 			}
 			pocketToData.Balance = utils.AddDecimal128(pocketToData.Balance, amount)
 			if err := s.pocketRepo.UpdatePocket(ctx, *pocketTo, pocketToData); err != nil {
-				return err
-			}
-		}
-
-	case string(TypeDebtPayment):
-		if pocketFrom != nil {
-			pocketData, err := s.pocketRepo.GetPocketByID(ctx, *pocketFrom)
-			if err != nil {
-				return err
-			}
-			pocketData.Balance = utils.AddDecimal128(pocketData.Balance, -amount)
-			if err := s.pocketRepo.UpdatePocket(ctx, *pocketFrom, pocketData); err != nil {
-				return err
-			}
-		}
-
-	case string(TypeWithdraw):
-		if pocketFrom != nil {
-			pocketData, err := s.pocketRepo.GetPocketByID(ctx, *pocketFrom)
-			if err != nil {
-				return err
-			}
-			pocketData.Balance = utils.AddDecimal128(pocketData.Balance, -amount)
-			if err := s.pocketRepo.UpdatePocket(ctx, *pocketFrom, pocketData); err != nil {
 				return err
 			}
 		}

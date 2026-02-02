@@ -9,6 +9,7 @@ type PocketResponse struct {
 	Type            string     `json:"type"`
 	CategoryID      *string    `json:"category_id,omitempty"`
 	Balance         float64    `json:"balance"`
+	TargetBalance   *float64   `json:"target_balance,omitempty"`
 	IsDefault       bool       `json:"is_default"`
 	IsActive        bool       `json:"is_active"`
 	IsLocked        bool       `json:"is_locked"`

@@ -430,6 +430,12 @@ func (c *Controller) mapToResponse(pocket *Pocket) *dto.PocketResponse {
 		categoryID = &id
 	}
 
+	var targetBalance *float64
+	if pocket.TargetBalance != nil {
+		tb := utils.Decimal128ToFloat64(*pocket.TargetBalance)
+		targetBalance = &tb
+	}
+
 	return &dto.PocketResponse{
 		ID:              pocket.ID.Hex(),
 		UserID:          pocket.UserID.Hex(),
@@ -437,6 +443,7 @@ func (c *Controller) mapToResponse(pocket *Pocket) *dto.PocketResponse {
 		Type:            pocket.Type,
 		CategoryID:      categoryID,
 		Balance:         utils.Decimal128ToFloat64(pocket.Balance),
+		TargetBalance:   targetBalance,
 		IsDefault:       pocket.IsDefault,
 		IsActive:        pocket.IsActive,
 		IsLocked:        pocket.IsLocked,

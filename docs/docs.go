@@ -2400,9 +2400,7 @@ const docTemplate = `{
                     "enum": [
                         "income",
                         "expense",
-                        "transfer",
-                        "dp",
-                        "withdraw"
+                        "transfer"
                     ]
                 }
             }

@@ -9,7 +9,7 @@ import (
 type Transaction struct {
 	ID         primitive.ObjectID  `bson:"_id,omitempty" json:"id"`
 	UserID     primitive.ObjectID  `bson:"user_id" json:"user_id"`
-	Type       string              `bson:"type" json:"type" enums:"income,expense,transfer,dp,withdraw"`
+	Type       string              `bson:"type" json:"type" enums:"income,expense,transfer"`
 	Amount     float64             `bson:"amount" json:"amount"`
 	PocketFrom *primitive.ObjectID `bson:"pocket_from,omitempty" json:"pocket_from,omitempty"`
 	PocketTo   *primitive.ObjectID `bson:"pocket_to,omitempty" json:"pocket_to,omitempty"`
@@ -27,16 +27,14 @@ type Transaction struct {
 type TransactionType string
 
 const (
-	TypeIncome      TransactionType = "income"
-	TypeExpense     TransactionType = "expense"
-	TypeTransfer    TransactionType = "transfer"
-	TypeDebtPayment TransactionType = "dp"
-	TypeWithdraw    TransactionType = "withdraw"
+	TypeIncome   TransactionType = "income"
+	TypeExpense  TransactionType = "expense"
+	TypeTransfer TransactionType = "transfer"
 )
 
 func IsValidTransactionType(t string) bool {
 	switch t {
-	case string(TypeIncome), string(TypeExpense), string(TypeTransfer), string(TypeDebtPayment), string(TypeWithdraw):
+	case string(TypeIncome), string(TypeExpense), string(TypeTransfer):
 		return true
 	default:
 		return false

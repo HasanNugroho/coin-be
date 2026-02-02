@@ -42,12 +42,19 @@ func (s *Service) CreatePocket(ctx context.Context, userID string, req *dto.Crea
 		categoryID = &catID
 	}
 
+	var targetBalance *primitive.Decimal128
+	if req.TargetBalance != nil {
+		tb := utils.NewDecimal128FromFloat(*req.TargetBalance)
+		targetBalance = &tb
+	}
+
 	pocket := &Pocket{
 		UserID:          userObjID,
 		Name:            req.Name,
 		Type:            req.Type,
 		CategoryID:      categoryID,
 		Balance:         utils.NewDecimal128FromFloat(0),
+		TargetBalance:   targetBalance,
 		IsDefault:       req.Type == string(TypeMain),
 		IsActive:        true,
 		IsLocked:        false,
@@ -141,6 +148,11 @@ func (s *Service) UpdatePocket(ctx context.Context, userID string, pocketID stri
 
 	if req.BackgroundColor != "" {
 		pocket.BackgroundColor = req.BackgroundColor
+	}
+
+	if req.TargetBalance != nil {
+		tb := utils.NewDecimal128FromFloat(*req.TargetBalance)
+		pocket.TargetBalance = &tb
 	}
 
 	if req.IsActive != nil {

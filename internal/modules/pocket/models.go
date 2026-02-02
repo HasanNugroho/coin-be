@@ -14,7 +14,8 @@ type Pocket struct {
 	Type       string              `bson:"type" json:"type" enums:"main,allocation,saving,debt,system"`
 	CategoryID *primitive.ObjectID `bson:"category_id,omitempty" json:"category_id,omitempty"`
 
-	Balance primitive.Decimal128 `bson:"balance" json:"balance"`
+	Balance       primitive.Decimal128  `bson:"balance" json:"balance"`
+	TargetBalance *primitive.Decimal128 `bson:"target_balance,omitempty" json:"target_balance,omitempty"`
 
 	IsDefault bool `bson:"is_default" json:"is_default"`
 	IsActive  bool `bson:"is_active" json:"is_active"`

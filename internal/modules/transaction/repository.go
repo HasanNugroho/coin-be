@@ -88,6 +88,16 @@ func (r *Repository) GetTransactionsByUserIDWithSort(
 		}
 	}
 
+	allowedSort := map[string]bool{
+		"date":       true,
+		"amount":     true,
+		"created_at": true,
+	}
+
+	if !allowedSort[sortBy] {
+		sortBy = "date"
+	}
+
 	// 2. Sort order
 	sortValue := -1
 	if sortOrder == "asc" {
@@ -99,12 +109,11 @@ func (r *Repository) GetTransactionsByUserIDWithSort(
 		skip = 0
 	}
 
-	// 3. Build aggregation pipeline
 	pipeline := mongo.Pipeline{
-		// Match stage
+		// 1. Match
 		{{Key: "$match", Value: match}},
 
-		// Lookup category
+		// 2. Lookup category
 		{{
 			Key: "$lookup",
 			Value: bson.M{
@@ -114,36 +123,78 @@ func (r *Repository) GetTransactionsByUserIDWithSort(
 				"as":           "category",
 			},
 		}},
-
-		// Unwind category array
 		{{Key: "$unwind", Value: bson.M{"path": "$category", "preserveNullAndEmptyArrays": true}}},
 
-		// Sort
+		// 3. Lookup pocket_from
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         "pockets",
+				"localField":   "pocket_from",
+				"foreignField": "_id",
+				"as":           "pocket_from_data",
+			},
+		}},
+		{{Key: "$unwind", Value: bson.M{"path": "$pocket_from_data", "preserveNullAndEmptyArrays": true}}},
+
+		// 4. Lookup pocket_to
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         "pockets",
+				"localField":   "pocket_to",
+				"foreignField": "_id",
+				"as":           "pocket_to_data",
+			},
+		}},
+		{{Key: "$unwind", Value: bson.M{"path": "$pocket_to_data", "preserveNullAndEmptyArrays": true}}},
+
+		// 5. Lookup platform
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         "platforms",
+				"localField":   "platform_id",
+				"foreignField": "_id",
+				"as":           "platform",
+			},
+		}},
+		{{Key: "$unwind", Value: bson.M{"path": "$platform", "preserveNullAndEmptyArrays": true}}},
+
+		// 6. Sort
 		{{Key: "$sort", Value: bson.D{{Key: sortBy, Value: sortValue}}}},
 
-		// Pagination
+		// 7. Pagination
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: pageSize}},
 
-		// Project fields to TransactionResponse
+		// 8. Project
 		{{
 			Key: "$project",
 			Value: bson.M{
-				"id":            bson.M{"$toString": "$_id"},
-				"user_id":       bson.M{"$toString": "$user_id"},
-				"type":          "$type",
-				"amount":        "$amount",
-				"pocket_from":   "$pocket_from",
-				"pocket_to":     "$pocket_to",
+				"id":      bson.M{"$toString": "$_id"},
+				"user_id": bson.M{"$toString": "$user_id"},
+				"type":    "$type",
+				"amount":  "$amount",
+
+				"pocket_from":      bson.M{"$toString": "$pocket_from"},
+				"pocket_from_name": "$pocket_from_data.name",
+
+				"pocket_to":      bson.M{"$toString": "$pocket_to"},
+				"pocket_to_name": "$pocket_to_data.name",
+
 				"category_id":   bson.M{"$toString": "$category_id"},
 				"category_name": "$category.name",
-				"platform_id":   "$platform_id",
-				"note":          "$note",
-				"date":          "$date",
-				"ref":           "$ref",
-				"created_at":    "$created_at",
-				"updated_at":    "$updated_at",
-				"deleted_at":    "$deleted_at",
+
+				"platform_id":   bson.M{"$toString": "$platform_id"},
+				"platform_name": "$platform.name",
+
+				"note":       "$note",
+				"date":       "$date",
+				"ref":        "$ref",
+				"created_at": "$created_at",
+				"updated_at": "$updated_at",
+				"deleted_at": "$deleted_at",
 			},
 		}},
 	}
