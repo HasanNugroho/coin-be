@@ -227,14 +227,14 @@ func (s *Service) processUserPayroll(ctx context.Context, u *user.User, profile 
 
 		// Step 1: Create INCOME transaction
 		incomeTransaction := &transaction.Transaction{
-			UserID:         u.ID,
-			Type:           string(transaction.TypeIncome),
-			Amount:         profile.BaseSalary,
-			PocketTo:       &mainPocket.ID,
-			UserPlatformTo: &defaultUserPlatform.ID,
-			Date:           time.Now(),
-			Note:           stringPtr("Payroll auto-input"),
-			Ref:            stringPtr("payroll_" + time.Now().Format("2006_01_02")),
+			UserID:           u.ID,
+			Type:             string(transaction.TypeIncome),
+			Amount:           profile.BaseSalary,
+			PocketToID:       &mainPocket.ID,
+			UserPlatformToID: &defaultUserPlatform.ID,
+			Date:             time.Now(),
+			Note:             stringPtr("Payroll auto-input"),
+			Ref:              stringPtr("payroll_" + time.Now().Format("2006_01_02")),
 		}
 
 		// Persist income transaction
@@ -280,15 +280,15 @@ func (s *Service) processUserPayroll(ctx context.Context, u *user.User, profile 
 			}
 
 			// Validate target
-			var targetPocket *primitive.ObjectID
-			var targetUserPlatform *primitive.ObjectID
+			var targetPocketID *primitive.ObjectID
+			var targetUserPlatformID *primitive.ObjectID
 
 			if alloc.PocketID != nil {
 				pocket, err := s.pocketRepo.GetPocketByID(sessionCtx, *alloc.PocketID)
 				if err != nil || !pocket.IsActive || pocket.UserID != u.ID {
 					continue
 				}
-				targetPocket = alloc.PocketID
+				targetPocketID = alloc.PocketID
 			}
 
 			if alloc.UserPlatformID != nil {
@@ -296,25 +296,25 @@ func (s *Service) processUserPayroll(ctx context.Context, u *user.User, profile 
 				if err != nil || !userPlatform.IsActive || userPlatform.UserID != u.ID {
 					continue
 				}
-				targetUserPlatform = alloc.UserPlatformID
+				targetUserPlatformID = alloc.UserPlatformID
 			}
 
-			if targetPocket == nil && targetUserPlatform == nil {
+			if targetPocketID == nil && targetUserPlatformID == nil {
 				continue
 			}
 
 			// Create allocation transaction
 			allocTx := &transaction.Transaction{
-				UserID:           u.ID,
-				Type:             string(transaction.TypeTransfer),
-				Amount:           allocAmount,
-				PocketFrom:       &mainPocket.ID,
-				PocketTo:         targetPocket,
-				UserPlatformFrom: &defaultUserPlatform.ID,
-				UserPlatformTo:   targetUserPlatform,
-				Date:             time.Now(),
-				Note:             stringPtr("Auto allocation - priority " + string(rune(alloc.Priority+'0'))),
-				Ref:              stringPtr("alloc_" + alloc.ID.Hex()),
+				UserID:             u.ID,
+				Type:               string(transaction.TypeTransfer),
+				Amount:             allocAmount,
+				PocketFromID:       &mainPocket.ID,
+				PocketToID:         targetPocketID,
+				UserPlatformFromID: &defaultUserPlatform.ID,
+				UserPlatformToID:   targetUserPlatformID,
+				Date:               time.Now(),
+				Note:               stringPtr("Auto allocation - priority " + string(rune(alloc.Priority+'0'))),
+				Ref:                stringPtr("alloc_" + alloc.ID.Hex()),
 			}
 
 			allocationTransactions = append(allocationTransactions, allocTx)
@@ -325,11 +325,11 @@ func (s *Service) processUserPayroll(ctx context.Context, u *user.User, profile 
 				balanceUpdate{entityType: "userPlatform", id: defaultUserPlatform.ID, delta: -allocAmount},
 			)
 
-			if targetPocket != nil {
-				balanceUpdates = append(balanceUpdates, balanceUpdate{entityType: "pocket", id: *targetPocket, delta: allocAmount})
+			if targetPocketID != nil {
+				balanceUpdates = append(balanceUpdates, balanceUpdate{entityType: "pocket", id: *targetPocketID, delta: allocAmount})
 			}
-			if targetUserPlatform != nil {
-				balanceUpdates = append(balanceUpdates, balanceUpdate{entityType: "userPlatform", id: *targetUserPlatform, delta: allocAmount})
+			if targetUserPlatformID != nil {
+				balanceUpdates = append(balanceUpdates, balanceUpdate{entityType: "userPlatform", id: *targetUserPlatformID, delta: allocAmount})
 			}
 
 			remainingBalance -= allocAmount

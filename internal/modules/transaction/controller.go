@@ -239,27 +239,27 @@ func (c *Controller) DeleteTransaction(ctx *gin.Context) {
 }
 
 func (c *Controller) mapToResponse(transaction *Transaction) *dto.TransactionResponse {
-	var pocketFrom *string
-	if transaction.PocketFrom != nil {
-		id := transaction.PocketFrom.Hex()
-		pocketFrom = &id
+	var pocketFromID *string
+	if transaction.PocketFromID != nil {
+		id := transaction.PocketFromID.Hex()
+		pocketFromID = &id
 	}
 
-	var pocketTo *string
-	if transaction.PocketTo != nil {
-		id := transaction.PocketTo.Hex()
-		pocketTo = &id
+	var pocketToID *string
+	if transaction.PocketToID != nil {
+		id := transaction.PocketToID.Hex()
+		pocketToID = &id
 	}
 
 	var userPlatformFrom *string
-	if transaction.UserPlatformFrom != nil {
-		id := transaction.UserPlatformFrom.Hex()
+	if transaction.UserPlatformFromID != nil {
+		id := transaction.UserPlatformFromID.Hex()
 		userPlatformFrom = &id
 	}
 
 	var userPlatformTo *string
-	if transaction.UserPlatformTo != nil {
-		id := transaction.UserPlatformTo.Hex()
+	if transaction.UserPlatformToID != nil {
+		id := transaction.UserPlatformToID.Hex()
 		userPlatformTo = &id
 	}
 
@@ -269,29 +269,22 @@ func (c *Controller) mapToResponse(transaction *Transaction) *dto.TransactionRes
 		categoryID = &id
 	}
 
-	var platformID *string
-	if transaction.PlatformID != nil {
-		id := transaction.PlatformID.Hex()
-		platformID = &id
-	}
-
 	return &dto.TransactionResponse{
-		ID:               transaction.ID.Hex(),
-		UserID:           transaction.UserID.Hex(),
-		Type:             transaction.Type,
-		Amount:           transaction.Amount,
-		PocketFrom:       pocketFrom,
-		PocketTo:         pocketTo,
-		UserPlatformFrom: userPlatformFrom,
-		UserPlatformTo:   userPlatformTo,
-		CategoryID:       categoryID,
-		PlatformID:       platformID,
-		Note:             transaction.Note,
-		Date:             transaction.Date,
-		Ref:              transaction.Ref,
-		CreatedAt:        transaction.CreatedAt,
-		UpdatedAt:        transaction.UpdatedAt,
-		DeletedAt:        transaction.DeletedAt,
+		ID:                 transaction.ID.Hex(),
+		UserID:             transaction.UserID.Hex(),
+		Type:               transaction.Type,
+		Amount:             transaction.Amount,
+		PocketFromID:       pocketFromID,
+		PocketToID:         pocketToID,
+		UserPlatformFromID: userPlatformFrom,
+		UserPlatformToID:   userPlatformTo,
+		CategoryID:         categoryID,
+		Note:               transaction.Note,
+		Date:               transaction.Date,
+		Ref:                transaction.Ref,
+		CreatedAt:          transaction.CreatedAt,
+		UpdatedAt:          transaction.UpdatedAt,
+		DeletedAt:          transaction.DeletedAt,
 	}
 }
 

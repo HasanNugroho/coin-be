@@ -52,32 +52,32 @@ func (s *Service) CreateTransaction(ctx context.Context, userID string, req *dto
 	var userPlatformFrom *primitive.ObjectID
 	var userPlatformTo *primitive.ObjectID
 
-	if req.PocketFrom != "" {
-		pocketFromID, err := primitive.ObjectIDFromHex(req.PocketFrom)
+	if req.PocketFromID != "" {
+		pocketFromID, err := primitive.ObjectIDFromHex(req.PocketFromID)
 		if err != nil {
 			return nil, errors.New("invalid pocket_from id")
 		}
 		pocketFrom = &pocketFromID
 	}
 
-	if req.PocketTo != "" {
-		pocketToID, err := primitive.ObjectIDFromHex(req.PocketTo)
+	if req.PocketToID != "" {
+		pocketToID, err := primitive.ObjectIDFromHex(req.PocketToID)
 		if err != nil {
 			return nil, errors.New("invalid pocket_to id")
 		}
 		pocketTo = &pocketToID
 	}
 
-	if req.UserPlatformFrom != "" {
-		userPlatformFromID, err := primitive.ObjectIDFromHex(req.UserPlatformFrom)
+	if req.UserPlatformFromID != "" {
+		userPlatformFromID, err := primitive.ObjectIDFromHex(req.UserPlatformFromID)
 		if err != nil {
 			return nil, errors.New("invalid user_platform_from id")
 		}
 		userPlatformFrom = &userPlatformFromID
 	}
 
-	if req.UserPlatformTo != "" {
-		userPlatformToID, err := primitive.ObjectIDFromHex(req.UserPlatformTo)
+	if req.UserPlatformToID != "" {
+		userPlatformToID, err := primitive.ObjectIDFromHex(req.UserPlatformToID)
 		if err != nil {
 			return nil, errors.New("invalid user_platform_to id")
 		}
@@ -91,15 +91,6 @@ func (s *Service) CreateTransaction(ctx context.Context, userID string, req *dto
 			return nil, errors.New("invalid category id")
 		}
 		categoryID = &catID
-	}
-
-	var platformID *primitive.ObjectID
-	if req.PlatformID != "" {
-		platID, err := primitive.ObjectIDFromHex(req.PlatformID)
-		if err != nil {
-			return nil, errors.New("invalid platform id")
-		}
-		platformID = &platID
 	}
 
 	// Validate transaction rules based on type and provided fields
@@ -133,18 +124,17 @@ func (s *Service) CreateTransaction(ctx context.Context, userID string, req *dto
 	}
 
 	transaction := &Transaction{
-		UserID:           userObjID,
-		Type:             req.Type,
-		Amount:           req.Amount,
-		PocketFrom:       pocketFrom,
-		PocketTo:         pocketTo,
-		UserPlatformFrom: userPlatformFrom,
-		UserPlatformTo:   userPlatformTo,
-		CategoryID:       categoryID,
-		PlatformID:       platformID,
-		Note:             stringPtr(req.Note),
-		Date:             date,
-		Ref:              stringPtr(req.Ref),
+		UserID:             userObjID,
+		Type:               req.Type,
+		Amount:             req.Amount,
+		PocketFromID:       pocketFrom,
+		PocketToID:         pocketTo,
+		UserPlatformFromID: userPlatformFrom,
+		UserPlatformToID:   userPlatformTo,
+		CategoryID:         categoryID,
+		Note:               stringPtr(req.Note),
+		Date:               date,
+		Ref:                stringPtr(req.Ref),
 	}
 
 	// Create transaction record
