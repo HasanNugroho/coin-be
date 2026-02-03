@@ -1,0 +1,59 @@
+[
+    {
+        "_id": {
+            "$oid": "697ed53d2c7f7a3109e69d5f"
+        },
+        "name": "Dompet Utama",
+        "type": "main",
+        "is_default": true,
+        "is_active": true,
+        "order": 0,
+        "icon": "Wallet2",
+        "icon_color": "#FCD46A",
+        "background_color": "#fdf7e7",
+        "created_at": {
+            "$date": "2026-02-01T04:23:25.313Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T04:23:48.848Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f0389313ae966ff237693"
+        },
+        "name": "Dana Darurat",
+        "type": "saving",
+        "is_default": true,
+        "is_active": true,
+        "order": 1,
+        "icon": "ShieldBan",
+        "icon_color": "#1E40AF",
+        "background_color": "#9eb5ff",
+        "created_at": {
+            "$date": "2026-02-01T07:40:57.129Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:41:17.646Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f03f2313ae966ff237694"
+        },
+        "name": "Tabungan",
+        "type": "saving",
+        "is_default": true,
+        "is_active": true,
+        "order": 2,
+        "icon": "PiggyBank",
+        "icon_color": "#10B981",
+        "background_color": "#81fdd4",
+        "created_at": {
+            "$date": "2026-02-01T07:42:42.773Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:42:42.773Z"
+        }
+    }
+]

@@ -1,0 +1,1704 @@
+[
+    {
+        "_id": {
+            "$oid": "697ebdb9ea6e1250c2ef5ac9"
+        },
+        "name": "Asuransi",
+        "transaction_type": "expense",
+        "icon": "LucideShieldCheck",
+        "color": "#2563EB",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:43:05.371Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:43:05.371Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ebe00ea6e1250c2ef5aca"
+        },
+        "name": "Bayar Bunga",
+        "transaction_type": "expense",
+        "icon": "CreditCardIcon",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:44:16.194Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:44:16.194Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ebe1cea6e1250c2ef5acb"
+        },
+        "name": "Belanja",
+        "transaction_type": "expense",
+        "icon": "LucideShoppingBag",
+        "color": "#16A34A",
+        "is_default": false,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:44:44.493Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:44:44.493Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ebe8cea6e1250c2ef5acc"
+        },
+        "name": "Kecantikan",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ebe1cea6e1250c2ef5acb"
+        },
+        "icon": "LucideWandSparkles",
+        "color": "#16A34A",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:46:36.569Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:54:04.144Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ebea4ea6e1250c2ef5acd"
+        },
+        "name": "Belanja Bulanan",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ebe1cea6e1250c2ef5acb"
+        },
+        "icon": "ShoppingCart",
+        "color": "#16A34A",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:47:00.722Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:54:08.367Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ebecdea6e1250c2ef5ace"
+        },
+        "name": "Gadget Elektronik",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ebe1cea6e1250c2ef5acb"
+        },
+        "icon": "TabletSmartphone",
+        "color": "#16A34A",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:47:41.724Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:54:14.190Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ec02cea6e1250c2ef5acf"
+        },
+        "name": "Acara Sosial",
+        "transaction_type": "expense",
+        "icon": "LucideUsersRound",
+        "color": "#F472B6",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:53:32.006Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:54:26.313Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ec07dea6e1250c2ef5ad0"
+        },
+        "name": "Amal & Donasi",
+        "transaction_type": "expense",
+        "icon": "LucideHeartHandshake",
+        "color": "#F472B6",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:54:53.596Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:55:27.267Z"
+        },
+        "parent_id": {
+            "$oid": "697ec02cea6e1250c2ef5acf"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ec099ea6e1250c2ef5ad1"
+        },
+        "name": "Hadiah",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ec02cea6e1250c2ef5acf"
+        },
+        "icon": "LucideGift",
+        "color": "#F472B6",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:55:21.383Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:55:21.383Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ec0baea6e1250c2ef5ad2"
+        },
+        "name": "Pernikahan",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ec02cea6e1250c2ef5acf"
+        },
+        "icon": "Sparkles",
+        "color": "#F472B6",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:55:54.639Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:55:54.639Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ec11aea6e1250c2ef5ad3"
+        },
+        "name": "Cicilan",
+        "transaction_type": "expense",
+        "icon": "LucideCreditCard",
+        "color": "#8B5CF6",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:57:30.176Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:57:30.176Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ec12fea6e1250c2ef5ad4"
+        },
+        "name": "Kendaraan",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ec11aea6e1250c2ef5ad3"
+        },
+        "icon": "Truck",
+        "color": "#8B5CF6",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:57:51.270Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:57:51.270Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ec147ea6e1250c2ef5ad5"
+        },
+        "name": "Pinjaman",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ec11aea6e1250c2ef5ad3"
+        },
+        "icon": "BadgeDollarSignIcon",
+        "color": "#8B5CF6",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:58:15.815Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:58:15.815Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ec161ea6e1250c2ef5ad6"
+        },
+        "name": "Rumah",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ec11aea6e1250c2ef5ad3"
+        },
+        "icon": "LucideHome",
+        "color": "#8B5CF6",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T02:58:41.383Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T02:58:41.383Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697eddfe1bfe4ab9d8d9ad4b"
+        },
+        "name": "Hiburan",
+        "transaction_type": "expense",
+        "icon": "LucidePartyPopper",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:00:46.853Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:00:46.853Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ede1e1bfe4ab9d8d9ad4c"
+        },
+        "name": "Film/Musik",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697eddfe1bfe4ab9d8d9ad4b"
+        },
+        "icon": "Film",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:01:18.661Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:01:18.661Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ede321bfe4ab9d8d9ad4d"
+        },
+        "name": "Games",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697eddfe1bfe4ab9d8d9ad4b"
+        },
+        "icon": "Gamepad2",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:01:38.133Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:01:38.133Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ede4f1bfe4ab9d8d9ad4e"
+        },
+        "name": "Hobi",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697eddfe1bfe4ab9d8d9ad4b"
+        },
+        "icon": "Palette",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:02:07.893Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:02:07.893Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ede651bfe4ab9d8d9ad4f"
+        },
+        "name": "Konser",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697eddfe1bfe4ab9d8d9ad4b"
+        },
+        "icon": "LucideMusic4",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:02:29.324Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:02:29.324Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ede991bfe4ab9d8d9ad50"
+        },
+        "name": "Streaming",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697eddfe1bfe4ab9d8d9ad4b"
+        },
+        "icon": "LucideVideo",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:03:21.653Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:03:21.653Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697edebd1bfe4ab9d8d9ad51"
+        },
+        "name": "Nongkrong",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697eddfe1bfe4ab9d8d9ad4b"
+        },
+        "icon": "MessagesSquareIcon",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:03:57.483Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:03:57.483Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ededc1bfe4ab9d8d9ad52"
+        },
+        "name": "Keluarga",
+        "transaction_type": "expense",
+        "icon": "HomeIcon",
+        "color": "#94ddff",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:04:28.208Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:04:42.317Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697edf241bfe4ab9d8d9ad53"
+        },
+        "name": "Kebutuhan pribadi",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ededc1bfe4ab9d8d9ad52"
+        },
+        "icon": "LucidePersonStanding",
+        "color": "#94ddff",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:05:40.983Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:05:40.983Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697edfa51bfe4ab9d8d9ad54"
+        },
+        "name": "Kebutuhan orang tua",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ededc1bfe4ab9d8d9ad52"
+        },
+        "icon": "LucideUsers",
+        "color": "#94ddff",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:07:49.584Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:07:49.584Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697edfbb1bfe4ab9d8d9ad55"
+        },
+        "name": "Laundry",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ededc1bfe4ab9d8d9ad52"
+        },
+        "icon": "LucideWashingMachine",
+        "color": "#94ddff",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:08:11.226Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:08:11.226Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697edfd01bfe4ab9d8d9ad56"
+        },
+        "name": "Renovasi",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ededc1bfe4ab9d8d9ad52"
+        },
+        "icon": "PaintRoller",
+        "color": "#94ddff",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:08:32.625Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:08:32.625Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee0021bfe4ab9d8d9ad57"
+        },
+        "name": "Kesehatan",
+        "transaction_type": "expense",
+        "icon": "LucideHeartPulse",
+        "color": "#ff528b",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:09:22.102Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:09:28.881Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee0281bfe4ab9d8d9ad58"
+        },
+        "name": "Biaya dokter",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee0021bfe4ab9d8d9ad57"
+        },
+        "icon": "LucideStethoscope",
+        "color": "#ff528b",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:10:00.905Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:10:00.905Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee04b1bfe4ab9d8d9ad59"
+        },
+        "name": "Obat",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee0021bfe4ab9d8d9ad57"
+        },
+        "icon": "LucideTablets",
+        "color": "#ff528b",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:10:35.584Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:10:35.584Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee0621bfe4ab9d8d9ad5a"
+        },
+        "name": "Olahraga",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee0021bfe4ab9d8d9ad57"
+        },
+        "icon": "VolleyballIcon",
+        "color": "#ff528b",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:10:58.317Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:10:58.317Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee1031bfe4ab9d8d9ad5b"
+        },
+        "name": "Perawatan diri",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee0021bfe4ab9d8d9ad57"
+        },
+        "icon": "HighlighterIcon",
+        "color": "#ff528b",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:13:39.284Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:13:52.113Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee1501bfe4ab9d8d9ad5c"
+        },
+        "name": "Makanan & Minuman",
+        "transaction_type": "expense",
+        "icon": "ForkKnife",
+        "color": "#E91E63",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:14:56.289Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:14:56.289Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee16b1bfe4ab9d8d9ad5d"
+        },
+        "name": "Cafe",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee1501bfe4ab9d8d9ad5c"
+        },
+        "icon": "Coffee",
+        "color": "#E91E63",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:15:23.381Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:15:23.381Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee1901bfe4ab9d8d9ad5e"
+        },
+        "name": "Online Food",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee1501bfe4ab9d8d9ad5c"
+        },
+        "icon": "IceCreamBowl",
+        "color": "#E91E63",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:16:00.742Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:16:00.742Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee1f01bfe4ab9d8d9ad5f"
+        },
+        "name": "Restoran",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee1501bfe4ab9d8d9ad5c"
+        },
+        "icon": "LucideForkKnifeCrossed",
+        "color": "#E91E63",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:17:36.271Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:17:50.441Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee2311bfe4ab9d8d9ad60"
+        },
+        "name": "Pendidikan",
+        "transaction_type": "expense",
+        "icon": "Book",
+        "color": "#3F51B5",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:18:41.461Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:18:41.461Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee2501bfe4ab9d8d9ad61"
+        },
+        "name": "Buku",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee2311bfe4ab9d8d9ad60"
+        },
+        "icon": "LucideNotebook",
+        "color": "#3F51B5",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:19:12.495Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:19:12.495Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee2741bfe4ab9d8d9ad62"
+        },
+        "name": "Uang sekolah",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee2311bfe4ab9d8d9ad60"
+        },
+        "icon": "GraduationCapIcon",
+        "color": "#3F51B5",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:19:48.442Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:19:48.442Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee2fe1bfe4ab9d8d9ad63"
+        },
+        "name": "Tagihan",
+        "transaction_type": "expense",
+        "icon": "ReceiptText",
+        "color": "#FB8C00",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:22:06.468Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:22:06.468Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee3221bfe4ab9d8d9ad64"
+        },
+        "name": "Asuransi",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee2fe1bfe4ab9d8d9ad63"
+        },
+        "icon": "LucideUmbrella",
+        "color": "#FB8C00",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:22:42.338Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:22:42.338Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee3951bfe4ab9d8d9ad65"
+        },
+        "name": "Biaya Pemeliharaan",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee2fe1bfe4ab9d8d9ad63"
+        },
+        "icon": "ToolboxIcon",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:24:37.035Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:24:37.035Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee3da1bfe4ab9d8d9ad66"
+        },
+        "name": "Gas",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee2fe1bfe4ab9d8d9ad63"
+        },
+        "icon": "CookingPot",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:25:46.408Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:25:46.408Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee4061bfe4ab9d8d9ad67"
+        },
+        "name": "Internet",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee2fe1bfe4ab9d8d9ad63"
+        },
+        "icon": "WifiIcon",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:26:30.234Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:26:30.234Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee4451bfe4ab9d8d9ad68"
+        },
+        "name": "Langganan",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee2fe1bfe4ab9d8d9ad63"
+        },
+        "icon": "CalendarSync",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:27:33.211Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:27:33.211Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee4731bfe4ab9d8d9ad69"
+        },
+        "name": "Listrik",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee2fe1bfe4ab9d8d9ad63"
+        },
+        "icon": "Lamp",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:28:19.745Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:28:19.745Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee4971bfe4ab9d8d9ad6a"
+        },
+        "name": "Pulsa & Data",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee2fe1bfe4ab9d8d9ad63"
+        },
+        "icon": "LucideSmartphoneNfc",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:28:55.954Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:28:55.954Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee4b91bfe4ab9d8d9ad6b"
+        },
+        "name": "Sewa",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee2fe1bfe4ab9d8d9ad63"
+        },
+        "icon": "TagIcon",
+        "color": "#F59E0B",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:29:29.064Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:29:29.064Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee4df1bfe4ab9d8d9ad6c"
+        },
+        "name": "Top up",
+        "transaction_type": "expense",
+        "color": "#4CAF50",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:30:07.335Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:30:50.103Z"
+        },
+        "icon": "LucideWallet"
+    },
+    {
+        "_id": {
+            "$oid": "697ee5231bfe4ab9d8d9ad6d"
+        },
+        "name": "Dana",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee4df1bfe4ab9d8d9ad6c"
+        },
+        "icon": "LucideWallet",
+        "color": "#4CAF50",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:31:15.049Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:31:15.049Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee5351bfe4ab9d8d9ad6e"
+        },
+        "name": "Gopay",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee4df1bfe4ab9d8d9ad6c"
+        },
+        "icon": "LucideWallet",
+        "color": "#4CAF50",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:31:33.593Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:31:33.593Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee5481bfe4ab9d8d9ad6f"
+        },
+        "name": "LinkAja",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee4df1bfe4ab9d8d9ad6c"
+        },
+        "icon": "LucideWallet",
+        "color": "#4CAF50",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:31:52.174Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:31:52.174Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee5621bfe4ab9d8d9ad70"
+        },
+        "name": "OVO",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee4df1bfe4ab9d8d9ad6c"
+        },
+        "icon": "LucideWallet",
+        "color": "#4CAF50",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:32:18.346Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:32:18.346Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee5831bfe4ab9d8d9ad71"
+        },
+        "name": "ShopeePay",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee4df1bfe4ab9d8d9ad6c"
+        },
+        "icon": "LucideWallet",
+        "color": "#4CAF50",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:32:51.435Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:32:51.435Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee5af1bfe4ab9d8d9ad72"
+        },
+        "name": "Transportasi",
+        "transaction_type": "expense",
+        "icon": "Car",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:33:35.865Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:33:35.865Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee5cb1bfe4ab9d8d9ad73"
+        },
+        "name": "Bensin",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee5af1bfe4ab9d8d9ad72"
+        },
+        "icon": "Fuel",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:34:03.683Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:34:03.683Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee5e41bfe4ab9d8d9ad74"
+        },
+        "name": "Parkir",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee5af1bfe4ab9d8d9ad72"
+        },
+        "icon": "LucideParkingSquare",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:34:28.532Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:34:28.532Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee6091bfe4ab9d8d9ad75"
+        },
+        "name": "Service Kendaraan",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee5af1bfe4ab9d8d9ad72"
+        },
+        "icon": "ServerCogIcon",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:35:05.530Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:35:05.530Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee61f1bfe4ab9d8d9ad76"
+        },
+        "name": "Ojol",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee5af1bfe4ab9d8d9ad72"
+        },
+        "icon": "CarTaxiFront",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:35:27.528Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:35:27.528Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee6331bfe4ab9d8d9ad77"
+        },
+        "name": "Transportasi Publik",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee5af1bfe4ab9d8d9ad72"
+        },
+        "icon": "BusFrontIcon",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:35:47.984Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:35:47.984Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee6581bfe4ab9d8d9ad78"
+        },
+        "name": "Lainnya",
+        "icon": "LucideMoreHorizontal",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:36:24.264Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:36:24.264Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee6791bfe4ab9d8d9ad79"
+        },
+        "name": "Biaya",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee6581bfe4ab9d8d9ad78"
+        },
+        "icon": "LucideMoreHorizontal",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:36:57.586Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:36:57.586Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee69a1bfe4ab9d8d9ad7a"
+        },
+        "name": "Pajak",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee6581bfe4ab9d8d9ad78"
+        },
+        "icon": "TagsIcon",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:37:30.959Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:37:30.959Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee6bc1bfe4ab9d8d9ad7b"
+        },
+        "name": "Pelunasan",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee6581bfe4ab9d8d9ad78"
+        },
+        "icon": "HandCoinsIcon",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:38:04.857Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:38:04.857Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee6d21bfe4ab9d8d9ad7c"
+        },
+        "name": "Tarik Tunai",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee6581bfe4ab9d8d9ad78"
+        },
+        "icon": "LucideMoreHorizontal",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:38:26.075Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:38:26.075Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee6e71bfe4ab9d8d9ad7d"
+        },
+        "name": "Top up kartu",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee6581bfe4ab9d8d9ad78"
+        },
+        "icon": "MoreHorizontal",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:38:47.905Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:38:47.905Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697ee7241bfe4ab9d8d9ad7e"
+        },
+        "name": "Uang keluar",
+        "transaction_type": "expense",
+        "parent_id": {
+            "$oid": "697ee6581bfe4ab9d8d9ad78"
+        },
+        "icon": "CircleDollarSign",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T05:39:48.159Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T05:39:48.159Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697eff3e313ae966ff23767d"
+        },
+        "name": "Acara sosial",
+        "transaction_type": "income",
+        "icon": "MessageCircleMore",
+        "color": "#1A73E8",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:22:38.237Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:22:38.237Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697eff59313ae966ff23767e"
+        },
+        "name": "Amal & Donasi",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697eff3e313ae966ff23767d"
+        },
+        "icon": "LucideHandHeart",
+        "color": "#1A73E8",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:23:05.995Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:25:13.136Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697eff6a313ae966ff23767f"
+        },
+        "name": "Hadiah",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697eff3e313ae966ff23767d"
+        },
+        "icon": "GiftIcon",
+        "color": "#1A73E8",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:23:22.825Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:23:22.825Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697eff7d313ae966ff237680"
+        },
+        "name": "Keluarga",
+        "transaction_type": "income",
+        "icon": "HomeIcon",
+        "color": "#03A9F4",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:23:41.028Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:23:41.028Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697eff9f313ae966ff237681"
+        },
+        "name": "Kebutuhan anak",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697eff7d313ae966ff237680"
+        },
+        "icon": "Baby",
+        "color": "#03A9F4",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:24:15.775Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:24:15.775Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697effc0313ae966ff237682"
+        },
+        "name": "Pemasukan",
+        "transaction_type": "income",
+        "icon": "HandCoinsIcon",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:24:48.555Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:24:52.553Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f0034313ae966ff237683"
+        },
+        "name": "Gaji",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697effc0313ae966ff237682"
+        },
+        "icon": "Briefcase",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:26:44.874Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:26:51.747Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f0051313ae966ff237684"
+        },
+        "name": "Bonus",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697effc0313ae966ff237682"
+        },
+        "icon": "CircleStar",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:27:13.679Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:27:13.679Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f006e313ae966ff237685"
+        },
+        "name": "Laba investasi",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697effc0313ae966ff237682"
+        },
+        "icon": "LucideChartPie",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:27:42.340Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:27:42.340Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f0086313ae966ff237686"
+        },
+        "name": "Laba usaha",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697effc0313ae966ff237682"
+        },
+        "icon": "ChartNoAxesCombinedIcon",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:28:06.974Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:28:06.974Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f00b0313ae966ff237687"
+        },
+        "name": "Pendapatan tambahan",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697effc0313ae966ff237682"
+        },
+        "icon": "LucideTrendingUp",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:28:48.283Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:28:59.979Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f011e313ae966ff237688"
+        },
+        "name": "Tunjangan / uang saku",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697effc0313ae966ff237682"
+        },
+        "icon": "Gift",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:30:38.119Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:30:38.119Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f0150313ae966ff237689"
+        },
+        "name": "Uang masuk",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697effc0313ae966ff237682"
+        },
+        "icon": "ArrowDownCircle",
+        "color": "#009688",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:31:28.445Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:31:28.445Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f018f313ae966ff23768a"
+        },
+        "name": "Pencairan Pinjaman",
+        "transaction_type": "income",
+        "icon": "Banknote",
+        "color": "#2563EB",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:32:31.126Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:32:31.126Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f01a7313ae966ff23768b"
+        },
+        "name": "Investasi",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697f018f313ae966ff23768a"
+        },
+        "icon": "ChartNoAxesCombinedIcon",
+        "color": "#2563EB",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:32:55.552Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:32:55.552Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f01ca313ae966ff23768c"
+        },
+        "name": "Lainnya",
+        "transaction_type": "income",
+        "icon": "LucideMoreHorizontal",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:33:30.278Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:34:02.819Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f0218313ae966ff23768d"
+        },
+        "name": "Bunga",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697f01ca313ae966ff23768c"
+        },
+        "icon": "Percent",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:34:48.491Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:34:48.491Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f0237313ae966ff23768e"
+        },
+        "name": "Cashback",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697f01ca313ae966ff23768c"
+        },
+        "icon": "HandCoinsIcon",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:35:19.671Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:35:19.671Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f024e313ae966ff23768f"
+        },
+        "name": "Pelunasan",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697f01ca313ae966ff23768c"
+        },
+        "icon": "LucideHandbag",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:35:42.602Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:35:50.138Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f0284313ae966ff237690"
+        },
+        "name": "Penggantian biaya",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697f01ca313ae966ff23768c"
+        },
+        "icon": "BanknoteArrowUpIcon",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:36:36.707Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:36:36.707Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f02ac313ae966ff237691"
+        },
+        "name": "Refund",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697f01ca313ae966ff23768c"
+        },
+        "icon": "LucideRotateCcw",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:37:16.406Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:37:16.406Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "697f02e6313ae966ff237692"
+        },
+        "name": "Top up kartu",
+        "transaction_type": "income",
+        "parent_id": {
+            "$oid": "697f01ca313ae966ff23768c"
+        },
+        "icon": "LucideMoreHorizontal",
+        "color": "#EF5350",
+        "is_default": true,
+        "is_deleted": false,
+        "created_at": {
+            "$date": "2026-02-01T07:38:14.797Z"
+        },
+        "updated_at": {
+            "$date": "2026-02-01T07:38:14.797Z"
+        }
+    }
+]

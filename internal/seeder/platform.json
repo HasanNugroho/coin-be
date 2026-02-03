@@ -1,0 +1,218 @@
+[
+    {
+        "name": "Tunai",
+        "type": "TUNAI",
+        "is_active": true,
+        "is_default": true
+    },
+    {
+        "name": "Bank Mandiri",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Rakyat Indonesia (BRI)",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Negara Indonesia (BNI)",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Tabungan Negara (BTN)",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Central Asia (BCA)",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "CIMB Niaga",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Danamon",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Permata Bank",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "OCBC NISP",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Maybank Indonesia",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Panin Bank",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Mega",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Sinarmas",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Syariah Indonesia (BSI)",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Muamalat",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "BCA Syariah",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Mega Syariah",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank DKI",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank BJB",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Jatim",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Sumut",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Jago",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "SeaBank",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Bank Neo Commerce",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "blu by BCA Digital",
+        "type": "BANK",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "GoPay",
+        "type": "E_WALLET",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "DANA",
+        "type": "E_WALLET",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "OVO",
+        "type": "E_WALLET",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "ShopeePay",
+        "type": "E_WALLET",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "LinkAja",
+        "type": "E_WALLET",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Sakuku",
+        "type": "E_WALLET",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "iSaku",
+        "type": "E_WALLET",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "DOKU",
+        "type": "E_WALLET",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "TrueMoney",
+        "type": "E_WALLET",
+        "is_active": true,
+        "is_default": false
+    },
+    {
+        "name": "Jenius Pay",
+        "type": "E_WALLET",
+        "is_active": true,
+        "is_default": false
+    }
+]
