@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
-	"github.com/HasanNugroho/coin-be/internal/modules/allocation"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
@@ -22,7 +21,6 @@ type Service struct {
 	userRepo         *user.Repository
 	userPlatformRepo *user_platform.UserPlatformRepository
 	pocketRepo       *pocket.Repository
-	allocationRepo   *allocation.Repository
 	transactionRepo  *transaction.Repository
 	balanceProcessor *transaction.BalanceProcessor
 	db               *mongo.Database
@@ -33,7 +31,6 @@ func NewService(
 	userRepo *user.Repository,
 	userPlatformRepo *user_platform.UserPlatformRepository,
 	pocketRepo *pocket.Repository,
-	allocationRepo *allocation.Repository,
 	transactionRepo *transaction.Repository,
 	balanceProcessor *transaction.BalanceProcessor,
 	db *mongo.Database,
@@ -43,7 +40,6 @@ func NewService(
 		userRepo:         userRepo,
 		userPlatformRepo: userPlatformRepo,
 		pocketRepo:       pocketRepo,
-		allocationRepo:   allocationRepo,
 		transactionRepo:  transactionRepo,
 		balanceProcessor: balanceProcessor,
 		db:               db,
@@ -247,115 +243,6 @@ func (s *Service) processUserPayroll(ctx context.Context, u *user.User, profile 
 		if err := s.updateBalancesForIncome(sessionCtx, mainPocket, defaultUserPlatform, profile.BaseSalary); err != nil {
 			session.AbortTransaction(sessionCtx)
 			return errors.New("failed to update balances for income: " + err.Error())
-		}
-
-		// Step 3: Execute allocations
-		allocations, err := s.allocationRepo.GetActiveAllocationsByUserID(sessionCtx, u.ID)
-		if err != nil {
-			session.AbortTransaction(sessionCtx)
-			return errors.New("failed to fetch allocations: " + err.Error())
-		}
-
-		// Build all allocation transactions in memory
-		allocationTransactions := make([]*transaction.Transaction, 0, len(allocations))
-		balanceUpdates := make([]balanceUpdate, 0, len(allocations)*4)
-		remainingBalance := profile.BaseSalary
-
-		for _, alloc := range allocations {
-			if !alloc.IsActive {
-				continue
-			}
-
-			// Calculate allocation amount
-			var allocAmount float64
-			if alloc.AllocationType == string(allocation.TypePercentage) {
-				allocAmount = remainingBalance * (alloc.Nominal / 100)
-			} else {
-				allocAmount = alloc.Nominal
-			}
-
-			// Validate sufficient balance
-			if allocAmount > remainingBalance {
-				continue
-			}
-
-			// Validate target
-			var targetPocketID *primitive.ObjectID
-			var targetUserPlatformID *primitive.ObjectID
-
-			if alloc.PocketID != nil {
-				pocket, err := s.pocketRepo.GetPocketByID(sessionCtx, *alloc.PocketID)
-				if err != nil || !pocket.IsActive || pocket.UserID != u.ID {
-					continue
-				}
-				targetPocketID = alloc.PocketID
-			}
-
-			if alloc.UserPlatformID != nil {
-				userPlatform, err := s.userPlatformRepo.GetUserPlatformByID(sessionCtx, *alloc.UserPlatformID)
-				if err != nil || !userPlatform.IsActive || userPlatform.UserID != u.ID {
-					continue
-				}
-				targetUserPlatformID = alloc.UserPlatformID
-			}
-
-			if targetPocketID == nil && targetUserPlatformID == nil {
-				continue
-			}
-
-			// Create allocation transaction
-			allocTx := &transaction.Transaction{
-				UserID:             u.ID,
-				Type:               string(transaction.TypeTransfer),
-				Amount:             allocAmount,
-				PocketFromID:       &mainPocket.ID,
-				PocketToID:         targetPocketID,
-				UserPlatformFromID: &defaultUserPlatform.ID,
-				UserPlatformToID:   targetUserPlatformID,
-				Date:               time.Now(),
-				Note:               stringPtr("Auto allocation - priority " + string(rune(alloc.Priority+'0'))),
-				Ref:                stringPtr("alloc_" + alloc.ID.Hex()),
-			}
-
-			allocationTransactions = append(allocationTransactions, allocTx)
-
-			// Track balance updates
-			balanceUpdates = append(balanceUpdates,
-				balanceUpdate{entityType: "pocket", id: mainPocket.ID, delta: -allocAmount},
-				balanceUpdate{entityType: "userPlatform", id: defaultUserPlatform.ID, delta: -allocAmount},
-			)
-
-			if targetPocketID != nil {
-				balanceUpdates = append(balanceUpdates, balanceUpdate{entityType: "pocket", id: *targetPocketID, delta: allocAmount})
-			}
-			if targetUserPlatformID != nil {
-				balanceUpdates = append(balanceUpdates, balanceUpdate{entityType: "userPlatform", id: *targetUserPlatformID, delta: allocAmount})
-			}
-
-			remainingBalance -= allocAmount
-		}
-
-		// Step 4: Bulk insert all allocation transactions
-		if len(allocationTransactions) > 0 {
-			txInterfaces := make([]interface{}, len(allocationTransactions))
-			for i, tx := range allocationTransactions {
-				tx.ID = primitive.NewObjectID()
-				tx.CreatedAt = time.Now()
-				tx.UpdatedAt = time.Now()
-				txInterfaces[i] = tx
-			}
-
-			col := s.db.Collection("transactions")
-			if _, err := col.InsertMany(sessionCtx, txInterfaces); err != nil {
-				session.AbortTransaction(sessionCtx)
-				return errors.New("failed to bulk insert allocation transactions: " + err.Error())
-			}
-
-			// Step 5: Apply all balance updates in batched operations
-			if err := s.applyBalanceUpdates(sessionCtx, balanceUpdates); err != nil {
-				session.AbortTransaction(sessionCtx)
-				return errors.New("failed to update allocation balances: " + err.Error())
-			}
 		}
 
 		return session.CommitTransaction(sessionCtx)

@@ -174,6 +174,12 @@ func main() {
 	payrollCronJob.Start()
 	defer payrollCronJob.Stop()
 
+	// Start allocation cron job for scheduled allocation execution
+	allocationService := appContainer.Get("allocationService").(*allocation.Service)
+	allocationCronJob := allocation.NewCronJob(allocationService)
+	allocationCronJob.Start()
+	defer allocationCronJob.Stop()
+
 	log.Println("Server running on http://localhost:8080")
 	log.Println("Swagger docs available at http://localhost:8080/swagger/index.html")
 	r.Run(":8080")

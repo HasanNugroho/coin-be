@@ -16,6 +16,7 @@ type Allocation struct {
 	AllocationType string              `bson:"allocation_type" json:"allocation_type" enums:"PERCENTAGE,NOMINAL"`
 	Nominal        float64             `bson:"nominal" json:"nominal"` // percentage or amount
 	IsActive       bool                `bson:"is_active" json:"is_active"`
+	ExecuteDay     *int                `bson:"execute_day,omitempty" json:"execute_day,omitempty"` // 1-31, null for no scheduled execution
 	CreatedAt      time.Time           `bson:"created_at" json:"created_at"`
 	UpdatedAt      time.Time           `bson:"updated_at" json:"updated_at"`
 	DeletedAt      *time.Time          `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`

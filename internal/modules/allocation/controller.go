@@ -228,6 +228,7 @@ func (c *Controller) mapToResponse(allocation *Allocation) *dto.AllocationRespon
 		AllocationType: allocation.AllocationType,
 		Nominal:        allocation.Nominal,
 		IsActive:       allocation.IsActive,
+		ExecuteDay:     allocation.ExecuteDay,
 		CreatedAt:      allocation.CreatedAt,
 		UpdatedAt:      allocation.UpdatedAt,
 		DeletedAt:      allocation.DeletedAt,

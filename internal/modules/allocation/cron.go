@@ -1,4 +1,4 @@
-package payroll
+package allocation
 
 import (
 	"context"
@@ -20,18 +20,18 @@ func NewCronJob(service *Service) *CronJob {
 	}
 }
 
-// Start begins the daily payroll processing cron job
-// Runs every day at 00:01 AM (Asia/Jakarta timezone)
+// Start begins the daily allocation processing cron job
+// Runs every day at 01:00 AM (Asia/Jakarta timezone)
 func (c *CronJob) Start() error {
-	_, err := c.cron.AddFunc("1 0 * * *", func() {
+	_, err := c.cron.AddFunc("0 1 * * *", func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 		defer cancel()
 
-		log.Println("Starting daily payroll processing...")
-		if err := c.service.ProcessDailyPayroll(ctx); err != nil {
-			log.Printf("Error processing daily payroll: %v", err)
+		log.Println("Starting daily allocation processing...")
+		if err := c.service.ProcessDailyAllocations(ctx); err != nil {
+			log.Printf("Error processing daily allocations: %v", err)
 		}
-		log.Println("Daily payroll processing completed")
+		log.Println("Daily allocation processing completed")
 	})
 
 	if err != nil {
@@ -39,14 +39,14 @@ func (c *CronJob) Start() error {
 	}
 
 	c.cron.Start()
-	log.Println("Payroll cron job started")
+	log.Println("Allocation cron job started")
 	return nil
 }
 
 // Stop stops the cron job
 func (c *CronJob) Stop() {
 	c.cron.Stop()
-	log.Println("Payroll cron job stopped")
+	log.Println("Allocation cron job stopped")
 }
 
 // getJakartaLocation returns the Asia/Jakarta timezone location

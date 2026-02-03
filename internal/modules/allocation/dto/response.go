@@ -11,6 +11,7 @@ type AllocationResponse struct {
 	AllocationType string     `json:"allocation_type"`
 	Nominal        float64    `json:"nominal"`
 	IsActive       bool       `json:"is_active"`
+	ExecuteDay     *int       `json:"execute_day,omitempty"`
 	CreatedAt      time.Time  `json:"created_at"`
 	UpdatedAt      time.Time  `json:"updated_at"`
 	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
