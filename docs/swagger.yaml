@@ -7,6 +7,10 @@ definitions:
         - PERCENTAGE
         - NOMINAL
         type: string
+      execute_day:
+        maximum: 31
+        minimum: 1
+        type: integer
       nominal:
         type: number
       pocket_id:
@@ -137,11 +141,9 @@ definitions:
       note:
         maxLength: 500
         type: string
-      platform_id:
+      pocket_from_id:
         type: string
-      pocket_from:
-        type: string
-      pocket_to:
+      pocket_to_id:
         type: string
       ref:
         maxLength: 100
@@ -152,9 +154,9 @@ definitions:
         - expense
         - transfer
         type: string
-      user_platform_from:
+      user_platform_from_id:
         type: string
-      user_platform_to:
+      user_platform_to_id:
         type: string
     required:
     - amount
@@ -219,6 +221,10 @@ definitions:
         - PERCENTAGE
         - NOMINAL
         type: string
+      execute_day:
+        maximum: 31
+        minimum: 1
+        type: integer
       is_active:
         type: boolean
       nominal:

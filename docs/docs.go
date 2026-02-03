@@ -2889,6 +2889,11 @@ const docTemplate = `{
                         "NOMINAL"
                     ]
                 },
+                "execute_day": {
+                    "type": "integer",
+                    "maximum": 31,
+                    "minimum": 1
+                },
                 "nominal": {
                     "type": "number"
                 },
@@ -3069,13 +3074,10 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 500
                 },
-                "platform_id": {
+                "pocket_from_id": {
                     "type": "string"
                 },
-                "pocket_from": {
-                    "type": "string"
-                },
-                "pocket_to": {
+                "pocket_to_id": {
                     "type": "string"
                 },
                 "ref": {
@@ -3090,10 +3092,10 @@ const docTemplate = `{
                         "transfer"
                     ]
                 },
-                "user_platform_from": {
+                "user_platform_from_id": {
                     "type": "string"
                 },
-                "user_platform_to": {
+                "user_platform_to_id": {
                     "type": "string"
                 }
             }
@@ -3179,6 +3181,11 @@ const docTemplate = `{
                         "PERCENTAGE",
                         "NOMINAL"
                     ]
+                },
+                "execute_day": {
+                    "type": "integer",
+                    "maximum": 31,
+                    "minimum": 1
                 },
                 "is_active": {
                     "type": "boolean"
