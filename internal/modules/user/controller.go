@@ -144,12 +144,16 @@ func (c *Controller) DeleteUser(ctx *gin.Context) {
 
 // ListUsers godoc
 // @Summary List all users (admin only)
-// @Description Get a paginated list of all users (admin access required)
+// @Description Get a paginated list of all users with filtering, sorting, and search (admin access required)
 // @Tags Users
 // @Accept json
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Items per page" default(10)
+// @Param role query string false "Filter by role (admin, user)"
+// @Param search query string false "Search by name or email"
+// @Param sort query string false "Sort field (name, email, created_at, updated_at)" default(created_at)
+// @Param order query string false "Sort order (asc, desc)" default(desc)
 // @Success 200 {object} map[string]interface{} "Users retrieved successfully"
 // @Failure 403 {object} map[string]interface{} "Admin access required"
 // @Security BearerAuth
@@ -171,14 +175,18 @@ func (c *Controller) ListUsers(ctx *gin.Context) {
 	}
 
 	skip := (page - 1) * limit
-	users, err := c.service.ListUsers(ctx, limit, skip)
+	role := ctx.Query("role")
+	search := ctx.Query("search")
+	sort := ctx.Query("sort")
+	order := ctx.Query("order")
+
+	users, total, err := c.service.ListUsers(ctx, limit, skip, role, search, sort, order)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	total := int64(len(users))
 	pagination := utils.CalculatePagination(page, limit, total)
 	resp := utils.NewSuccessResponseWithPagination("Users retrieved successfully", users, pagination)
 	ctx.JSON(http.StatusOK, resp)

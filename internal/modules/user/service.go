@@ -167,8 +167,8 @@ func (s *Service) DeleteUser(ctx context.Context, id string) error {
 	return s.repo.DeleteUser(ctx, objID)
 }
 
-func (s *Service) ListUsers(ctx context.Context, limit, skip int64) ([]*User, error) {
-	return s.repo.ListUsers(ctx, limit, skip)
+func (s *Service) ListUsers(ctx context.Context, limit, skip int64, role, search, sort, order string) ([]*User, int64, error) {
+	return s.repo.ListUsers(ctx, limit, skip, role, search, sort, order)
 }
 
 func (s *Service) CreateUserProfile(ctx context.Context, userID string, req *dto.CreateUserProfileRequest) (*UserProfile, error) {

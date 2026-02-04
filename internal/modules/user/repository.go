@@ -82,19 +82,51 @@ func (r *Repository) DeleteUser(ctx context.Context, id primitive.ObjectID) erro
 	return nil
 }
 
-func (r *Repository) ListUsers(ctx context.Context, limit int64, skip int64) ([]*User, error) {
-	opts := options.Find().SetLimit(limit).SetSkip(skip)
-	cursor, err := r.users.Find(ctx, bson.M{}, opts)
+func (r *Repository) ListUsers(ctx context.Context, limit int64, skip int64, role, search, sort, order string) ([]*User, int64, error) {
+	filter := bson.M{}
+
+	if role != "" {
+		filter["role"] = role
+	}
+
+	if search != "" {
+		filter["$or"] = bson.A{
+			bson.M{"name": bson.M{"$regex": search, "$options": "i"}},
+			bson.M{"email": bson.M{"$regex": search, "$options": "i"}},
+		}
+	}
+
+	sortField := "created_at"
+	if sort != "" {
+		switch sort {
+		case "name", "email", "created_at", "updated_at":
+			sortField = sort
+		}
+	}
+
+	sortOrder := int32(-1)
+	if order == "asc" {
+		sortOrder = 1
+	}
+
+	opts := options.Find().SetLimit(limit).SetSkip(skip).SetSort(bson.M{sortField: sortOrder})
+	cursor, err := r.users.Find(ctx, filter, opts)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer cursor.Close(ctx)
 
 	var users []*User
 	if err = cursor.All(ctx, &users); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return users, nil
+
+	total, err := r.users.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, total, nil
 }
 
 func (r *Repository) CreateUserProfile(ctx context.Context, profile *UserProfile) error {
