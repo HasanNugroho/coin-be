@@ -161,9 +161,8 @@ func (s *Service) GetDashboardCharts(ctx context.Context, userID string, timeRan
 			categoryID = cat.CategoryID.Hex()
 		}
 
-		percentage := 0.0
 		if cat.Type == "income" && totalIncome > 0 {
-			percentage = (cat.Amount / totalIncome) * 100
+			percentage := (cat.Amount / totalIncome) * 100
 			incomeBreakdown = append(incomeBreakdown, CategoryChartData{
 				CategoryID:   categoryID,
 				CategoryName: cat.CategoryName,
@@ -171,7 +170,7 @@ func (s *Service) GetDashboardCharts(ctx context.Context, userID string, timeRan
 				Percentage:   percentage,
 			})
 		} else if cat.Type == "expense" && totalExpense > 0 {
-			percentage = (cat.Amount / totalExpense) * 100
+			percentage := (cat.Amount / totalExpense) * 100
 			expenseBreakdown = append(expenseBreakdown, CategoryChartData{
 				CategoryID:   categoryID,
 				CategoryName: cat.CategoryName,
@@ -181,13 +180,31 @@ func (s *Service) GetDashboardCharts(ctx context.Context, userID string, timeRan
 		}
 	}
 
+	todayStr := time.Now().UTC().Format("2006-01-02")
+	todayExists := false
+	for i, point := range cashFlowTrend {
+		if point.Date == todayStr {
+			cashFlowTrend[i].Income = liveIncome
+			cashFlowTrend[i].Expense = liveExpense
+			todayExists = true
+			break
+		}
+	}
+
+	if !todayExists {
+		cashFlowTrend = append(cashFlowTrend, ChartDataPoint{
+			Date:    todayStr,
+			Income:  liveIncome,
+			Expense: liveExpense,
+		})
+	}
+
 	return &DashboardCharts{
 		CashFlowTrend:    cashFlowTrend,
 		IncomeBreakdown:  incomeBreakdown,
 		ExpenseBreakdown: expenseBreakdown,
 	}, nil
 }
-
 func (s *Service) GenerateDailySummary(ctx context.Context, userID primitive.ObjectID, date time.Time) error {
 	return s.repo.GenerateDailySummaryForDate(ctx, userID, date)
 }
@@ -201,6 +218,25 @@ func (s *Service) GenerateDailySummariesForAllUsers(ctx context.Context, date ti
 	for _, userID := range userIDs {
 		if err := s.repo.GenerateDailySummaryForDate(ctx, userID, date); err != nil {
 			continue
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) SyncDailySummaries(ctx context.Context, startDate time.Time) error {
+	// 1. Delete first
+	if err := s.repo.DeleteDailySummariesByDateRange(ctx, startDate); err != nil {
+		return err
+	}
+
+	// 2. Generate for each day from startDate to yesterday
+	now := time.Now()
+	yesterday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -1)
+
+	for d := startDate; !d.After(yesterday); d = d.AddDate(0, 0, 1) {
+		if err := s.GenerateDailySummariesForAllUsers(ctx, d); err != nil {
+			return err
 		}
 	}
 

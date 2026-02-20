@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/gin-gonic/gin"
@@ -88,5 +89,43 @@ func (c *Controller) GetDashboardCharts(ctx *gin.Context) {
 	}
 
 	resp := utils.NewSuccessResponse("Dashboard charts retrieved successfully", charts)
+	ctx.JSON(http.StatusOK, resp)
+}
+
+// SyncDailySummaries godoc
+// @Summary Sync daily summaries
+// @Description Sync daily summaries for all users starting from a specific date. Delete first.
+// @Tags Dashboard
+// @Accept json
+// @Produce json
+// @Param start_date query string true "Start date (YYYY-MM-DD)"
+// @Success 200 {object} map[string]interface{} "Daily summaries synced successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Security BearerAuth
+// @Router /v1/dashboard/sync [post]
+func (c *Controller) SyncDailySummaries(ctx *gin.Context) {
+	startDateStr := ctx.Query("start_date")
+	if startDateStr == "" {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, "start_date is required")
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	startDate, err := time.Parse("2006-01-02", startDateStr)
+	if err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, "invalid start_date format, use YYYY-MM-DD")
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	err = c.service.SyncDailySummaries(ctx, startDate)
+	if err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	resp := utils.NewSuccessResponse("Daily summaries synced successfully", nil)
 	ctx.JSON(http.StatusOK, resp)
 }

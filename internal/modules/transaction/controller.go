@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
@@ -189,6 +190,7 @@ func (c *Controller) ListPocketTransactions(ctx *gin.Context) {
 
 	// Fetch transactions with pagination and sorting
 	transactions, total, err := c.service.GetPocketTransactionsWithSort(ctx, userID.(string), pocketID, pagination.Page, pagination.PageSize, sorting.SortBy, sorting.SortOrder)
+	log.Printf("Transaction: %s", transactions)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)

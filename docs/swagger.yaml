@@ -879,6 +879,41 @@ paths:
       summary: Get dashboard summary
       tags:
       - Dashboard
+  /v1/dashboard/sync:
+    post:
+      consumes:
+      - application/json
+      description: Sync daily summaries for all users starting from a specific date.
+        Delete first.
+      parameters:
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daily summaries synced successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Sync daily summaries
+      tags:
+      - Dashboard
   /v1/platforms:
     get:
       consumes:

@@ -56,13 +56,23 @@ func (r *Repository) GetDailySummariesByDateRange(ctx context.Context, userID pr
 	return summaries, nil
 }
 
+func (r *Repository) DeleteDailySummariesByDateRange(ctx context.Context, startDate time.Time) error {
+	filter := bson.M{
+		"date": bson.M{
+			"$gte": startDate,
+		},
+	}
+	_, err := r.dailySummaries.DeleteMany(ctx, filter)
+	return err
+}
+
 func (r *Repository) GetHistoricalSummary(ctx context.Context, userID primitive.ObjectID, startDate, endDate time.Time) (float64, float64, []CategoryBreakdown, error) {
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: bson.M{
 			"user_id": userID,
 			"date": bson.M{
-				"$gte": startDate,
-				"$lt":  endDate,
+				"$gte": startDate.UTC(),
+				"$lt":  endDate.UTC(),
 			},
 		}}},
 		{{Key: "$group", Value: bson.M{
@@ -70,6 +80,20 @@ func (r *Repository) GetHistoricalSummary(ctx context.Context, userID primitive.
 			"total_income":  bson.M{"$sum": "$total_income"},
 			"total_expense": bson.M{"$sum": "$total_expense"},
 			"categories":    bson.M{"$push": "$category_breakdown"},
+		}}},
+		{{Key: "$project", Value: bson.M{
+			"_id":           0,
+			"total_income":  1,
+			"total_expense": 1,
+			"categories": bson.M{
+				"$reduce": bson.M{
+					"input":        "$categories",
+					"initialValue": bson.A{},
+					"in": bson.M{
+						"$concatArrays": bson.A{"$$value", "$$this"},
+					},
+				},
+			},
 		}}},
 	}
 
@@ -80,9 +104,9 @@ func (r *Repository) GetHistoricalSummary(ctx context.Context, userID primitive.
 	defer cursor.Close(ctx)
 
 	var results []struct {
-		TotalIncome  float64               `bson:"total_income"`
-		TotalExpense float64               `bson:"total_expense"`
-		Categories   [][]CategoryBreakdown `bson:"categories"`
+		TotalIncome  float64             `bson:"total_income"`
+		TotalExpense float64             `bson:"total_expense"`
+		Categories   []CategoryBreakdown `bson:"categories"`
 	}
 
 	if err = cursor.All(ctx, &results); err != nil {
@@ -93,25 +117,24 @@ func (r *Repository) GetHistoricalSummary(ctx context.Context, userID primitive.
 		return 0, 0, []CategoryBreakdown{}, nil
 	}
 
+	// Dedup & merge category dengan key yang sama
 	categoryMap := make(map[string]*CategoryBreakdown)
-	for _, dayCategories := range results[0].Categories {
-		for _, cat := range dayCategories {
-			key := cat.Type + "_"
-			if cat.CategoryID != nil {
-				key += cat.CategoryID.Hex()
-			} else {
-				key += "uncategorized"
-			}
+	for _, cat := range results[0].Categories {
+		key := cat.Type + "_"
+		if cat.CategoryID != nil {
+			key += cat.CategoryID.Hex()
+		} else {
+			key += "uncategorized"
+		}
 
-			if existing, ok := categoryMap[key]; ok {
-				existing.Amount += cat.Amount
-			} else {
-				categoryMap[key] = &CategoryBreakdown{
-					CategoryID:   cat.CategoryID,
-					CategoryName: cat.CategoryName,
-					Type:         cat.Type,
-					Amount:       cat.Amount,
-				}
+		if existing, ok := categoryMap[key]; ok {
+			existing.Amount += cat.Amount
+		} else {
+			categoryMap[key] = &CategoryBreakdown{
+				CategoryID:   cat.CategoryID,
+				CategoryName: cat.CategoryName,
+				Type:         cat.Type,
+				Amount:       cat.Amount,
 			}
 		}
 	}
@@ -127,9 +150,12 @@ func (r *Repository) GetHistoricalSummary(ctx context.Context, userID primitive.
 func (r *Repository) GetLiveDeltaSummary(ctx context.Context, userID primitive.ObjectID, startDate time.Time) (float64, float64, []CategoryBreakdown, error) {
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: bson.M{
-			"user_id":    userID,
-			"deleted_at": nil,
-			"date":       bson.M{"$gte": startDate},
+			"user_id": userID,
+			"$or": bson.A{
+				bson.M{"deleted_at": bson.M{"$exists": false}},
+				bson.M{"deleted_at": nil},
+			},
+			"date": bson.M{"$gte": startDate.UTC()},
 		}}},
 		{{Key: "$group", Value: bson.M{
 			"_id": bson.M{
@@ -137,6 +163,51 @@ func (r *Repository) GetLiveDeltaSummary(ctx context.Context, userID primitive.O
 				"category_id": "$category_id",
 			},
 			"amount": bson.M{"$sum": "$amount"},
+		}}},
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "user_categories",
+			"localField":   "_id.category_id",
+			"foreignField": "_id",
+			"as":           "category_info",
+		}}},
+		{{Key: "$project", Value: bson.M{
+			"_id":    1,
+			"amount": 1,
+			"category_name": bson.M{
+				"$ifNull": bson.A{
+					bson.M{"$arrayElemAt": bson.A{"$category_info.name", 0}},
+					"Uncategorized",
+				},
+			},
+		}}},
+		{{Key: "$group", Value: bson.M{
+			"_id": nil,
+			"total_income": bson.M{
+				"$sum": bson.M{
+					"$cond": bson.A{
+						bson.M{"$eq": bson.A{"$_id.type", "income"}},
+						"$amount",
+						0,
+					},
+				},
+			},
+			"total_expense": bson.M{
+				"$sum": bson.M{
+					"$cond": bson.A{
+						bson.M{"$eq": bson.A{"$_id.type", "expense"}},
+						"$amount",
+						0,
+					},
+				},
+			},
+			"categories": bson.M{
+				"$push": bson.M{
+					"type":          "$_id.type",
+					"category_id":   "$_id.category_id",
+					"category_name": "$category_name",
+					"amount":        "$amount",
+				},
+			},
 		}}},
 	}
 
@@ -147,83 +218,35 @@ func (r *Repository) GetLiveDeltaSummary(ctx context.Context, userID primitive.O
 	defer cursor.Close(ctx)
 
 	var results []struct {
-		ID struct {
-			Type       string              `bson:"type"`
-			CategoryID *primitive.ObjectID `bson:"category_id"`
-		} `bson:"_id"`
-		Amount float64 `bson:"amount"`
+		TotalIncome  float64 `bson:"total_income"`
+		TotalExpense float64 `bson:"total_expense"`
+		Categories   []struct {
+			Type         string              `bson:"type"`
+			CategoryID   *primitive.ObjectID `bson:"category_id"`
+			CategoryName string              `bson:"category_name"`
+			Amount       float64             `bson:"amount"`
+		} `bson:"categories"`
 	}
 
 	if err = cursor.All(ctx, &results); err != nil {
 		return 0, 0, nil, err
 	}
 
-	categoryIDs := make([]primitive.ObjectID, 0)
-	for _, r := range results {
-		if r.ID.CategoryID != nil {
-			categoryIDs = append(categoryIDs, *r.ID.CategoryID)
-		}
+	if len(results) == 0 {
+		return 0, 0, []CategoryBreakdown{}, nil
 	}
 
-	categoryMapDB := make(map[primitive.ObjectID]string)
-	if len(categoryIDs) > 0 {
-		cursor, err := r.userCategories.Find(ctx, bson.M{"_id": bson.M{"$in": categoryIDs}})
-		if err == nil {
-			defer cursor.Close(ctx)
-			var categories []struct {
-				ID   primitive.ObjectID `bson:"_id"`
-				Name string             `bson:"name"`
-			}
-			if err := cursor.All(ctx, &categories); err == nil {
-				for _, cat := range categories {
-					categoryMapDB[cat.ID] = cat.Name
-				}
-			}
-		}
+	categories := make([]CategoryBreakdown, 0, len(results[0].Categories))
+	for _, cat := range results[0].Categories {
+		categories = append(categories, CategoryBreakdown{
+			CategoryID:   cat.CategoryID,
+			CategoryName: cat.CategoryName,
+			Type:         cat.Type,
+			Amount:       cat.Amount,
+		})
 	}
 
-	totalIncome, totalExpense := 0.0, 0.0
-	categoryBreakdowns := make(map[string]*CategoryBreakdown)
-
-	for _, r := range results {
-		amount := r.Amount
-		txType := r.ID.Type
-
-		switch txType {
-		case "income":
-			totalIncome += amount
-		case "expense":
-			totalExpense += amount
-		}
-
-		key := txType + "_"
-		if r.ID.CategoryID != nil {
-			key += r.ID.CategoryID.Hex()
-		} else {
-			key += "uncategorized"
-		}
-
-		categoryName := "Uncategorized"
-		if r.ID.CategoryID != nil {
-			if name, ok := categoryMapDB[*r.ID.CategoryID]; ok {
-				categoryName = name
-			}
-		}
-
-		categoryBreakdowns[key] = &CategoryBreakdown{
-			CategoryID:   r.ID.CategoryID,
-			CategoryName: categoryName,
-			Type:         txType,
-			Amount:       amount,
-		}
-	}
-
-	categories := make([]CategoryBreakdown, 0, len(categoryBreakdowns))
-	for _, cat := range categoryBreakdowns {
-		categories = append(categories, *cat)
-	}
-
-	return totalIncome, totalExpense, categories, nil
+	return results[0].TotalIncome, results[0].TotalExpense, categories, nil
 }
 
 func (r *Repository) GetTotalNetWorth(ctx context.Context, userID primitive.ObjectID) (float64, error) {
@@ -412,12 +435,15 @@ func (r *Repository) GenerateDailySummaryForDate(ctx context.Context, userID pri
 }
 
 func (r *Repository) GetAllUsersWithTransactions(ctx context.Context, date time.Time) ([]primitive.ObjectID, error) {
-	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := startOfDay.AddDate(0, 0, 1)
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: bson.M{
-			"deleted_at": nil,
+			"$or": bson.A{
+				bson.M{"deleted_at": bson.M{"$exists": false}},
+				bson.M{"deleted_at": nil},
+			},
 			"date": bson.M{
 				"$gte": startOfDay,
 				"$lt":  endOfDay,
@@ -449,7 +475,6 @@ func (r *Repository) GetAllUsersWithTransactions(ctx context.Context, date time.
 
 	return userIDs, nil
 }
-
 func (r *Repository) EnsureIndexes(ctx context.Context) error {
 	indexes := []mongo.IndexModel{
 		{

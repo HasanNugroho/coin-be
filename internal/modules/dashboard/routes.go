@@ -9,5 +9,6 @@ func RegisterRoutes(r *gin.RouterGroup, controller *Controller) {
 	{
 		protected.GET("/summary", controller.GetDashboardSummary)
 		protected.GET("/charts", controller.GetDashboardCharts)
+		protected.POST("/sync", controller.SyncDailySummaries)
 	}
 }

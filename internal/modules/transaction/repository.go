@@ -130,7 +130,7 @@ func (r *Repository) GetTransactionsByUserIDWithSort(
 			Key: "$lookup",
 			Value: bson.M{
 				"from":         "pockets",
-				"localField":   "pocket_from",
+				"localField":   "pocket_from_id",
 				"foreignField": "_id",
 				"as":           "pocket_from_data",
 			},
@@ -142,7 +142,7 @@ func (r *Repository) GetTransactionsByUserIDWithSort(
 			Key: "$lookup",
 			Value: bson.M{
 				"from":         "pockets",
-				"localField":   "pocket_to",
+				"localField":   "pocket_to_id",
 				"foreignField": "_id",
 				"as":           "pocket_to_data",
 			},
@@ -177,10 +177,10 @@ func (r *Repository) GetTransactionsByUserIDWithSort(
 				"type":    "$type",
 				"amount":  "$amount",
 
-				"pocket_from":      bson.M{"$toString": "$pocket_from"},
+				"pocket_from_id":   bson.M{"$toString": "$pocket_from_id"},
 				"pocket_from_name": "$pocket_from_data.name",
 
-				"pocket_to":      bson.M{"$toString": "$pocket_to"},
+				"pocket_to_id":   bson.M{"$toString": "$pocket_to_id"},
 				"pocket_to_name": "$pocket_to_data.name",
 
 				"category_id":   bson.M{"$toString": "$category_id"},
@@ -225,8 +225,8 @@ func (r *Repository) GetTransactionsByPocketID(ctx context.Context, pocketID pri
 	filter := bson.M{
 		"deleted_at": nil,
 		"$or": []bson.M{
-			{"pocket_from": pocketID},
-			{"pocket_to": pocketID},
+			{"pocket_from_id": pocketID},
+			{"pocket_to_id": pocketID},
 		},
 	}
 	cursor, err := r.transactions.Find(ctx, filter, opts)
@@ -246,8 +246,8 @@ func (r *Repository) GetTransactionsByPocketIDWithSort(ctx context.Context, pock
 	filter := bson.M{
 		"deleted_at": nil,
 		"$or": []bson.M{
-			{"pocket_from": pocketID},
-			{"pocket_to": pocketID},
+			{"pocket_from_id": pocketID},
+			{"pocket_to_id": pocketID},
 		},
 	}
 
