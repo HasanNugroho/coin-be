@@ -10,7 +10,7 @@ func RegisterRoutes(r *gin.RouterGroup, controller *Controller) {
 	{
 		protected.POST("", controller.CreateUserPlatform)
 		protected.GET("", controller.ListUserPlatforms)
-		protected.GET("/dropdown/list", controller.ListUserPlatformsDropdown)
+		protected.GET("/dropdown", controller.ListUserPlatformsDropdown)
 		protected.GET("/:id", controller.GetUserPlatform)
 		protected.PUT("/:id", controller.UpdateUserPlatform)
 		protected.DELETE("/:id", controller.DeleteUserPlatform)

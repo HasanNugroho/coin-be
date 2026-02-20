@@ -97,7 +97,7 @@ func (s *Service) ListUserPlatformsDropdown(ctx context.Context, userID string) 
 		return nil, errors.New("invalid user id")
 	}
 
-	return s.repo.GetUserPlatformsByUserID(ctx, userObjID)
+	return s.repo.GetUserPlatformsByUserIDDropdown(ctx, userObjID)
 }
 
 func (s *Service) UpdateUserPlatform(ctx context.Context, userID string, userPlatformID string, req *dto.UpdateUserPlatformRequest) (*UserPlatform, error) {

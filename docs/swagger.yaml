@@ -808,8 +808,11 @@ paths:
       description: Get cash flow trends and category breakdown charts using Hybrid
         Logic
       parameters:
-      - default: 7d
-        description: Date range (7d, 30d, 90d)
+      - description: Date range
+        enum:
+        - 7d
+        - 1m
+        - 3m
         in: query
         name: range
         type: string
@@ -840,8 +843,19 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get real-time dashboard summary with total net worth and monthly
-        income/expense using Hybrid Logic
+      description: Get real-time dashboard summary with total net worth and period
+        income/expense using Hybrid Logic. Default is rolling 30 days. Use filter
+        for 7d (rolling 7 days), 1m (calendar month from 1st), 3m (calendar 3 months
+        from 1st)
+      parameters:
+      - description: Time range filter
+        enum:
+        - 7d
+        - 1m
+        - 3m
+        in: query
+        name: time_range
+        type: string
       produces:
       - application/json
       responses:
@@ -1600,6 +1614,27 @@ paths:
       summary: List active user pockets
       tags:
       - Pockets
+  /v1/pockets/dropdown:
+    get:
+      description: Get all pockets for dropdown with platform data lookup
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Pockets retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List pockets for dropdown
+      tags:
+      - Pockets
   /v1/pockets/main:
     get:
       consumes:
@@ -1990,7 +2025,7 @@ paths:
       summary: Update user platform
       tags:
       - User Platforms
-  /v1/user-platforms/dropdown/list:
+  /v1/user-platforms/dropdown:
     get:
       description: Get all user platforms for dropdown with platform data lookup
       produces:
@@ -2015,7 +2050,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get a paginated list of all users (admin access required)
+      description: Get a paginated list of all users with filtering, sorting, and
+        search (admin access required)
       parameters:
       - default: 1
         description: Page number
@@ -2027,6 +2063,24 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: Filter by role (admin, user)
+        in: query
+        name: role
+        type: string
+      - description: Search by name or email
+        in: query
+        name: search
+        type: string
+      - default: created_at
+        description: Sort field (name, email, created_at, updated_at)
+        in: query
+        name: sort
+        type: string
+      - default: desc
+        description: Sort order (asc, desc)
+        in: query
+        name: order
+        type: string
       produces:
       - application/json
       responses:

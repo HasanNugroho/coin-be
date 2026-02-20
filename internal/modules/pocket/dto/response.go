@@ -20,3 +20,13 @@ type PocketResponse struct {
 	UpdatedAt       time.Time  `json:"updated_at"`
 	DeletedAt       *time.Time `json:"deleted_at,omitempty"`
 }
+
+type PocketDropdownResponse struct {
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	Type            string  `json:"type"`
+	Balance         float64 `json:"balance"`
+	BackgroundColor string  `json:"background_color,omitempty"`
+	IsActive        bool    `json:"is_active"`
+	IsLocked        bool    `json:"is_locked"`
+}

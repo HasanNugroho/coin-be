@@ -3,6 +3,7 @@ package transaction
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
@@ -69,6 +70,7 @@ func (bp *BalanceProcessor) processIncome(
 			return err
 		}
 		pocket.Balance = utils.AddDecimal128(pocket.Balance, amount)
+		pocket.LastUseAt = time.Now()
 		if err := bp.pocketRepo.UpdatePocket(ctx, *pocketTo, pocket); err != nil {
 			return err
 		}
@@ -81,6 +83,7 @@ func (bp *BalanceProcessor) processIncome(
 			return err
 		}
 		userPlatform.Balance = utils.AddDecimal128(userPlatform.Balance, amount)
+		userPlatform.LastUseAt = time.Now()
 		if err := bp.userPlatformRepo.UpdateUserPlatform(ctx, *userPlatformTo, userPlatform); err != nil {
 			return err
 		}
@@ -104,6 +107,7 @@ func (bp *BalanceProcessor) processExpense(
 			return err
 		}
 		pocket.Balance = utils.AddDecimal128(pocket.Balance, -amount)
+		pocket.LastUseAt = time.Now()
 		if err := bp.pocketRepo.UpdatePocket(ctx, *pocketFrom, pocket); err != nil {
 			return err
 		}
@@ -116,6 +120,7 @@ func (bp *BalanceProcessor) processExpense(
 			return err
 		}
 		userPlatform.Balance = utils.AddDecimal128(userPlatform.Balance, -amount)
+		userPlatform.LastUseAt = time.Now()
 		if err := bp.userPlatformRepo.UpdateUserPlatform(ctx, *userPlatformFrom, userPlatform); err != nil {
 			return err
 		}
@@ -165,6 +170,7 @@ func (bp *BalanceProcessor) transferBetweenPockets(
 		return err
 	}
 	pocketFromData.Balance = utils.AddDecimal128(pocketFromData.Balance, -amount)
+	pocketFromData.LastUseAt = time.Now()
 	if err := bp.pocketRepo.UpdatePocket(ctx, *pocketFrom, pocketFromData); err != nil {
 		return err
 	}
@@ -175,6 +181,7 @@ func (bp *BalanceProcessor) transferBetweenPockets(
 		return err
 	}
 	pocketToData.Balance = utils.AddDecimal128(pocketToData.Balance, amount)
+	pocketToData.LastUseAt = time.Now()
 	if err := bp.pocketRepo.UpdatePocket(ctx, *pocketTo, pocketToData); err != nil {
 		return err
 	}
@@ -195,6 +202,7 @@ func (bp *BalanceProcessor) transferBetweenUserPlatforms(
 		return err
 	}
 	userPlatformFromData.Balance = utils.AddDecimal128(userPlatformFromData.Balance, -amount)
+	userPlatformFromData.LastUseAt = time.Now()
 	if err := bp.userPlatformRepo.UpdateUserPlatform(ctx, *userPlatformFrom, userPlatformFromData); err != nil {
 		return err
 	}
@@ -205,6 +213,7 @@ func (bp *BalanceProcessor) transferBetweenUserPlatforms(
 		return err
 	}
 	userPlatformToData.Balance = utils.AddDecimal128(userPlatformToData.Balance, amount)
+	userPlatformToData.LastUseAt = time.Now()
 	if err := bp.userPlatformRepo.UpdateUserPlatform(ctx, *userPlatformTo, userPlatformToData); err != nil {
 		return err
 	}
@@ -226,6 +235,7 @@ func (bp *BalanceProcessor) transferBetweenPlatformsWithPockets(
 		return err
 	}
 	pocketFromData.Balance = utils.AddDecimal128(pocketFromData.Balance, -amount)
+	pocketFromData.LastUseAt = time.Now()
 	if err := bp.pocketRepo.UpdatePocket(ctx, *pocketFrom, pocketFromData); err != nil {
 		return err
 	}
@@ -236,6 +246,7 @@ func (bp *BalanceProcessor) transferBetweenPlatformsWithPockets(
 		return err
 	}
 	pocketToData.Balance = utils.AddDecimal128(pocketToData.Balance, amount)
+	pocketToData.LastUseAt = time.Now()
 	if err := bp.pocketRepo.UpdatePocket(ctx, *pocketTo, pocketToData); err != nil {
 		return err
 	}
@@ -246,6 +257,7 @@ func (bp *BalanceProcessor) transferBetweenPlatformsWithPockets(
 		return err
 	}
 	userPlatformFromData.Balance = utils.AddDecimal128(userPlatformFromData.Balance, -amount)
+	userPlatformFromData.LastUseAt = time.Now()
 	if err := bp.userPlatformRepo.UpdateUserPlatform(ctx, *userPlatformFrom, userPlatformFromData); err != nil {
 		return err
 	}
@@ -256,6 +268,7 @@ func (bp *BalanceProcessor) transferBetweenPlatformsWithPockets(
 		return err
 	}
 	userPlatformToData.Balance = utils.AddDecimal128(userPlatformToData.Balance, amount)
+	userPlatformToData.LastUseAt = time.Now()
 	if err := bp.userPlatformRepo.UpdateUserPlatform(ctx, *userPlatformTo, userPlatformToData); err != nil {
 		return err
 	}

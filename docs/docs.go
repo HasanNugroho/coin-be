@@ -690,9 +690,13 @@ const docTemplate = `{
                 "summary": "Get dashboard charts data",
                 "parameters": [
                     {
+                        "enum": [
+                            "7d",
+                            "1m",
+                            "3m"
+                        ],
                         "type": "string",
-                        "default": "7d",
-                        "description": "Date range (7d, 30d, 90d)",
+                        "description": "Date range",
                         "name": "range",
                         "in": "query"
                     }
@@ -729,7 +733,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get real-time dashboard summary with total net worth and monthly income/expense using Hybrid Logic",
+                "description": "Get real-time dashboard summary with total net worth and period income/expense using Hybrid Logic. Default is rolling 30 days. Use filter for 7d (rolling 7 days), 1m (calendar month from 1st), 3m (calendar 3 months from 1st)",
                 "consumes": [
                     "application/json"
                 ],
@@ -740,6 +744,19 @@ const docTemplate = `{
                     "Dashboard"
                 ],
                 "summary": "Get dashboard summary",
+                "parameters": [
+                    {
+                        "enum": [
+                            "7d",
+                            "1m",
+                            "3m"
+                        ],
+                        "type": "string",
+                        "description": "Time range filter",
+                        "name": "time_range",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Dashboard summary retrieved successfully",
@@ -1704,6 +1721,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/pockets/dropdown": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all pockets for dropdown with platform data lookup",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pockets"
+                ],
+                "summary": "List pockets for dropdown",
+                "responses": {
+                    "200": {
+                        "description": "Pockets retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/v1/pockets/main": {
             "get": {
                 "security": [
@@ -2303,7 +2353,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/user-platforms/dropdown/list": {
+        "/v1/user-platforms/dropdown": {
             "get": {
                 "security": [
                     {
@@ -2519,7 +2569,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get a paginated list of all users (admin access required)",
+                "description": "Get a paginated list of all users with filtering, sorting, and search (admin access required)",
                 "consumes": [
                     "application/json"
                 ],
@@ -2543,6 +2593,32 @@ const docTemplate = `{
                         "default": 10,
                         "description": "Items per page",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by role (admin, user)",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name or email",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "created_at",
+                        "description": "Sort field (name, email, created_at, updated_at)",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "desc",
+                        "description": "Sort order (asc, desc)",
+                        "name": "order",
                         "in": "query"
                     }
                 ],

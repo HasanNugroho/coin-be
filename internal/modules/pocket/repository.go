@@ -3,6 +3,7 @@ package pocket
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -18,6 +19,25 @@ type Repository struct {
 func NewRepository(db *mongo.Database) *Repository {
 	return &Repository{
 		pockets: db.Collection("pockets"),
+	}
+}
+
+func (r *Repository) EnsureIndexes(ctx context.Context) {
+	indexes := []mongo.IndexModel{
+		{
+			Keys: bson.D{
+				{Key: "user_id", Value: 1},
+				{Key: "deleted_at", Value: 1},
+				{Key: "is_active", Value: 1},
+				{Key: "last_use_at", Value: -1},
+			},
+			Options: options.Index().SetName("idx_pockets_dropdown"),
+		},
+	}
+
+	_, err := r.pockets.Indexes().CreateMany(ctx, indexes)
+	if err != nil {
+		log.Printf("failed to create pocket indexes: %v", err)
 	}
 }
 
@@ -80,6 +100,32 @@ func (r *Repository) GetMainPocketByUserID(ctx context.Context, userID primitive
 		return nil, err
 	}
 	return &pocket, nil
+}
+
+func (r *Repository) GetPocketsByUserIDDropdown(ctx context.Context, userID primitive.ObjectID) ([]*Pocket, error) {
+	opts := options.Find().
+		SetProjection(bson.D{
+			{Key: "_id", Value: 1},
+			{Key: "name", Value: 1},
+			{Key: "type", Value: 1},
+			{Key: "balance", Value: 1},
+			{Key: "background_color", Value: 1},
+			{Key: "is_active", Value: 1},
+			{Key: "is_locked", Value: 1},
+		}).
+		SetSort(bson.D{{Key: "last_use_at", Value: -1}})
+
+	cursor, err := r.pockets.Find(ctx, bson.M{"user_id": userID, "deleted_at": nil, "is_active": true}, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var pockets []*Pocket
+	if err = cursor.All(ctx, &pockets); err != nil {
+		return nil, err
+	}
+	return pockets, nil
 }
 
 func (r *Repository) GetPocketsByUserID(ctx context.Context, userID primitive.ObjectID, limit int64, skip int64) ([]*Pocket, error) {

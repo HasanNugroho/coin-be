@@ -1,6 +1,8 @@
 package user_platform
 
 import (
+	"context"
+
 	"github.com/HasanNugroho/coin-be/internal/core/config"
 	"github.com/HasanNugroho/coin-be/internal/modules/platform"
 	"github.com/sarulabs/di/v2"
@@ -13,7 +15,10 @@ func Register(builder *di.Builder) {
 		Build: func(ctn di.Container) (interface{}, error) {
 			cfg := ctn.Get("config").(*config.Config)
 			client := ctn.Get("mongo").(*mongo.Client)
-			return NewUserPlatformRepository(client.Database(cfg.MongoDB)), nil
+			repo := NewUserPlatformRepository(client.Database(cfg.MongoDB))
+			repo.EnsureIndexes(context.Background())
+
+			return repo, nil
 		},
 	})
 

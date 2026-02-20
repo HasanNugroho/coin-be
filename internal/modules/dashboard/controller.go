@@ -17,10 +17,11 @@ func NewController(s *Service) *Controller {
 
 // GetDashboardSummary godoc
 // @Summary Get dashboard summary
-// @Description Get real-time dashboard summary with total net worth and monthly income/expense using Hybrid Logic
+// @Description Get real-time dashboard summary with total net worth and period income/expense using Hybrid Logic. Default is rolling 30 days. Use filter for 7d (rolling 7 days), 1m (calendar month from 1st), 3m (calendar 3 months from 1st)
 // @Tags Dashboard
 // @Accept json
 // @Produce json
+// @Param time_range query string false "Time range filter" Enums(7d, 1m, 3m)
 // @Success 200 {object} map[string]interface{} "Dashboard summary retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
@@ -34,7 +35,14 @@ func (c *Controller) GetDashboardSummary(ctx *gin.Context) {
 		return
 	}
 
-	summary, err := c.service.GetDashboardSummary(ctx, userID.(string))
+	timeRange := TimeRange(ctx.DefaultQuery("time_range", ""))
+	if timeRange != "" && timeRange != TimeRange7Days && timeRange != TimeRange1Month && timeRange != TimeRange3Month {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, "invalid time_range, allowed values: 7d, 1m, 3m")
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	summary, err := c.service.GetDashboardSummary(ctx, userID.(string), timeRange)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
@@ -51,7 +59,7 @@ func (c *Controller) GetDashboardSummary(ctx *gin.Context) {
 // @Tags Dashboard
 // @Accept json
 // @Produce json
-// @Param range query string false "Date range (7d, 30d, 90d)" default(7d)
+// @Param range query string false "Date range" Enums(7d, 1m, 3m)
 // @Success 200 {object} map[string]interface{} "Dashboard charts retrieved successfully"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
@@ -65,21 +73,14 @@ func (c *Controller) GetDashboardCharts(ctx *gin.Context) {
 		return
 	}
 
-	rangeParam := ctx.DefaultQuery("range", "7d")
-
-	validRanges := map[string]bool{
-		"7d":  true,
-		"30d": true,
-		"90d": true,
-	}
-
-	if !validRanges[rangeParam] {
-		resp := utils.NewErrorResponse(http.StatusBadRequest, "invalid range parameter. Valid values: 7d, 30d, 90d")
+	timeRange := TimeRange(ctx.DefaultQuery("range", ""))
+	if timeRange != "" && timeRange != TimeRange7Days && timeRange != TimeRange1Month && timeRange != TimeRange3Month {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, "invalid time_range, allowed values: 7d, 1m, 3m")
 		ctx.JSON(http.StatusBadRequest, resp)
 		return
 	}
 
-	charts, err := c.service.GetDashboardCharts(ctx, userID.(string), rangeParam)
+	charts, err := c.service.GetDashboardCharts(ctx, userID.(string), timeRange)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)

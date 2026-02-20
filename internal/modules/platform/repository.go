@@ -41,6 +41,20 @@ func (r *Repository) GetPlatformByID(ctx context.Context, id primitive.ObjectID)
 	return &platform, nil
 }
 
+func (r *Repository) GetPlatformsByIDs(ctx context.Context, ids []primitive.ObjectID) ([]*Platform, error) {
+	cursor, err := r.platforms.Find(ctx, bson.M{"_id": bson.M{"$in": ids}, "deleted_at": nil})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var platforms []*Platform
+	if err = cursor.All(ctx, &platforms); err != nil {
+		return nil, err
+	}
+	return platforms, nil
+}
+
 func (r *Repository) GetPlatformByName(ctx context.Context, name string) (*Platform, error) {
 	var platform Platform
 	err := r.platforms.FindOne(ctx, bson.M{"name": name, "deleted_at": nil}).Decode(&platform)

@@ -25,6 +25,7 @@ type Pocket struct {
 	IconColor       string `bson:"icon_color,omitempty" json:"icon_color,omitempty"`
 	BackgroundColor string `bson:"background_color,omitempty" json:"background_color,omitempty"`
 
+	LastUseAt time.Time  `bson:"last_use_at" json:"last_use_at"`
 	CreatedAt time.Time  `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time  `bson:"updated_at" json:"updated_at"`
 	DeletedAt *time.Time `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`

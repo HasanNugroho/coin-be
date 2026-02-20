@@ -99,22 +99,12 @@ func (s *Service) CreateTransaction(ctx context.Context, userID string, req *dto
 	}
 
 	// Validate ownership of all pockets
-	if err := s.validatePocketOwnership(ctx, userObjID, pocketFrom, pocketTo); err != nil {
+	if err := s.validatePocket(ctx, userObjID, pocketFrom, pocketTo, req.Amount); err != nil {
 		return nil, err
 	}
 
 	// Validate ownership of all user platforms
-	if err := s.validateUserPlatformOwnership(ctx, userObjID, userPlatformFrom, userPlatformTo); err != nil {
-		return nil, err
-	}
-
-	// Validate pocket status (active, not locked)
-	if err := s.validatePocketStatus(ctx, pocketFrom, pocketTo); err != nil {
-		return nil, err
-	}
-
-	// Validate user platform status (active)
-	if err := s.validateUserPlatformStatus(ctx, userPlatformFrom, userPlatformTo); err != nil {
+	if err := s.validateUserPlatform(ctx, userObjID, userPlatformFrom, userPlatformTo, req.Amount); err != nil {
 		return nil, err
 	}
 
@@ -196,31 +186,62 @@ func (s *Service) validateTransactionRules(ctx context.Context, txType string, u
 	return nil
 }
 
-func (s *Service) validatePocketOwnership(ctx context.Context, userID primitive.ObjectID, pocketFrom, pocketTo *primitive.ObjectID) error {
+func (s *Service) validatePocket(ctx context.Context, userID primitive.ObjectID, pocketFrom, pocketTo *primitive.ObjectID, amount float64) error {
+	// Check pocket from
 	if pocketFrom != nil {
 		pocket, err := s.pocketRepo.GetPocketByID(ctx, *pocketFrom)
 		if err != nil {
 			return errors.New("pocket_from not found")
 		}
+
+		// Check ownership
 		if pocket.UserID != userID {
 			return errors.New("unauthorized: pocket_from does not belong to user")
 		}
+
+		// Check locked
+		if pocket.IsLocked {
+			return errors.New("pocket_from is locked")
+		}
+
+		// Check active
+		if !pocket.IsActive {
+			return errors.New("pocket_from is not active")
+		}
+
+		// Check sufficient balance
+		if utils.Decimal128ToFloat64(pocket.Balance) < amount {
+			return errors.New("insufficient pocket balance")
+		}
 	}
 
+	// Check pocket to
 	if pocketTo != nil {
 		pocket, err := s.pocketRepo.GetPocketByID(ctx, *pocketTo)
 		if err != nil {
 			return errors.New("pocket_to not found")
 		}
+
+		// Check ownership
 		if pocket.UserID != userID {
 			return errors.New("unauthorized: pocket_to does not belong to user")
+		}
+
+		// Check locked
+		if pocket.IsLocked {
+			return errors.New("pocket_to is locked")
+		}
+
+		// Check active
+		if !pocket.IsActive {
+			return errors.New("pocket_to is not active")
 		}
 	}
 
 	return nil
 }
 
-func (s *Service) validateUserPlatformOwnership(ctx context.Context, userID primitive.ObjectID, userPlatformFrom, userPlatformTo *primitive.ObjectID) error {
+func (s *Service) validateUserPlatform(ctx context.Context, userID primitive.ObjectID, userPlatformFrom, userPlatformTo *primitive.ObjectID, amount float64) error {
 	if userPlatformFrom != nil {
 		userPlatform, err := s.userPlatformRepo.GetUserPlatformByID(ctx, *userPlatformFrom)
 		if err != nil {
@@ -228,6 +249,13 @@ func (s *Service) validateUserPlatformOwnership(ctx context.Context, userID prim
 		}
 		if userPlatform.UserID != userID {
 			return errors.New("unauthorized: user_platform_from does not belong to user")
+		}
+		if !userPlatform.IsActive {
+			return errors.New("user_platform_from is not active")
+		}
+
+		if utils.Decimal128ToFloat64(userPlatform.Balance) < amount {
+			return errors.New("insufficient user platform balance")
 		}
 	}
 
@@ -238,57 +266,6 @@ func (s *Service) validateUserPlatformOwnership(ctx context.Context, userID prim
 		}
 		if userPlatform.UserID != userID {
 			return errors.New("unauthorized: user_platform_to does not belong to user")
-		}
-	}
-
-	return nil
-}
-
-func (s *Service) validatePocketStatus(ctx context.Context, pocketFrom, pocketTo *primitive.ObjectID) error {
-	if pocketFrom != nil {
-		pocket, err := s.pocketRepo.GetPocketByID(ctx, *pocketFrom)
-		if err != nil {
-			return err
-		}
-		if pocket.IsLocked {
-			return errors.New("pocket_from is locked")
-		}
-		if !pocket.IsActive {
-			return errors.New("pocket_from is not active")
-		}
-	}
-
-	if pocketTo != nil {
-		pocket, err := s.pocketRepo.GetPocketByID(ctx, *pocketTo)
-		if err != nil {
-			return err
-		}
-		if pocket.IsLocked {
-			return errors.New("pocket_to is locked")
-		}
-		if !pocket.IsActive {
-			return errors.New("pocket_to is not active")
-		}
-	}
-
-	return nil
-}
-
-func (s *Service) validateUserPlatformStatus(ctx context.Context, userPlatformFrom, userPlatformTo *primitive.ObjectID) error {
-	if userPlatformFrom != nil {
-		userPlatform, err := s.userPlatformRepo.GetUserPlatformByID(ctx, *userPlatformFrom)
-		if err != nil {
-			return err
-		}
-		if !userPlatform.IsActive {
-			return errors.New("user_platform_from is not active")
-		}
-	}
-
-	if userPlatformTo != nil {
-		userPlatform, err := s.userPlatformRepo.GetUserPlatformByID(ctx, *userPlatformTo)
-		if err != nil {
-			return err
 		}
 		if !userPlatform.IsActive {
 			return errors.New("user_platform_to is not active")

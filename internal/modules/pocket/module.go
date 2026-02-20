@@ -1,6 +1,8 @@
 package pocket
 
 import (
+	"context"
+
 	"github.com/HasanNugroho/coin-be/internal/core/config"
 	"github.com/sarulabs/di/v2"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -12,7 +14,10 @@ func Register(builder *di.Builder) {
 		Build: func(ctn di.Container) (interface{}, error) {
 			cfg := ctn.Get("config").(*config.Config)
 			client := ctn.Get("mongo").(*mongo.Client)
-			return NewRepository(client.Database(cfg.MongoDB)), nil
+			repo := NewRepository(client.Database(cfg.MongoDB))
+			repo.EnsureIndexes(context.Background())
+
+			return repo, nil
 		},
 	})
 

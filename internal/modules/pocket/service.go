@@ -282,6 +282,15 @@ func (s *Service) GetMainPocket(ctx context.Context, userID string) (*Pocket, er
 	return pocket, nil
 }
 
+func (s *Service) ListPocketsDropdown(ctx context.Context, userID string) ([]*Pocket, error) {
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user id")
+	}
+
+	return s.repo.GetPocketsByUserIDDropdown(ctx, userObjID)
+}
+
 func (s *Service) CreateSystemPocket(ctx context.Context, userID string, req *dto.CreateSystemPocketRequest) (*Pocket, error) {
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {

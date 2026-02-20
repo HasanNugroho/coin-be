@@ -18,7 +18,35 @@ func NewService(r *Repository) *Service {
 	}
 }
 
-func (s *Service) GetDashboardSummary(ctx context.Context, userID string) (*DashboardSummary, error) {
+type TimeRange string
+
+const (
+	TimeRange7Days  TimeRange = "7d"
+	TimeRange1Month TimeRange = "1m"
+	TimeRange3Month TimeRange = "3m"
+)
+
+func (t TimeRange) ToDuration() (time.Time, time.Time) {
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+	switch t {
+	case TimeRange7Days:
+		return today.AddDate(0, 0, -7), today
+	case TimeRange1Month:
+		// calendar: 1st of current month
+		return time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()), today
+	case TimeRange3Month:
+		// calendar: 1st of the month, 3 months ago
+		start := today.AddDate(0, -3, 0)
+		return time.Date(start.Year(), start.Month(), 1, 0, 0, 0, 0, now.Location()), today
+	default:
+		// rolling 30 days
+		return today.AddDate(0, 0, -30), today
+	}
+}
+
+func (s *Service) GetDashboardSummary(ctx context.Context, userID string, timeRange TimeRange) (*DashboardSummary, error) {
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return nil, errors.New("invalid user id")
@@ -29,11 +57,13 @@ func (s *Service) GetDashboardSummary(ctx context.Context, userID string) (*Dash
 		return nil, err
 	}
 
-	now := time.Now()
-	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
-	startOfToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	if timeRange == "" {
+		timeRange = TimeRange1Month
+	}
 
-	historicalIncome, historicalExpense, _, err := s.repo.GetHistoricalSummary(ctx, userObjID, startOfMonth, startOfToday)
+	startOfPeriod, startOfToday := timeRange.ToDuration()
+
+	historicalIncome, historicalExpense, _, err := s.repo.GetHistoricalSummary(ctx, userObjID, startOfPeriod, startOfToday)
 	if err != nil {
 		return nil, err
 	}
@@ -43,47 +73,37 @@ func (s *Service) GetDashboardSummary(ctx context.Context, userID string) (*Dash
 		return nil, err
 	}
 
-	monthlyIncome := historicalIncome + liveIncome
-	monthlyExpense := historicalExpense + liveExpense
-	monthlyNet := monthlyIncome - monthlyExpense
+	periodIncome := historicalIncome + liveIncome
+	periodExpense := historicalExpense + liveExpense
+	periodNet := periodIncome - periodExpense
 
 	return &DashboardSummary{
-		TotalNetWorth:  totalNetWorth,
-		MonthlyIncome:  monthlyIncome,
-		MonthlyExpense: monthlyExpense,
-		MonthlyNet:     monthlyNet,
+		TotalNetWorth: totalNetWorth,
+		PeriodIncome:  periodIncome,
+		PeriodExpense: periodExpense,
+		PeriodNet:     periodNet,
+		TimeRange:     timeRange,
 	}, nil
 }
 
-func (s *Service) GetDashboardCharts(ctx context.Context, userID string, rangeParam string) (*DashboardCharts, error) {
+func (s *Service) GetDashboardCharts(ctx context.Context, userID string, timeRange TimeRange) (*DashboardCharts, error) {
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return nil, errors.New("invalid user id")
 	}
 
-	days := 7
-	switch rangeParam {
-	case "7d":
-		days = 7
-	case "30d":
-		days = 30
-	case "90d":
-		days = 90
-	default:
-		days = 7
+	if timeRange == "" {
+		timeRange = TimeRange1Month
 	}
 
-	now := time.Now()
-	startOfToday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	startDate := startOfToday.AddDate(0, 0, -days+1)
-	endDate := startOfToday.AddDate(0, 0, 1)
+	startOfPeriod, startOfToday := timeRange.ToDuration()
 
-	cashFlowTrend, err := s.repo.GetDailyCashFlowTrend(ctx, userObjID, startDate, endDate)
+	cashFlowTrend, err := s.repo.GetDailyCashFlowTrend(ctx, userObjID, startOfPeriod, startOfToday)
 	if err != nil {
 		return nil, err
 	}
 
-	historicalIncome, historicalExpense, historicalCategories, err := s.repo.GetHistoricalSummary(ctx, userObjID, startDate, startOfToday)
+	historicalIncome, historicalExpense, historicalCategories, err := s.repo.GetHistoricalSummary(ctx, userObjID, startOfPeriod, startOfToday)
 	if err != nil {
 		return nil, err
 	}

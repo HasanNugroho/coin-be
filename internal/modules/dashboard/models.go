@@ -7,13 +7,13 @@ import (
 )
 
 type DailySummary struct {
-	ID               primitive.ObjectID   `bson:"_id,omitempty" json:"id"`
-	UserID           primitive.ObjectID   `bson:"user_id" json:"user_id"`
-	Date             time.Time            `bson:"date" json:"date"`
-	TotalIncome      float64              `bson:"total_income" json:"total_income"`
-	TotalExpense     float64              `bson:"total_expense" json:"total_expense"`
+	ID                primitive.ObjectID  `bson:"_id,omitempty" json:"id"`
+	UserID            primitive.ObjectID  `bson:"user_id" json:"user_id"`
+	Date              time.Time           `bson:"date" json:"date"`
+	TotalIncome       float64             `bson:"total_income" json:"total_income"`
+	TotalExpense      float64             `bson:"total_expense" json:"total_expense"`
 	CategoryBreakdown []CategoryBreakdown `bson:"category_breakdown" json:"category_breakdown"`
-	CreatedAt        time.Time            `bson:"created_at" json:"created_at"`
+	CreatedAt         time.Time           `bson:"created_at" json:"created_at"`
 }
 
 type CategoryBreakdown struct {
@@ -24,10 +24,11 @@ type CategoryBreakdown struct {
 }
 
 type DashboardSummary struct {
-	TotalNetWorth   float64 `json:"total_net_worth"`
-	MonthlyIncome   float64 `json:"monthly_income"`
-	MonthlyExpense  float64 `json:"monthly_expense"`
-	MonthlyNet      float64 `json:"monthly_net"`
+	TotalNetWorth float64   `json:"total_net_worth"`
+	PeriodIncome  float64   `json:"period_income"`
+	PeriodExpense float64   `json:"period_expense"`
+	PeriodNet     float64   `json:"period_net"`
+	TimeRange     TimeRange `json:"time_range"`
 }
 
 type ChartDataPoint struct {
@@ -44,7 +45,7 @@ type CategoryChartData struct {
 }
 
 type DashboardCharts struct {
-	CashFlowTrend       []ChartDataPoint    `json:"cash_flow_trend"`
-	IncomeBreakdown     []CategoryChartData `json:"income_breakdown"`
-	ExpenseBreakdown    []CategoryChartData `json:"expense_breakdown"`
+	CashFlowTrend    []ChartDataPoint    `json:"cash_flow_trend"`
+	IncomeBreakdown  []CategoryChartData `json:"income_breakdown"`
+	ExpenseBreakdown []CategoryChartData `json:"expense_breakdown"`
 }

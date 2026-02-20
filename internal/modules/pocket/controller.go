@@ -339,6 +339,35 @@ func (c *Controller) GetMainPocket(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// ListPocketsDropdown godoc
+// @Summary List pockets for dropdown
+// @Description Get all pockets for dropdown with platform data lookup
+// @Tags Pockets
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Pockets retrieved successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Security BearerAuth
+// @Router /v1/pockets/dropdown [get]
+func (c *Controller) ListPocketsDropdown(ctx *gin.Context) {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		resp := utils.NewErrorResponse(http.StatusUnauthorized, "unauthorized")
+		ctx.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+
+	pockets, err := c.service.ListPocketsDropdown(ctx, userID.(string))
+	if err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	pocketResps := c.mapToResponseDropdownList(pockets)
+	resp := utils.NewSuccessResponse("Pockets retrieved successfully", pocketResps)
+	ctx.JSON(http.StatusOK, resp)
+}
+
 // Admin endpoints
 
 // CreateSystemPocket godoc
@@ -460,6 +489,26 @@ func (c *Controller) mapToResponseList(pockets []*Pocket) []*dto.PocketResponse 
 	responses := make([]*dto.PocketResponse, len(pockets))
 	for i, pocket := range pockets {
 		responses[i] = c.mapToResponse(pocket)
+	}
+	return responses
+}
+
+func (c *Controller) mapToResponseDropdown(pocket *Pocket) *dto.PocketDropdownResponse {
+	return &dto.PocketDropdownResponse{
+		ID:              pocket.ID.Hex(),
+		Name:            pocket.Name,
+		Type:            pocket.Type,
+		Balance:         utils.Decimal128ToFloat64(pocket.Balance),
+		BackgroundColor: pocket.BackgroundColor,
+		IsActive:        pocket.IsActive,
+		IsLocked:        pocket.IsLocked,
+	}
+}
+
+func (c *Controller) mapToResponseDropdownList(pockets []*Pocket) []*dto.PocketDropdownResponse {
+	responses := make([]*dto.PocketDropdownResponse, len(pockets))
+	for i, pocket := range pockets {
+		responses[i] = c.mapToResponseDropdown(pocket)
 	}
 	return responses
 }

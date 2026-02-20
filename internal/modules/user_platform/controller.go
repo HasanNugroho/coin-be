@@ -7,6 +7,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/modules/platform"
 	"github.com/HasanNugroho/coin-be/internal/modules/user_platform/dto"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Controller struct {
@@ -61,7 +62,7 @@ func (c *Controller) CreateUserPlatform(ctx *gin.Context) {
 		return
 	}
 
-	userPlatformResp := c.mapToResponse(ctx, userPlatform)
+	userPlatformResp := c.mapToSingleResponse(ctx, userPlatform)
 	resp := utils.NewSuccessResponse("User platform created successfully", userPlatformResp)
 	ctx.JSON(http.StatusCreated, resp)
 }
@@ -95,7 +96,7 @@ func (c *Controller) GetUserPlatform(ctx *gin.Context) {
 		return
 	}
 
-	userPlatformResp := c.mapToResponse(ctx, userPlatform)
+	userPlatformResp := c.mapToSingleResponse(ctx, userPlatform)
 	resp := utils.NewSuccessResponse("User platform retrieved successfully", userPlatformResp)
 	ctx.JSON(http.StatusOK, resp)
 }
@@ -137,7 +138,7 @@ func (c *Controller) ListUserPlatforms(ctx *gin.Context) {
 // @Success 200 {object} map[string]interface{} "User platforms retrieved successfully"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Security BearerAuth
-// @Router /v1/user-platforms/dropdown/list [get]
+// @Router /v1/user-platforms/dropdown [get]
 func (c *Controller) ListUserPlatformsDropdown(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
@@ -202,7 +203,7 @@ func (c *Controller) UpdateUserPlatform(ctx *gin.Context) {
 		return
 	}
 
-	userPlatformResp := c.mapToResponse(ctx, userPlatform)
+	userPlatformResp := c.mapToSingleResponse(ctx, userPlatform)
 	resp := utils.NewSuccessResponse("User platform updated successfully", userPlatformResp)
 	ctx.JSON(http.StatusOK, resp)
 }
@@ -240,23 +241,38 @@ func (c *Controller) DeleteUserPlatform(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
-func (c *Controller) mapToResponse(ctx *gin.Context, userPlatform *UserPlatform) *dto.UserPlatformResponse {
-	var platformData *dto.PlatformData
-	platform, err := c.platformRepo.GetPlatformByID(ctx, userPlatform.PlatformID)
-	if err == nil && platform != nil {
-		platformData = &dto.PlatformData{
-			ID:       platform.ID.Hex(),
-			Name:     platform.Name,
-			Type:     platform.Type,
-			IsActive: platform.IsActive,
-		}
+func (c *Controller) buildPlatformMapFromIDs(ctx *gin.Context, platformIDs []primitive.ObjectID) map[primitive.ObjectID]*dto.PlatformData {
+	platformMap := make(map[primitive.ObjectID]*dto.PlatformData)
+	platforms, err := c.platformRepo.GetPlatformsByIDs(ctx, platformIDs)
+	if err != nil {
+		return platformMap
 	}
 
+	for _, p := range platforms {
+		platformMap[p.ID] = &dto.PlatformData{
+			ID:       p.ID.Hex(),
+			Name:     p.Name,
+			Type:     p.Type,
+			IsActive: p.IsActive,
+		}
+	}
+	return platformMap
+}
+
+func (c *Controller) buildPlatformMap(ctx *gin.Context, userPlatforms []*UserPlatform) map[primitive.ObjectID]*dto.PlatformData {
+	platformIDs := make([]primitive.ObjectID, 0, len(userPlatforms))
+	for _, up := range userPlatforms {
+		platformIDs = append(platformIDs, up.PlatformID)
+	}
+	return c.buildPlatformMapFromIDs(ctx, platformIDs)
+}
+
+func (c *Controller) mapToResponse(ctx *gin.Context, userPlatform *UserPlatform, platformMap map[primitive.ObjectID]*dto.PlatformData) *dto.UserPlatformResponse {
 	return &dto.UserPlatformResponse{
 		ID:         userPlatform.ID.Hex(),
 		UserID:     userPlatform.UserID.Hex(),
 		PlatformID: userPlatform.PlatformID.Hex(),
-		Platform:   platformData,
+		Platform:   platformMap[userPlatform.PlatformID],
 		AliasName:  userPlatform.AliasName,
 		Balance:    utils.Decimal128ToFloat64(userPlatform.Balance),
 		IsActive:   userPlatform.IsActive,
@@ -266,39 +282,31 @@ func (c *Controller) mapToResponse(ctx *gin.Context, userPlatform *UserPlatform)
 	}
 }
 
+func (c *Controller) mapToSingleResponse(ctx *gin.Context, userPlatform *UserPlatform) *dto.UserPlatformResponse {
+	platformMap := c.buildPlatformMapFromIDs(ctx, []primitive.ObjectID{userPlatform.PlatformID})
+	return c.mapToResponse(ctx, userPlatform, platformMap)
+}
+
 func (c *Controller) mapToResponseList(ctx *gin.Context, userPlatforms []*UserPlatform) []*dto.UserPlatformResponse {
+	platformMap := c.buildPlatformMap(ctx, userPlatforms)
 	responses := make([]*dto.UserPlatformResponse, len(userPlatforms))
-	for i, userPlatform := range userPlatforms {
-		responses[i] = c.mapToResponse(ctx, userPlatform)
+	for i, up := range userPlatforms {
+		responses[i] = c.mapToResponse(ctx, up, platformMap)
 	}
 	return responses
 }
 
-func (c *Controller) mapToDropdownResponse(ctx *gin.Context, userPlatform *UserPlatform) *dto.UserPlatformDropdownResponse {
-	var platformData *dto.PlatformData
-	platform, err := c.platformRepo.GetPlatformByID(ctx, userPlatform.PlatformID)
-	if err == nil && platform != nil {
-		platformData = &dto.PlatformData{
-			ID:       platform.ID.Hex(),
-			Name:     platform.Name,
-			Type:     platform.Type,
-			IsActive: platform.IsActive,
-		}
-	}
-
-	return &dto.UserPlatformDropdownResponse{
-		ID:        userPlatform.ID.Hex(),
-		Platform:  platformData,
-		AliasName: userPlatform.AliasName,
-		Balance:   utils.Decimal128ToFloat64(userPlatform.Balance),
-		IsActive:  userPlatform.IsActive,
-	}
-}
-
 func (c *Controller) mapToDropdownResponseList(ctx *gin.Context, userPlatforms []*UserPlatform) []*dto.UserPlatformDropdownResponse {
+	platformMap := c.buildPlatformMap(ctx, userPlatforms)
 	responses := make([]*dto.UserPlatformDropdownResponse, len(userPlatforms))
-	for i, userPlatform := range userPlatforms {
-		responses[i] = c.mapToDropdownResponse(ctx, userPlatform)
+	for i, up := range userPlatforms {
+		responses[i] = &dto.UserPlatformDropdownResponse{
+			ID:        up.ID.Hex(),
+			Platform:  platformMap[up.PlatformID],
+			AliasName: up.AliasName,
+			Balance:   utils.Decimal128ToFloat64(up.Balance),
+			IsActive:  up.IsActive,
+		}
 	}
 	return responses
 }
