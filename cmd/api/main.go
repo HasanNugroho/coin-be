@@ -14,6 +14,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/core/container"
 	"github.com/HasanNugroho/coin-be/internal/core/middleware"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
+	"github.com/HasanNugroho/coin-be/internal/modules/admin_dashboard"
 	"github.com/HasanNugroho/coin-be/internal/modules/allocation"
 	"github.com/HasanNugroho/coin-be/internal/modules/auth"
 	"github.com/HasanNugroho/coin-be/internal/modules/category_template"
@@ -76,6 +77,7 @@ func main() {
 	transaction.Register(builder)
 	payroll.Register(builder)
 	dashboard.Register(builder)
+	admin_dashboard.Register(builder)
 
 	appContainer := builder.Build()
 
@@ -161,6 +163,13 @@ func main() {
 	dashboardRoutes := api.Group("/v1/dashboard")
 	dashboardRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
 	dashboard.RegisterRoutes(dashboardRoutes, dashboardController)
+
+	// Admin Dashboard routes (protected, admin only)
+	adminDashboardController := appContainer.Get("adminDashboardController").(*admin_dashboard.Controller)
+	adminDashboardRoutes := api.Group("/v1/admin")
+	adminDashboardRoutes.Use(middleware.AuthMiddleware(jwtManager, db))
+	adminDashboardRoutes.Use(middleware.AdminMiddleware())
+	admin_dashboard.RegisterRoutes(adminDashboardRoutes, adminDashboardController)
 
 	// Start dashboard cron job for daily summaries
 	dashboardService := appContainer.Get("dashboardService").(*dashboard.Service)

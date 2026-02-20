@@ -375,6 +375,43 @@ info:
   title: Coin Backend API
   version: "1.0"
 paths:
+  /v1/admin/dashboard:
+    get:
+      consumes:
+      - application/json
+      description: Get global statistics for administrators with date filters
+      parameters:
+      - description: Start date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: End date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Admin dashboard summary retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get admin dashboard summary
+      tags:
+      - Admin
   /v1/admin/pockets:
     get:
       consumes:
