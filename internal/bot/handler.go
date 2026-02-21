@@ -48,6 +48,39 @@ func (h *Handler) Register(b *tele.Bot) {
 	b.Handle(tele.OnCallback, h.handleCallback)
 }
 
+// deleteTrackedMessage menghapus pesan berdasarkan message_id + chat_id yang disimpan di session
+func (h *Handler) deleteTrackedMessage(b tele.API, sess *session.UserSession, msgKey string, chatKey string) {
+	msgIDStr := sess.TempData[msgKey]
+	chatIDStr := sess.TempData[chatKey]
+	if msgIDStr == "" || chatIDStr == "" {
+		return
+	}
+
+	msgID, err := strconv.Atoi(msgIDStr)
+	if err != nil {
+		return
+	}
+	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
+	if err != nil {
+		return
+	}
+
+	msg := &tele.Message{
+		ID:   msgID,
+		Chat: &tele.Chat{ID: chatID},
+	}
+	b.Delete(msg)
+
+	delete(sess.TempData, msgKey)
+	delete(sess.TempData, chatKey)
+}
+
+// trackMessage menyimpan message ID dan chat ID ke session
+func trackMessage(sess *session.UserSession, sent *tele.Message, msgKey string, chatKey string) {
+	sess.TempData[msgKey] = strconv.Itoa(sent.ID)
+	sess.TempData[chatKey] = strconv.FormatInt(sent.Chat.ID, 10)
+}
+
 func (h *Handler) handleStart(c tele.Context) error {
 	ctx := context.Background()
 	telegramID := c.Sender().ID
@@ -77,6 +110,11 @@ func (h *Handler) handleMenu(c tele.Context) error {
 }
 
 func (h *Handler) handleCancel(c tele.Context) error {
+	sess := h.sessions.GetOrCreate(c.Sender().ID)
+	b := c.Bot()
+	h.deleteTrackedMessage(b, sess, "pocket_msg_id", "pocket_chat_id")
+	h.deleteTrackedMessage(b, sess, "platform_msg_id", "platform_chat_id")
+	h.deleteTrackedMessage(b, sess, "receipt_msg_id", "receipt_chat_id")
 	h.sessions.ClearState(c.Sender().ID)
 	c.Send("❌ Aksi dibatalkan.")
 	return h.handleMenu(c)
@@ -195,6 +233,7 @@ func (h *Handler) handleTXAmountInput(c tele.Context, sess *session.UserSession)
 	}
 
 	sess.TempData["tx_amount"] = amountStr
+	sess.TempData["pocket_page"] = "0"
 	sess.State = "awaiting_tx_pocket"
 	return h.showPocketSelection(context.Background(), c, sess)
 }
@@ -225,7 +264,6 @@ func (h *Handler) showPocketSelection(ctx context.Context, c tele.Context, sess 
 		rows = append(rows, selector.Row(btn))
 	}
 
-	// Tombol navigasi
 	var navRow tele.Row
 	if page > 0 {
 		navRow = append(navRow, selector.Data("⬅️ Prev", "pocket_prev"))
@@ -238,7 +276,16 @@ func (h *Handler) showPocketSelection(ctx context.Context, c tele.Context, sess 
 	}
 
 	selector.Inline(rows...)
-	return c.Send(fmt.Sprintf("Pilih *Kantong* (halaman %d):", page+1), selector, tele.ModeMarkdown)
+
+	// Hapus pesan pocket lama sebelum kirim baru (paginasi)
+	h.deleteTrackedMessage(c.Bot(), sess, "pocket_msg_id", "pocket_chat_id")
+
+	sent, err := c.Bot().Send(c.Recipient(), fmt.Sprintf("Pilih *Kantong* (halaman %d):", page+1), selector, tele.ModeMarkdown)
+	if err != nil {
+		return err
+	}
+	trackMessage(sess, sent, "pocket_msg_id", "pocket_chat_id")
+	return nil
 }
 
 func (h *Handler) showPlatformSelection(ctx context.Context, c tele.Context, sess *session.UserSession) error {
@@ -270,7 +317,6 @@ func (h *Handler) showPlatformSelection(ctx context.Context, c tele.Context, ses
 		rows = append(rows, selector.Row(btn))
 	}
 
-	// Tombol navigasi
 	var navRow tele.Row
 	if page > 0 {
 		navRow = append(navRow, selector.Data("⬅️ Prev", "platform_prev"))
@@ -283,22 +329,33 @@ func (h *Handler) showPlatformSelection(ctx context.Context, c tele.Context, ses
 	}
 
 	selector.Inline(rows...)
-	return c.Send(fmt.Sprintf("Pilih *Platform* (halaman %d):", page+1), selector, tele.ModeMarkdown)
+
+	// Hapus pesan platform lama sebelum kirim baru (paginasi)
+	h.deleteTrackedMessage(c.Bot(), sess, "platform_msg_id", "platform_chat_id")
+
+	sent, err := c.Bot().Send(c.Recipient(), fmt.Sprintf("Pilih *Platform* (halaman %d):", page+1), selector, tele.ModeMarkdown)
+	if err != nil {
+		return err
+	}
+	trackMessage(sess, sent, "platform_msg_id", "platform_chat_id")
+	return nil
 }
 
 func (h *Handler) handleCallback(c tele.Context) error {
 	sess := h.sessions.GetOrCreate(c.Sender().ID)
 	data := c.Callback().Data
 	ctx := context.Background()
+	b := c.Bot()
 
 	// Pocket dipilih (bukan navigasi)
 	if strings.HasPrefix(data, "\fpocket|") {
 		parts := strings.Split(data, "|")
 		if len(parts) > 1 {
 			sess.TempData["tx_pocket_id"] = parts[1]
-			sess.TempData["platform_page"] = "0" // reset halaman platform
+			sess.TempData["platform_page"] = "0"
 			sess.State = "awaiting_tx_platform"
 			c.Respond()
+			h.deleteTrackedMessage(b, sess, "pocket_msg_id", "pocket_chat_id")
 			return h.showPlatformSelection(ctx, c, sess)
 		}
 	}
@@ -310,6 +367,7 @@ func (h *Handler) handleCallback(c tele.Context) error {
 			sess.TempData["tx_platform_id"] = parts[1]
 			sess.State = "awaiting_tx_note"
 			c.Respond()
+			h.deleteTrackedMessage(b, sess, "platform_msg_id", "platform_chat_id")
 			return c.Send("Tambahkan catatan untuk transaksi ini (ketik /skip jika tidak ada):")
 		}
 	}
@@ -319,10 +377,12 @@ func (h *Handler) handleCallback(c tele.Context) error {
 		sess.State = "awaiting_tx_pocket"
 		sess.TempData["pocket_page"] = "0"
 		c.Respond()
+		h.deleteTrackedMessage(b, sess, "receipt_msg_id", "receipt_chat_id")
 		return h.showPocketSelection(ctx, c, sess)
 
 	case "\freceipt_cancel":
 		c.Respond()
+		h.deleteTrackedMessage(b, sess, "receipt_msg_id", "receipt_chat_id")
 		c.Send("❌ Scan dibatalkan.")
 		h.sessions.ClearState(sess.TelegramID)
 		return h.handleMenu(c)
@@ -372,7 +432,6 @@ func (h *Handler) handleTXNoteInput(ctx context.Context, c tele.Context, sess *s
 func (h *Handler) submitTransaction(ctx context.Context, c tele.Context, sess *session.UserSession) error {
 	amount, _ := strconv.ParseFloat(sess.TempData["tx_amount"], 64)
 
-	// Gunakan tx_date dari scan struk jika ada, fallback ke now
 	date := sess.TempData["tx_date"]
 	if date == "" {
 		date = time.Now().Format(time.RFC3339)
@@ -455,5 +514,11 @@ func (h *Handler) handlePhoto(c tele.Context) error {
 		),
 	)
 
-	return c.Send(msg, tele.ModeMarkdown, selector)
+	// Kirim dan track message ID + chat ID
+	sent, err := c.Bot().Send(c.Recipient(), msg, tele.ModeMarkdown, selector)
+	if err != nil {
+		return err
+	}
+	trackMessage(sess, sent, "receipt_msg_id", "receipt_chat_id")
+	return nil
 }
