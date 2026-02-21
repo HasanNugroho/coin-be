@@ -108,6 +108,7 @@ func (h *Handler) handleEmailInput(ctx context.Context, c tele.Context, sess *se
 	}
 
 	if err := h.svc.SendOTP(ctx, email, sess.TelegramID); err != nil {
+		fmt.Println("❌ Gagal mengirim OTP:", err)
 		return c.Send("❌ Gagal mengirim OTP. Silakan coba lagi nanti.")
 	}
 
