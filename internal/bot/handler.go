@@ -195,30 +195,52 @@ func (h *Handler) handleTXAmountInput(c tele.Context, sess *session.UserSession)
 	}
 
 	sess.TempData["tx_amount"] = amountStr
-	sess.State = "awaiting_tx_pocket"
-	return h.showPocketSelection(context.Background(), c, sess)
+	sess.State = "awaiting_tx_source"
+	return h.showSourceSelection(context.Background(), c, sess)
 }
 
-func (h *Handler) showPocketSelection(ctx context.Context, c tele.Context, sess *session.UserSession) error {
-	pockets, err := h.svc.GetPockets(ctx, sess.UserID)
-	if err != nil || len(pockets) == 0 {
+func (h *Handler) showSourceSelection(ctx context.Context, c tele.Context, sess *session.UserSession) error {
+	pockets, _ := h.svc.GetPockets(ctx, sess.UserID)
+	platforms, _ := h.svc.GetPlatforms(ctx, sess.UserID)
+
+	if len(pockets) == 0 && len(platforms) == 0 {
 		sess.State = ""
-		return c.Send("❌ Tidak ada kantong aktif. Buat dulu di aplikasi web.")
+		return c.Send("❌ Tidak ada kantong atau platform aktif. Buat dulu di aplikasi web.")
 	}
 
 	selector := &tele.ReplyMarkup{}
 	var rows []tele.Row
 
-	for _, p := range pockets {
-		btn := selector.Data(
-			fmt.Sprintf("%s (Rp %.0f)", p.Name, utils.Decimal128ToFloat64(p.Balance)),
-			"pocket", p.ID.Hex(),
-		)
-		rows = append(rows, selector.Row(btn))
+	// Add Pockets
+	if len(pockets) > 0 {
+		rows = append(rows, selector.Row(selector.Text("--- KANTONG ---")))
+		for _, p := range pockets {
+			btn := selector.Data(
+				fmt.Sprintf("📂 %s (Rp %.0f)", p.Name, utils.Decimal128ToFloat64(p.Balance)),
+				"pocket", p.ID.Hex(),
+			)
+			rows = append(rows, selector.Row(btn))
+		}
 	}
-	selector.Inline(rows...)
 
-	return c.Send("Pilih kantong:", selector)
+	// Add Platforms
+	if len(platforms) > 0 {
+		rows = append(rows, selector.Row(selector.Text("--- PLATFORM ---")))
+		for _, p := range platforms {
+			name := "Platform"
+			if p.AliasName != nil {
+				name = *p.AliasName
+			}
+			btn := selector.Data(
+				fmt.Sprintf("💳 %s (Rp %.0f)", name, utils.Decimal128ToFloat64(p.Balance)),
+				"platform", p.ID.Hex(),
+			)
+			rows = append(rows, selector.Row(btn))
+		}
+	}
+
+	selector.Inline(rows...)
+	return c.Send("Pilih sumber/tujuan dana:", selector)
 }
 
 func (h *Handler) handleCallback(c tele.Context) error {
@@ -229,8 +251,19 @@ func (h *Handler) handleCallback(c tele.Context) error {
 	if strings.HasPrefix(data, "\fpocket") {
 		parts := strings.Split(data, "|")
 		if len(parts) > 1 {
-			pocketID := parts[1]
-			sess.TempData["tx_pocket_id"] = pocketID
+			sess.TempData["tx_pocket_id"] = parts[1]
+			sess.TempData["tx_platform_id"] = ""
+			sess.State = "awaiting_tx_note"
+			c.Respond()
+			return c.Send("Tambahkan catatan untuk transaksi ini (ketik /skip jika tidak ada):")
+		}
+	}
+
+	if strings.HasPrefix(data, "\fplatform") {
+		parts := strings.Split(data, "|")
+		if len(parts) > 1 {
+			sess.TempData["tx_platform_id"] = parts[1]
+			sess.TempData["tx_pocket_id"] = ""
 			sess.State = "awaiting_tx_note"
 			c.Respond()
 			return c.Send("Tambahkan catatan untuk transaksi ini (ketik /skip jika tidak ada):")
@@ -239,9 +272,9 @@ func (h *Handler) handleCallback(c tele.Context) error {
 
 	switch data {
 	case "\freceipt_save":
-		sess.State = "awaiting_tx_pocket"
+		sess.State = "awaiting_tx_source"
 		c.Respond()
-		return h.showPocketSelection(ctx, c, sess)
+		return h.showSourceSelection(ctx, c, sess)
 	case "\freceipt_cancel":
 		c.Respond()
 		c.Send("❌ Scan dibatalkan.")
@@ -264,7 +297,7 @@ func (h *Handler) handleTXNoteInput(ctx context.Context, c tele.Context, sess *s
 
 func (h *Handler) submitTransaction(ctx context.Context, c tele.Context, sess *session.UserSession) error {
 	amount, _ := strconv.ParseFloat(sess.TempData["tx_amount"], 64)
-	err := h.svc.CreateTransaction(ctx, sess.UserID, sess.TempData["tx_type"], amount, sess.TempData["tx_pocket_id"], sess.TempData["tx_note"], time.Now().Format(time.RFC3339))
+	err := h.svc.CreateTransaction(ctx, sess.UserID, sess.TempData["tx_type"], amount, sess.TempData["tx_pocket_id"], sess.TempData["tx_platform_id"], sess.TempData["tx_note"], time.Now().Format(time.RFC3339))
 
 	if err != nil {
 		c.Send("❌ Gagal menyimpan transaksi: " + err.Error())

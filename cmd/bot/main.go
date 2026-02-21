@@ -52,6 +52,7 @@ func main() {
 		userRepo,
 		transactionSvc,
 		pocketRepo,
+		userPlatformRepo,
 		dashboardSvc,
 		otpStore,
 		mailer,

@@ -15,6 +15,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction/dto"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
+	"github.com/HasanNugroho/coin-be/internal/modules/user_platform"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -22,6 +23,7 @@ type TelegramService struct {
 	userRepo       *user.Repository
 	transactionSvc *transaction.Service
 	pocketRepo     *pocket.Repository
+	platformRepo   *user_platform.UserPlatformRepository
 	dashboardSvc   *dashboard.Service
 	otpStore       *otp.Store
 	mailer         utils.Mailer
@@ -32,6 +34,7 @@ func NewTelegramService(
 	userRepo *user.Repository,
 	transactionSvc *transaction.Service,
 	pocketRepo *pocket.Repository,
+	platformRepo *user_platform.UserPlatformRepository,
 	dashboardSvc *dashboard.Service,
 	otpStore *otp.Store,
 	mailer utils.Mailer,
@@ -41,6 +44,7 @@ func NewTelegramService(
 		userRepo:       userRepo,
 		transactionSvc: transactionSvc,
 		pocketRepo:     pocketRepo,
+		platformRepo:   platformRepo,
 		dashboardSvc:   dashboardSvc,
 		otpStore:       otpStore,
 		mailer:         mailer,
@@ -92,7 +96,11 @@ func (s *TelegramService) GetPockets(ctx context.Context, userID primitive.Objec
 	return s.pocketRepo.GetPocketsByUserIDDropdown(ctx, userID)
 }
 
-func (s *TelegramService) CreateTransaction(ctx context.Context, userID primitive.ObjectID, txType string, amount float64, pocketID, note, date string) error {
+func (s *TelegramService) GetPlatforms(ctx context.Context, userID primitive.ObjectID) ([]*user_platform.UserPlatform, error) {
+	return s.platformRepo.GetUserPlatformsByUserIDDropdown(ctx, userID)
+}
+
+func (s *TelegramService) CreateTransaction(ctx context.Context, userID primitive.ObjectID, txType string, amount float64, pocketID, platformID, note, date string) error {
 	req := &dto.CreateTransactionRequest{
 		Type:   txType,
 		Amount: amount,
@@ -102,8 +110,10 @@ func (s *TelegramService) CreateTransaction(ctx context.Context, userID primitiv
 
 	if txType == "income" {
 		req.PocketToID = pocketID
+		req.UserPlatformToID = platformID
 	} else {
 		req.PocketFromID = pocketID
+		req.UserPlatformFromID = platformID
 	}
 
 	_, err := s.transactionSvc.CreateTransaction(ctx, userID.Hex(), req)
