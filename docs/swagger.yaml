@@ -1927,7 +1927,33 @@ paths:
       - Transactions
   /v1/user-platforms:
     get:
-      description: Get all user platforms for the authenticated user
+      description: Get all user platforms for the authenticated user with filtering
+        and pagination
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Page size (default: 10, max: 100)'
+        in: query
+        name: page_size
+        type: integer
+      - description: Sort by (alias_name, balance, created_at)
+        in: query
+        name: sort_by
+        type: string
+      - description: Sort order (asc, desc)
+        in: query
+        name: sort_order
+        type: string
+      - description: Search by alias name
+        in: query
+        name: search
+        type: string
+      - description: Filter by active status
+        in: query
+        name: is_active
+        type: boolean
       produces:
       - application/json
       responses:

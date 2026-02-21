@@ -103,9 +103,15 @@ func (c *Controller) GetUserPlatform(ctx *gin.Context) {
 
 // ListUserPlatforms godoc
 // @Summary List all user platforms
-// @Description Get all user platforms for the authenticated user
+// @Description Get all user platforms for the authenticated user with filtering and pagination
 // @Tags User Platforms
 // @Produce json
+// @Param page query int false "Page number (default: 1)"
+// @Param page_size query int false "Page size (default: 10, max: 100)"
+// @Param sort_by query string false "Sort by (alias_name, balance, created_at)"
+// @Param sort_order query string false "Sort order (asc, desc)"
+// @Param search query string false "Search by alias name"
+// @Param is_active query bool false "Filter by active status"
 // @Success 200 {object} map[string]interface{} "User platforms retrieved successfully"
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Security BearerAuth
@@ -118,7 +124,36 @@ func (c *Controller) ListUserPlatforms(ctx *gin.Context) {
 		return
 	}
 
-	userPlatforms, err := c.service.ListUserPlatforms(ctx, userID.(string))
+	search := ctx.Query("search")
+	var searchPtr *string
+	if search != "" {
+		searchPtr = &search
+	}
+
+	isActiveStr := ctx.Query("is_active")
+	var isActivePtr *bool
+	if isActiveStr != "" {
+		isActive := isActiveStr == "true"
+		isActivePtr = &isActive
+	}
+
+	// Parse pagination parameters
+	pagination := utils.ParsePaginationParams(ctx, 10)
+
+	// Parse sorting parameters
+	allowedFields := []string{"alias_name", "balance", "created_at"}
+	sorting := utils.ParseSortParams(ctx, allowedFields, "created_at")
+
+	userPlatforms, total, err := c.service.ListUserPlatforms(
+		ctx,
+		userID.(string),
+		searchPtr,
+		isActivePtr,
+		pagination.Page,
+		pagination.PageSize,
+		sorting.SortBy,
+		sorting.SortOrder,
+	)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
@@ -126,7 +161,13 @@ func (c *Controller) ListUserPlatforms(ctx *gin.Context) {
 	}
 
 	userPlatformResps := c.mapToResponseList(ctx, userPlatforms)
-	resp := utils.NewSuccessResponse("User platforms retrieved successfully", userPlatformResps)
+
+	// Calculate pagination metadata
+	meta := utils.CalculatePaginationMeta(total, pagination.Page, pagination.PageSize)
+
+	// Build paginated response
+	respData := utils.BuildPaginatedResponse(userPlatformResps, meta)
+	resp := utils.NewSuccessResponse("User platforms retrieved successfully", respData)
 	ctx.JSON(http.StatusOK, resp)
 }
 

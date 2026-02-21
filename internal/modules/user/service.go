@@ -60,6 +60,7 @@ func (s *Service) GetUserProfile(ctx context.Context, id string) (*dto.UserRespo
 		resp.SalaryDay = profile.SalaryDay
 		resp.Language = profile.Lang
 		resp.AutoInputPayroll = profile.AutoInputPayroll
+		resp.TelegramIntegrationAlert = profile.TelegramIntegrationAlert
 		if profile.DefaultUserPlatformID != nil {
 			id := profile.DefaultUserPlatformID.Hex()
 			resp.DefaultUserPlatformID = &id
@@ -183,12 +184,13 @@ func (s *Service) CreateUserProfile(ctx context.Context, userID string, req *dto
 	}
 
 	profile := &UserProfile{
-		UserID:      user.ID,
-		BaseSalary:  req.BaseSalary,
-		SalaryCycle: req.SalaryCycle,
-		SalaryDay:   req.SalaryDay,
-		PayCurrency: req.PayCurrency,
-		IsActive:    true,
+		UserID:                   user.ID,
+		BaseSalary:               req.BaseSalary,
+		SalaryCycle:              req.SalaryCycle,
+		SalaryDay:                req.SalaryDay,
+		PayCurrency:              req.PayCurrency,
+		IsActive:                 true,
+		TelegramIntegrationAlert: true,
 	}
 
 	err = s.repo.CreateUserProfile(ctx, profile)

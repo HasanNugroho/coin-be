@@ -82,13 +82,22 @@ func (s *Service) GetUserPlatformByID(ctx context.Context, userID string, userPl
 	return userPlatform, nil
 }
 
-func (s *Service) ListUserPlatforms(ctx context.Context, userID string) ([]*UserPlatform, error) {
+func (s *Service) ListUserPlatforms(
+	ctx context.Context,
+	userID string,
+	search *string,
+	isActive *bool,
+	page int64,
+	pageSize int64,
+	sortBy string,
+	sortOrder string,
+) ([]*UserPlatform, int64, error) {
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, errors.New("invalid user id")
+		return nil, 0, errors.New("invalid user id")
 	}
 
-	return s.repo.GetUserPlatformsByUserID(ctx, userObjID)
+	return s.repo.GetUserPlatformsWithFilter(ctx, userObjID, search, isActive, page, pageSize, sortBy, sortOrder)
 }
 
 func (s *Service) ListUserPlatformsDropdown(ctx context.Context, userID string) ([]*UserPlatform, error) {

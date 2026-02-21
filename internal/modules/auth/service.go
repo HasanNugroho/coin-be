@@ -84,15 +84,16 @@ func (s *Service) Register(ctx context.Context, req *authDTO.RegisterRequest) (*
 	}
 
 	userProfile := &user.UserProfile{
-		UserID:      newUser.ID,
-		Phone:       req.Phone,
-		TelegramId:  "",
-		BaseSalary:  0,
-		SalaryCycle: "monthly",
-		SalaryDay:   1,
-		PayCurrency: user.CurrencyIDR,
-		Lang:        user.LanguageID,
-		IsActive:    true,
+		UserID:                   newUser.ID,
+		Phone:                    req.Phone,
+		TelegramId:               "",
+		BaseSalary:               0,
+		SalaryCycle:              "monthly",
+		SalaryDay:                1,
+		PayCurrency:              user.CurrencyIDR,
+		Lang:                     user.LanguageID,
+		IsActive:                 true,
+		TelegramIntegrationAlert: true,
 	}
 
 	err = s.userRepo.CreateUserProfile(ctx, userProfile)

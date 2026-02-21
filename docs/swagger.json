@@ -2378,7 +2378,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get all user platforms for the authenticated user",
+                "description": "Get all user platforms for the authenticated user with filtering and pagination",
                 "produces": [
                     "application/json"
                 ],
@@ -2386,6 +2386,44 @@
                     "User Platforms"
                 ],
                 "summary": "List all user platforms",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (default: 10, max: 100)",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort by (alias_name, balance, created_at)",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order (asc, desc)",
+                        "name": "sort_order",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by alias name",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by active status",
+                        "name": "is_active",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "User platforms retrieved successfully",

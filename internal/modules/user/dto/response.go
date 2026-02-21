@@ -3,21 +3,22 @@ package dto
 import "time"
 
 type UserResponse struct {
-	ID                    string    `json:"id"`
-	Name                  string    `json:"name"`
-	Email                 string    `json:"email"`
-	Phone                 string    `json:"phone"`
-	TelegramId            string    `json:"telegramId"`
-	Currency              string    `json:"currency"`
-	BaseSalary            float64   `json:"baseSalary"`
-	SalaryCycle           string    `json:"salaryCycle"`
-	SalaryDay             int       `json:"salaryDay"`
-	Language              string    `json:"language"`
-	AutoInputPayroll      bool      `json:"autoInputPayroll"`
-	DefaultUserPlatformID *string   `json:"defaultUserPlatformId,omitempty"`
-	IsActive              bool      `json:"is_active"`
-	CreatedAt             time.Time `json:"created_at"`
-	UpdatedAt             time.Time `json:"updated_at"`
+	ID                       string    `json:"id"`
+	Name                     string    `json:"name"`
+	Email                    string    `json:"email"`
+	Phone                    string    `json:"phone"`
+	TelegramId               string    `json:"telegramId"`
+	Currency                 string    `json:"currency"`
+	BaseSalary               float64   `json:"baseSalary"`
+	SalaryCycle              string    `json:"salaryCycle"`
+	SalaryDay                int       `json:"salaryDay"`
+	Language                 string    `json:"language"`
+	AutoInputPayroll         bool      `json:"autoInputPayroll"`
+	DefaultUserPlatformID    *string   `json:"defaultUserPlatformId,omitempty"`
+	TelegramIntegrationAlert bool      `json:"telegramIntegrationAlert"`
+	IsActive                 bool      `json:"is_active"`
+	CreatedAt                time.Time `json:"created_at"`
+	UpdatedAt                time.Time `json:"updated_at"`
 }
 
 type UserProfileResponse struct {

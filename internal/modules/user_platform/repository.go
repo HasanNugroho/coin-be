@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"regexp"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -106,6 +107,66 @@ func (r *UserPlatformRepository) GetUserPlatformsByUserID(ctx context.Context, u
 		return nil, err
 	}
 	return userPlatforms, nil
+}
+
+func (r *UserPlatformRepository) GetUserPlatformsWithFilter(
+	ctx context.Context,
+	userID primitive.ObjectID,
+	search *string,
+	isActive *bool,
+	page int64,
+	pageSize int64,
+	sortBy string,
+	sortOrder string,
+) ([]*UserPlatform, int64, error) {
+	filter := bson.M{
+		"user_id":    userID,
+		"deleted_at": nil,
+	}
+
+	if isActive != nil {
+		filter["is_active"] = *isActive
+	}
+
+	if search != nil && *search != "" {
+		keyword := primitive.Regex{Pattern: regexp.QuoteMeta(*search), Options: "i"}
+		filter["alias_name"] = keyword
+	}
+
+	// Get total count
+	total, err := r.userPlatforms.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Build sort order
+	sortValue := -1
+	if sortOrder == "asc" {
+		sortValue = 1
+	}
+
+	skip := (page - 1) * pageSize
+	if skip < 0 {
+		skip = 0
+	}
+
+	opts := options.Find().
+		SetLimit(pageSize).
+		SetSkip(skip).
+		SetSort(bson.D{{Key: sortBy, Value: sortValue}})
+
+	cursor, err := r.userPlatforms.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var userPlatforms []*UserPlatform
+	if err = cursor.All(ctx, &userPlatforms); err != nil {
+		return nil, 0, err
+	}
+
+	return userPlatforms, total, nil
 }
 
 func (r *UserPlatformRepository) GetUserPlatformsByUserIDDropdown(ctx context.Context, userID primitive.ObjectID) ([]*UserPlatform, error) {
