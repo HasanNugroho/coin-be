@@ -6,26 +6,43 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/disintegration/imaging"
 	"github.com/otiai10/gosseract/v2"
 )
 
+// -------------------------
+// Struct untuk hasil OCR / Receipt
+// -------------------------
 type ParsedReceipt struct {
 	Amount      float64 `json:"amount"`
 	Description string  `json:"description"`
-	Type        string  `json:"type"` // "income" or "expense"
-	Date        string  `json:"date"` // format: RFC3339
+	Type        string  `json:"type"` // income / expense
+	Date        string  `json:"date"` // RFC3339
 }
 
+// -------------------------
+// Queue job
+// -------------------------
+type OCRJob struct {
+	ImageData []byte
+	ResultCh  chan *ParsedReceipt
+}
+
+// -------------------------
+// Receipt Parser
+// -------------------------
 type ReceiptParser struct {
-	openaiKey string
-	host      string
-	model     string
+	OpenAIKey string
+	Host      string
+	Model     string
 }
 
 func NewReceiptParser(openaiKey, host, model string) *ReceiptParser {
@@ -36,20 +53,51 @@ func NewReceiptParser(openaiKey, host, model string) *ReceiptParser {
 		model = "gpt-4o"
 	}
 	return &ReceiptParser{
-		openaiKey: openaiKey,
-		host:      host,
-		model:     model,
+		OpenAIKey: openaiKey,
+		Host:      host,
+		Model:     model,
 	}
 }
 
-func (p *ReceiptParser) Parse(ctx context.Context, imageData []byte) (*ParsedReceipt, error) {
-	client := gosseract.NewClient()
-	defer client.Close()
-
-	if err := client.SetLanguage("ind", "eng"); err != nil {
+// -------------------------
+// Preprocessing: resize + grayscale
+// -------------------------
+func PreprocessImage(imageData []byte) ([]byte, error) {
+	img, err := imaging.Decode(bytes.NewReader(imageData))
+	if err != nil {
 		return nil, err
 	}
-	if err := client.SetImageFromBytes(imageData); err != nil {
+
+	// Resize max width 1280, keep aspect ratio
+	img = imaging.Resize(img, 1280, 0, imaging.Lanczos)
+	// Grayscale
+	img = imaging.Grayscale(img)
+
+	// Encode kembali ke JPEG []byte
+	buf := new(bytes.Buffer)
+	if err := imaging.Encode(buf, img, imaging.JPEG); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+// -------------------------
+// OCR + parse langsung di Go
+// -------------------------
+func (p *ReceiptParser) Parse(ctx context.Context, imageData []byte) (*ParsedReceipt, error) {
+	// Preprocess ringan
+	preData, err := PreprocessImage(imageData)
+	if err != nil {
+		return nil, err
+	}
+
+	client := gosseract.NewClient()
+	defer client.Close()
+	client.SetLanguage("ind", "eng")
+	client.SetPageSegMode(gosseract.PSM_AUTO) // PSM6 juga bisa dicoba
+
+	if err := client.SetImageFromBytes(preData); err != nil {
 		return nil, err
 	}
 
@@ -58,24 +106,33 @@ func (p *ReceiptParser) Parse(ctx context.Context, imageData []byte) (*ParsedRec
 		return nil, err
 	}
 
+	// Jika teks cukup panjang → parse lokal
 	if len(text) > 20 {
-		res := p.parseTextToReceipt(text)
+		res := ParseTextToReceipt(text)
 		if res.Amount > 0 {
 			return res, nil
 		}
 	}
 
-	return p.parseWithOpenAI(ctx, imageData)
+	// Optional fallback ke OpenAI / Seed AI
+	if p.OpenAIKey != "" {
+		return p.parseWithOpenAI(ctx, preData)
+	}
+
+	return nil, fmt.Errorf("OCR gagal, teks terlalu pendek")
 }
 
-func (p *ReceiptParser) parseTextToReceipt(text string) *ParsedReceipt {
+// -------------------------
+// Parsing teks struk langsung di Go
+// -------------------------
+func ParseTextToReceipt(text string) *ParsedReceipt {
 	loc := time.FixedZone("WIB", 7*3600)
 	res := &ParsedReceipt{
 		Type: "expense",
 		Date: time.Now().In(loc).Format(time.RFC3339),
 	}
 
-	// Amount extraction
+	// Extract amount
 	amountPatterns := []string{
 		"(?i)total[:\\s]+(?:rp\\.?\\s*)?([\\d\\.,]+)",
 		"(?i)grand\\s*total[:\\s]+(?:rp\\.?\\s*)?([\\d\\.,]+)",
@@ -83,7 +140,6 @@ func (p *ReceiptParser) parseTextToReceipt(text string) *ParsedReceipt {
 		"(?i)subtotal[:\\s]+(?:rp\\.?\\s*)?([\\d\\.,]+)",
 		"(?i)rp\\.?\\s*([\\d\\.,]+)",
 	}
-
 	for _, pattern := range amountPatterns {
 		re := regexp.MustCompile(pattern)
 		match := re.FindStringSubmatch(text)
@@ -99,15 +155,14 @@ func (p *ReceiptParser) parseTextToReceipt(text string) *ParsedReceipt {
 		}
 	}
 
-	// Date extraction — normalize to RFC3339
-	type datePattern struct {
+	// Extract date
+	datePatterns := []struct {
 		re     string
 		layout string
-	}
-	datePatterns := []datePattern{
-		{`(\d{4})[/-](\d{2})[/-](\d{2})`, "2006-01-02"}, // yyyy-MM-dd or yyyy/MM/dd
-		{`(\d{2})[/-](\d{2})[/-](\d{4})`, "02-01-2006"}, // dd-MM-yyyy or dd/MM/yyyy
-		{`(\d{2})[/-](\d{2})[/-](\d{2})`, "02-01-06"},   // dd-MM-yy
+	}{
+		{`(\d{4})[/-](\d{2})[/-](\d{2})`, "2006-01-02"},
+		{`(\d{2})[/-](\d{2})[/-](\d{4})`, "02-01-2006"},
+		{`(\d{2})[/-](\d{2})[/-](\d{2})`, "02-01-06"},
 	}
 	for _, dp := range datePatterns {
 		re := regexp.MustCompile(dp.re)
@@ -135,18 +190,17 @@ func (p *ReceiptParser) parseTextToReceipt(text string) *ParsedReceipt {
 	return res
 }
 
+// -------------------------
+// Optional: fallback ke OpenAI/Seed AI
+// -------------------------
 func (p *ReceiptParser) parseWithOpenAI(ctx context.Context, imageData []byte) (*ParsedReceipt, error) {
-	if p.openaiKey == "" {
-		return nil, fmt.Errorf("openai key not configured")
-	}
-
 	loc := time.FixedZone("WIB", 7*3600)
 	now := time.Now().In(loc).Format(time.RFC3339)
 
 	base64Image := base64.StdEncoding.EncodeToString(imageData)
 
 	payload := map[string]interface{}{
-		"model": p.model,
+		"model": p.Model,
 		"messages": []interface{}{
 			map[string]interface{}{
 				"role": "user",
@@ -155,8 +209,8 @@ func (p *ReceiptParser) parseWithOpenAI(ctx context.Context, imageData []byte) (
 						"type": "text",
 						"text": fmt.Sprintf(`Analyze this receipt image and extract transaction data.
 Current time (RFC3339): %s
-Respond ONLY with valid JSON, no explanation, no markdown:
-{"amount": 0, "description": "", "type": "expense", "date": "<RFC3339 format, e.g. 2006-01-02T15:04:05+07:00>"}`, now),
+Respond ONLY with valid JSON, no explanation:
+{"amount": 0, "description": "", "type": "expense", "date": "<RFC3339 format>"}`, now),
 					},
 					map[string]interface{}{
 						"type": "image_url",
@@ -170,9 +224,9 @@ Respond ONLY with valid JSON, no explanation, no markdown:
 	}
 
 	jsonPayload, _ := json.Marshal(payload)
-	req, _ := http.NewRequestWithContext(ctx, "POST", p.host, bytes.NewBuffer(jsonPayload))
+	req, _ := http.NewRequestWithContext(ctx, "POST", p.Host, bytes.NewBuffer(jsonPayload))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+p.openaiKey)
+	req.Header.Set("Authorization", "Bearer "+p.OpenAIKey)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -181,7 +235,7 @@ Respond ONLY with valid JSON, no explanation, no markdown:
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("openai api error: %d", resp.StatusCode)
+		return nil, fmt.Errorf("OpenAI API error: %d", resp.StatusCode)
 	}
 
 	var result map[string]interface{}
@@ -191,12 +245,10 @@ Respond ONLY with valid JSON, no explanation, no markdown:
 
 	choices := result["choices"].([]interface{})
 	if len(choices) == 0 {
-		return nil, fmt.Errorf("no response from openai")
+		return nil, fmt.Errorf("no response from AI")
 	}
 
 	content := choices[0].(map[string]interface{})["message"].(map[string]interface{})["content"].(string)
-
-	// Clean markdown block if present
 	content = strings.TrimPrefix(content, "```json")
 	content = strings.TrimSuffix(content, "```")
 	content = strings.TrimSpace(content)
@@ -206,10 +258,52 @@ Respond ONLY with valid JSON, no explanation, no markdown:
 		return nil, err
 	}
 
-	// Validate & normalize date — fallback ke now jika AI return format salah
 	if _, err := time.Parse(time.RFC3339, parsed.Date); err != nil {
 		parsed.Date = time.Now().In(loc).Format(time.RFC3339)
 	}
 
 	return &parsed, nil
+}
+
+// -------------------------
+// Worker Pool
+// -------------------------
+func StartWorkerPool(numWorkers int, jobs <-chan OCRJob) {
+	for i := 0; i < numWorkers; i++ {
+		go func(id int) {
+			parser := NewReceiptParser("", "", "") // Set OpenAI key jika mau fallback
+			for job := range jobs {
+				fmt.Printf("Worker %d processing image\n", id)
+				ctx := context.Background()
+				res, err := parser.Parse(ctx, job.ImageData)
+				if err != nil {
+					log.Printf("Worker %d error: %v\n", id, err)
+					job.ResultCh <- nil
+					continue
+				}
+				job.ResultCh <- res
+			}
+		}(i + 1)
+	}
+}
+
+// -------------------------
+// Main example
+// -------------------------
+func main() {
+	// Simulasi gambar
+	imageBytes, _ := os.ReadFile("input.jpg")
+
+	jobs := make(chan OCRJob, 10)
+	StartWorkerPool(2, jobs) // 2 core
+
+	resultCh := make(chan *ParsedReceipt)
+	jobs <- OCRJob{ImageData: imageBytes, ResultCh: resultCh}
+
+	parsed := <-resultCh
+	if parsed != nil {
+		fmt.Printf("Parsed Receipt: %+v\n", parsed)
+	} else {
+		fmt.Println("Failed to parse receipt")
+	}
 }
