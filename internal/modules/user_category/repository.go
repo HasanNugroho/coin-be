@@ -156,3 +156,37 @@ func (r *Repository) SoftDelete(ctx context.Context, id primitive.ObjectID, user
 	}
 	return nil
 }
+
+func (r *Repository) FindByNamesSimilarity(ctx context.Context, userID primitive.ObjectID, names []string, txType *string) ([]*UserCategory, error) {
+	if len(names) == 0 {
+		return nil, nil
+	}
+
+	nameFilters := make([]bson.M, len(names))
+	for i, name := range names {
+		// Case-insensitive regex match for each name
+		nameFilters[i] = bson.M{"name": bson.M{"$regex": name, "$options": "i"}}
+	}
+
+	filter := bson.M{
+		"user_id":    userID,
+		"is_deleted": false,
+		"$or":        nameFilters,
+	}
+
+	if txType != nil && *txType != "" {
+		filter["transaction_type"] = *txType
+	}
+
+	cursor, err := r.categories.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var categories []*UserCategory
+	if err = cursor.All(ctx, &categories); err != nil {
+		return nil, err
+	}
+	return categories, nil
+}

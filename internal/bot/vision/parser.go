@@ -265,6 +265,63 @@ Respond ONLY with valid JSON, no explanation:
 	return &parsed, nil
 }
 
+func (p *ReceiptParser) IdentifyCategories(ctx context.Context, note string) ([]string, error) {
+	if p.OpenAIKey == "" {
+		return nil, fmt.Errorf("OpenAI key is not set")
+	}
+
+	payload := map[string]interface{}{
+		"model": p.Model,
+		"messages": []interface{}{
+			map[string]interface{}{
+				"role":    "system",
+				"content": "You are a finance assistant. Given a transaction note, suggest top 3 most relevant category names in Indonesian. Respond ONLY with a JSON array of strings, for example: [\"Makanan\", \"Transportasi\", \"Belanja\"]",
+			},
+			map[string]interface{}{
+				"role":    "user",
+				"content": fmt.Sprintf("Note: %s", note),
+			},
+		},
+	}
+
+	jsonPayload, _ := json.Marshal(payload)
+	req, _ := http.NewRequestWithContext(ctx, "POST", p.Host, bytes.NewBuffer(jsonPayload))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+p.OpenAIKey)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("OpenAI API error: %d", resp.StatusCode)
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	choices, ok := result["choices"].([]interface{})
+	if !ok || len(choices) == 0 {
+		return nil, fmt.Errorf("no response from AI")
+	}
+
+	content := choices[0].(map[string]interface{})["message"].(map[string]interface{})["content"].(string)
+	content = strings.TrimPrefix(content, "```json")
+	content = strings.TrimSuffix(content, "```")
+	content = strings.TrimSpace(content)
+
+	var categories []string
+	if err := json.Unmarshal([]byte(content), &categories); err != nil {
+		return nil, err
+	}
+
+	return categories, nil
+}
+
 // -------------------------
 // Worker Pool
 // -------------------------

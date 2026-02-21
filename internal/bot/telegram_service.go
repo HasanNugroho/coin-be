@@ -16,6 +16,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction/dto"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
+	"github.com/HasanNugroho/coin-be/internal/modules/user_category"
 	"github.com/HasanNugroho/coin-be/internal/modules/user_platform"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -29,6 +30,7 @@ type TelegramService struct {
 	otpStore       *otp.Store
 	mailer         utils.Mailer
 	visionParser   *vision.ReceiptParser
+	categoryRepo   *user_category.Repository
 	config         *config.Config
 }
 
@@ -41,6 +43,7 @@ func NewTelegramService(
 	otpStore *otp.Store,
 	mailer utils.Mailer,
 	visionParser *vision.ReceiptParser,
+	categoryRepo *user_category.Repository,
 	config *config.Config,
 ) *TelegramService {
 	return &TelegramService{
@@ -52,6 +55,7 @@ func NewTelegramService(
 		otpStore:       otpStore,
 		mailer:         mailer,
 		visionParser:   visionParser,
+		categoryRepo:   categoryRepo,
 		config:         config,
 	}
 }
@@ -104,12 +108,13 @@ func (s *TelegramService) GetPlatforms(ctx context.Context, userID primitive.Obj
 	return s.platformRepo.GetUserPlatformsByUserIDDropdown(ctx, userID)
 }
 
-func (s *TelegramService) CreateTransaction(ctx context.Context, userID primitive.ObjectID, txType string, amount float64, pocketID, platformID, note, date string) error {
+func (s *TelegramService) CreateTransaction(ctx context.Context, userID primitive.ObjectID, txType string, amount float64, pocketID, platformID, categoryID, note, date string) error {
 	req := &dto.CreateTransactionRequest{
-		Type:   txType,
-		Amount: amount,
-		Note:   note,
-		Date:   date,
+		Type:       txType,
+		Amount:     amount,
+		CategoryID: categoryID,
+		Note:       note,
+		Date:       date,
 	}
 
 	if txType == "income" {
@@ -126,6 +131,18 @@ func (s *TelegramService) CreateTransaction(ctx context.Context, userID primitiv
 
 func (s *TelegramService) ParseReceiptImage(ctx context.Context, imageData []byte) (*vision.ParsedReceipt, error) {
 	return s.visionParser.Parse(ctx, imageData)
+}
+
+func (s *TelegramService) IdentifyCategoriesFromAI(ctx context.Context, note string) ([]string, error) {
+	return s.visionParser.IdentifyCategories(ctx, note)
+}
+
+func (s *TelegramService) GetCategoriesBySimilarity(ctx context.Context, userID primitive.ObjectID, names []string, txType string) ([]*user_category.UserCategory, error) {
+	var txTypePtr *string
+	if txType != "" {
+		txTypePtr = &txType
+	}
+	return s.categoryRepo.FindByNamesSimilarity(ctx, userID, names, txTypePtr)
 }
 
 func generateOTP(length int) (string, error) {

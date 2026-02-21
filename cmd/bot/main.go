@@ -16,6 +16,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction"
 	"github.com/HasanNugroho/coin-be/internal/modules/user"
+	"github.com/HasanNugroho/coin-be/internal/modules/user_category"
 	"github.com/HasanNugroho/coin-be/internal/modules/user_platform"
 	tele "gopkg.in/telebot.v4"
 )
@@ -37,6 +38,7 @@ func main() {
 	pocketRepo := pocket.NewRepository(db)
 	transactionRepo := transaction.NewRepository(db)
 	userPlatformRepo := user_platform.NewUserPlatformRepository(db)
+	userCategoryRepo := user_category.NewRepository(db)
 
 	// Services
 	dashboardSvc := dashboard.NewService(dashboard.NewRepository(db))
@@ -57,6 +59,7 @@ func main() {
 		otpStore,
 		mailer,
 		visionParser,
+		userCategoryRepo,
 		cfg,
 	)
 

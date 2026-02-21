@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/HasanNugroho/coin-be/internal/bot/session"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
+	"github.com/HasanNugroho/coin-be/internal/modules/user_category"
 	tele "gopkg.in/telebot.v4"
 )
 
@@ -369,7 +371,22 @@ func (h *Handler) handleCallback(c tele.Context) error {
 		}
 	}
 
+	// Kategori dipilih (bukan navigasi)
+	if strings.HasPrefix(data, "\fcategory|") {
+		parts := strings.Split(data, "|")
+		if len(parts) > 1 {
+			sess.TempData["tx_category_id"] = parts[1]
+			c.Respond()
+			c.Delete()
+			return h.submitTransaction(ctx, c, sess)
+		}
+	}
+
 	switch data {
+	case "\fcategory_skip":
+		c.Respond()
+		c.Delete()
+		return h.submitTransaction(ctx, c, sess)
 	case "\freceipt_save":
 		sess.State = "awaiting_tx_pocket"
 		sess.TempData["pocket_page"] = "0"
@@ -427,7 +444,37 @@ func (h *Handler) handleTXNoteInput(ctx context.Context, c tele.Context, sess *s
 	}
 
 	sess.TempData["tx_note"] = note
+
+	// Flow AI: Identifikasi kategori
+	if note != "" {
+		c.Send("⏳ Mengidentifikasi kategori...")
+		names, err := h.svc.IdentifyCategoriesFromAI(ctx, note)
+		if err == nil && len(names) > 0 {
+			categories, err := h.svc.GetCategoriesBySimilarity(ctx, sess.UserID, names, sess.TempData["tx_type"])
+			b, _ := json.Marshal(categories)
+			fmt.Println("categories", string(b))
+			if err == nil && len(categories) > 0 {
+				return h.showCategorySelection(ctx, c, sess, categories)
+			}
+		}
+	}
+
 	return h.submitTransaction(ctx, c, sess)
+}
+
+func (h *Handler) showCategorySelection(ctx context.Context, c tele.Context, sess *session.UserSession, categories []*user_category.UserCategory) error {
+	selector := &tele.ReplyMarkup{}
+	var rows []tele.Row
+
+	for _, cat := range categories {
+		btn := selector.Data(fmt.Sprintf("🏷️ %s", cat.Name), "category", cat.ID.Hex())
+		rows = append(rows, selector.Row(btn))
+	}
+
+	rows = append(rows, selector.Row(selector.Data("⏭️ Lewati", "category_skip")))
+	selector.Inline(rows...)
+
+	return c.Send("Pilih kategori yang sesuai:", selector)
 }
 
 func (h *Handler) submitTransaction(ctx context.Context, c tele.Context, sess *session.UserSession) error {
@@ -445,6 +492,7 @@ func (h *Handler) submitTransaction(ctx context.Context, c tele.Context, sess *s
 		amount,
 		sess.TempData["tx_pocket_id"],
 		sess.TempData["tx_platform_id"],
+		sess.TempData["tx_category_id"],
 		sess.TempData["tx_note"],
 		date,
 	)

@@ -129,29 +129,117 @@ func (h *Handler) handleNLPTransaction(ctx context.Context, c tele.Context, sess
 	return h.showPocketSelection(ctx, c, sess)
 }
 
+// func (h *Handler) parseIntent(ctx context.Context, userMsg string, sess *session.UserSession) (*Intent, error) {
+// 	if h.svc.config.OpenAIKey == "" {
+// 		// Fallback: tidak ada AI key, minta user pakai menu
+// 		return &Intent{
+// 			Action:    "unknown",
+// 			ReplyText: "Silakan gunakan menu di bawah untuk mencatat transaksi.",
+// 		}, nil
+// 	}
+
+// 	// Tambahkan konteks tanggal hari ini
+// 	today := time.Now().Format("2006-01-02")
+// 	yesterday := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
+// 	contextNote := fmt.Sprintf("Hari ini: %s. Kemarin: %s.", today, yesterday)
+
+// 	messages := []map[string]string{
+// 		{"role": "system", "content": intentSystemPrompt},
+// 		{"role": "user", "content": contextNote + "\n\nPesan user: " + userMsg},
+// 	}
+
+// 	payload := map[string]interface{}{
+// 		"model":       h.svc.config.AIModel,
+// 		"messages":    messages,
+// 		"max_tokens":  300,
+// 		"temperature": 0,
+// 	}
+
+// 	jsonPayload, _ := json.Marshal(payload)
+// 	req, err := http.NewRequestWithContext(ctx, "POST", h.svc.config.AIHost, bytes.NewBuffer(jsonPayload))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	req.Header.Set("Content-Type", "application/json")
+// 	req.Header.Set("Authorization", "Bearer "+h.svc.config.OpenAIKey)
+
+// 	resp, err := http.DefaultClient.Do(req)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer resp.Body.Close()
+
+// 	var result map[string]interface{}
+// 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+// 		return nil, err
+// 	}
+
+// 	choices, ok := result["choices"].([]interface{})
+// 	if !ok || len(choices) == 0 {
+// 		return nil, fmt.Errorf("no choices")
+// 	}
+
+// 	content := choices[0].(map[string]interface{})["message"].(map[string]interface{})["content"].(string)
+// 	content = strings.TrimPrefix(content, "```json")
+// 	content = strings.TrimSuffix(content, "```")
+// 	content = strings.TrimSpace(content)
+
+// 	var intent Intent
+// 	if err := json.Unmarshal([]byte(content), &intent); err != nil {
+// 		return nil, err
+// 	}
+
+// 	return &intent, nil
+// }
+
 func (h *Handler) parseIntent(ctx context.Context, userMsg string, sess *session.UserSession) (*Intent, error) {
 	if h.svc.config.OpenAIKey == "" {
-		// Fallback: tidak ada AI key, minta user pakai menu
+		// fallback tanpa AI
 		return &Intent{
 			Action:    "unknown",
 			ReplyText: "Silakan gunakan menu di bawah untuk mencatat transaksi.",
 		}, nil
 	}
 
-	// Tambahkan konteks tanggal hari ini
+	// Context tanggal singkat
 	today := time.Now().Format("2006-01-02")
 	yesterday := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
-	contextNote := fmt.Sprintf("Hari ini: %s. Kemarin: %s.", today, yesterday)
+	contextNote := fmt.Sprintf("Today: %s. Yesterday: %s.", today, yesterday)
+
+	// Prompt bahasa Inggris, minimal
+	prompt := fmt.Sprintf(`You are a personal finance assistant for a Telegram bot. 
+Extract intent from the user's message below.
+Respond ONLY with valid JSON in this format:
+{
+  "action":"save_transaction"|"get_summary"|"help"|"unknown",
+  "tx_type":"income"|"expense",
+  "amount":0,
+  "note":"",
+  "date":"",
+  "reply_text":""
+}
+
+Rules:
+- save_transaction: record income/expense
+- get_summary: request report
+- help: ask usage guidance
+- unknown: not relevant
+- amount: convert "ribu" *1000, "juta" *1000000
+- tx_type default: expense
+- date: use context (e.g., "kemarin") or leave empty
+- reply_text: short natural Indonesian sentence
+
+User message (Bahasa Indonesia): "%s"
+Context: %s`, userMsg, contextNote)
 
 	messages := []map[string]string{
-		{"role": "system", "content": intentSystemPrompt},
-		{"role": "user", "content": contextNote + "\n\nPesan user: " + userMsg},
+		{"role": "system", "content": prompt},
 	}
 
 	payload := map[string]interface{}{
 		"model":       h.svc.config.AIModel,
 		"messages":    messages,
-		"max_tokens":  300,
+		"max_tokens":  150,
 		"temperature": 0,
 	}
 
@@ -176,7 +264,7 @@ func (h *Handler) parseIntent(ctx context.Context, userMsg string, sess *session
 
 	choices, ok := result["choices"].([]interface{})
 	if !ok || len(choices) == 0 {
-		return nil, fmt.Errorf("no choices")
+		return nil, fmt.Errorf("no choices returned by AI")
 	}
 
 	content := choices[0].(map[string]interface{})["message"].(map[string]interface{})["content"].(string)
@@ -184,12 +272,41 @@ func (h *Handler) parseIntent(ctx context.Context, userMsg string, sess *session
 	content = strings.TrimSuffix(content, "```")
 	content = strings.TrimSpace(content)
 
+	// Unmarshal JSON
 	var intent Intent
 	if err := json.Unmarshal([]byte(content), &intent); err != nil {
 		return nil, err
 	}
 
+	// Post-process amount: handle "ribu"/"juta" jika AI lupa
+	intent.Amount = normalizeAmount(intent.Amount, userMsg)
+
+	// Default tx_type
+	if intent.TxType == "" {
+		intent.TxType = "expense"
+	}
+
+	// Normalize date → RFC3339
+	if intent.Date != "" {
+		intent.Date = toRFC3339(intent.Date)
+	}
+
 	return &intent, nil
+}
+
+// normalizeAmount mengubah angka berdasarkan kata "ribu"/"juta" di message
+func normalizeAmount(amount float64, msg string) float64 {
+	if amount <= 0 {
+		return 0
+	}
+	lower := strings.ToLower(msg)
+	if strings.Contains(lower, "ribu") {
+		amount *= 1000
+	}
+	if strings.Contains(lower, "juta") {
+		amount *= 1000000
+	}
+	return amount
 }
 
 func (h *Handler) helpText() string {
