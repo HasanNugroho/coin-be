@@ -307,7 +307,7 @@ func (s *Service) createDefaultUserPlatforms(ctx context.Context, userID primiti
 			PlatformID: platform.ID,
 			AliasName:  &aliasName,
 			Balance:    utils.NewDecimal128FromFloat(0),
-			IsActive:   true,
+			IsActive:   false,
 		}
 		userPlatforms = append(userPlatforms, userPlatform)
 	}

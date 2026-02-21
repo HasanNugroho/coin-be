@@ -183,6 +183,12 @@ func (r *Repository) GetTransactionsByUserIDWithSort(
 				"pocket_to_id":   bson.M{"$toString": "$pocket_to_id"},
 				"pocket_to_name": "$pocket_to_data.name",
 
+				"user_platform_from_id":   bson.M{"$toString": "$user_platform_from_id"},
+				"user_platform_from_name": "$user_platform_from_data.name",
+
+				"user_platform_to_id":   bson.M{"$toString": "$user_platform_to_id"},
+				"user_platform_to_name": "$user_platform_to_data.name",
+
 				"category_id":   bson.M{"$toString": "$category_id"},
 				"category_name": "$category.name",
 
