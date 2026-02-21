@@ -39,8 +39,8 @@ func main() {
 	userPlatformRepo := user_platform.NewUserPlatformRepository(db)
 
 	// Services
-	transactionSvc := transaction.NewService(transactionRepo, pocketRepo, userPlatformRepo)
 	dashboardSvc := dashboard.NewService(dashboard.NewRepository(db))
+	transactionSvc := transaction.NewService(transactionRepo, pocketRepo, userPlatformRepo, dashboardSvc)
 
 	// Bot components
 	otpStore := otp.NewStore()

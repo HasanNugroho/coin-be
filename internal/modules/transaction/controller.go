@@ -1,7 +1,6 @@
 package transaction
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
@@ -190,7 +189,6 @@ func (c *Controller) ListPocketTransactions(ctx *gin.Context) {
 
 	// Fetch transactions with pagination and sorting
 	transactions, total, err := c.service.GetPocketTransactionsWithSort(ctx, userID.(string), pocketID, pagination.Page, pagination.PageSize, sorting.SortBy, sorting.SortOrder)
-	log.Printf("Transaction: %s", transactions)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
@@ -237,6 +235,55 @@ func (c *Controller) DeleteTransaction(ctx *gin.Context) {
 	}
 
 	resp := utils.NewSuccessResponse("Transaction deleted successfully", nil)
+	ctx.JSON(http.StatusOK, resp)
+}
+
+// UpdateTransaction godoc
+// @Summary Update transaction
+// @Description Update an existing transaction with balance adjustment
+// @Tags Transactions
+// @Accept json
+// @Produce json
+// @Param id path string true "Transaction ID"
+// @Param request body dto.UpdateTransactionRequest true "Update details"
+// @Success 200 {object} map[string]interface{} "Transaction updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "Transaction not found"
+// @Security BearerAuth
+// @Router /v1/transactions/{id} [put]
+func (c *Controller) UpdateTransaction(ctx *gin.Context) {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		resp := utils.NewErrorResponse(http.StatusUnauthorized, "unauthorized")
+		ctx.JSON(http.StatusUnauthorized, resp)
+		return
+	}
+
+	id := ctx.Param("id")
+
+	var req dto.UpdateTransactionRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	if err := utils.ValidateRequest(&req); err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	transaction, err := c.service.UpdateTransaction(ctx, userID.(string), id, &req)
+	if err != nil {
+		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	txResp := c.mapToResponse(transaction)
+	resp := utils.NewSuccessResponse("Transaction updated successfully", txResp)
 	ctx.JSON(http.StatusOK, resp)
 }
 

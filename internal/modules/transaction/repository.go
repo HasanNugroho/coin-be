@@ -292,6 +292,22 @@ func (r *Repository) CountUserTransactions(ctx context.Context, userID primitive
 	return count, err
 }
 
+func (r *Repository) UpdateTransaction(ctx context.Context, id primitive.ObjectID, transaction *Transaction) error {
+	transaction.UpdatedAt = time.Now()
+	result, err := r.transactions.UpdateOne(
+		ctx,
+		bson.M{"_id": id, "deleted_at": nil},
+		bson.M{"$set": transaction},
+	)
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return errors.New("transaction not found")
+	}
+	return nil
+}
+
 func (r *Repository) DeleteTransaction(ctx context.Context, id primitive.ObjectID) error {
 	now := time.Now()
 	result, err := r.transactions.UpdateOne(

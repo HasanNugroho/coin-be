@@ -55,6 +55,32 @@ func (bp *BalanceProcessor) ProcessTransaction(
 	}
 }
 
+// RevertTransaction reverses balance changes.
+func (bp *BalanceProcessor) RevertTransaction(
+	ctx context.Context,
+	txType string,
+	amount float64,
+	pocketFrom, pocketTo *primitive.ObjectID,
+	userPlatformFrom, userPlatformTo *primitive.ObjectID,
+) error {
+	switch txType {
+	case string(TypeIncome):
+		// Reverse income: decrease balances
+		return bp.processExpense(ctx, amount, pocketTo, userPlatformTo)
+
+	case string(TypeExpense):
+		// Reverse expense: increase balances
+		return bp.processIncome(ctx, amount, pocketFrom, userPlatformFrom)
+
+	case string(TypeTransfer):
+		// Reverse transfer: swap source and destination
+		return bp.processTransfer(ctx, amount, pocketTo, pocketFrom, userPlatformTo, userPlatformFrom)
+
+	default:
+		return errors.New("invalid transaction type")
+	}
+}
+
 // processIncome increases pocket_to and user_platform_to balances.
 // Income brings money into the system.
 func (bp *BalanceProcessor) processIncome(

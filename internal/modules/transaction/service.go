@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
+	"github.com/HasanNugroho/coin-be/internal/modules/dashboard"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction/dto"
 	"github.com/HasanNugroho/coin-be/internal/modules/user_platform"
@@ -17,14 +18,16 @@ type Service struct {
 	pocketRepo       *pocket.Repository
 	userPlatformRepo *user_platform.UserPlatformRepository
 	balanceProcessor *BalanceProcessor
+	dashboardService *dashboard.Service
 }
 
-func NewService(r *Repository, pr *pocket.Repository, upr *user_platform.UserPlatformRepository) *Service {
+func NewService(r *Repository, pr *pocket.Repository, upr *user_platform.UserPlatformRepository, ds *dashboard.Service) *Service {
 	return &Service{
 		repo:             r,
 		pocketRepo:       pr,
 		userPlatformRepo: upr,
 		balanceProcessor: NewBalanceProcessor(pr, upr),
+		dashboardService: ds,
 	}
 }
 
@@ -136,7 +139,15 @@ func (s *Service) CreateTransaction(ctx context.Context, userID string, req *dto
 	return transaction, nil
 }
 
-func (s *Service) validateTransactionRules(ctx context.Context, txType string, userID primitive.ObjectID, pocketFrom, pocketTo, userPlatformFrom, userPlatformTo *primitive.ObjectID) error {
+func (s *Service) validateTransactionRules(
+	ctx context.Context,
+	txType string,
+	userID primitive.ObjectID,
+	pocketFrom *primitive.ObjectID,
+	pocketTo *primitive.ObjectID,
+	userPlatformFrom *primitive.ObjectID,
+	userPlatformTo *primitive.ObjectID,
+) error {
 	switch txType {
 	case string(TypeIncome):
 		// Income must have destination (pocket or platform)
@@ -181,7 +192,13 @@ func (s *Service) validateTransactionRules(ctx context.Context, txType string, u
 	return nil
 }
 
-func (s *Service) validatePocket(ctx context.Context, userID primitive.ObjectID, pocketFrom, pocketTo *primitive.ObjectID, amount float64) error {
+func (s *Service) validatePocket(
+	ctx context.Context,
+	userID primitive.ObjectID,
+	pocketFrom *primitive.ObjectID,
+	pocketTo *primitive.ObjectID,
+	amount float64,
+) error {
 	// Check pocket from
 	if pocketFrom != nil {
 		pocket, err := s.pocketRepo.GetPocketByID(ctx, *pocketFrom)
@@ -377,7 +394,145 @@ func (s *Service) DeleteTransaction(ctx context.Context, userID string, transact
 		return errors.New("unauthorized")
 	}
 
-	return s.repo.DeleteTransaction(ctx, txObjID)
+	// Process balance updates (revert)
+	if err := s.balanceProcessor.RevertTransaction(ctx, transaction.Type, transaction.Amount, transaction.PocketFromID, transaction.PocketToID, transaction.UserPlatformFromID, transaction.UserPlatformToID); err != nil {
+		return err
+	}
+
+	err = s.repo.DeleteTransaction(ctx, txObjID)
+	if err != nil {
+		return err
+	}
+
+	// Trigger daily summary recalculation
+	go s.dashboardService.GenerateDailySummary(context.Background(), transaction.UserID, transaction.Date)
+
+	return nil
+}
+
+func (s *Service) UpdateTransaction(ctx context.Context, userID string, transactionID string, req *dto.UpdateTransactionRequest) (*Transaction, error) {
+	userObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user id")
+	}
+
+	txObjID, err := primitive.ObjectIDFromHex(transactionID)
+	if err != nil {
+		return nil, errors.New("invalid transaction id")
+	}
+
+	// 1. Fetch existing transaction
+	oldTx, err := s.repo.GetTransactionByID(ctx, txObjID)
+	if err != nil {
+		return nil, err
+	}
+
+	if oldTx.UserID != userObjID {
+		return nil, errors.New("unauthorized")
+	}
+
+	// 2. Validate request
+	if !IsValidTransactionType(req.Type) {
+		return nil, errors.New("invalid transaction type")
+	}
+
+	if req.Amount <= 0 {
+		return nil, errors.New("amount must be greater than 0")
+	}
+
+	newDate, err := time.Parse(time.RFC3339, req.Date)
+	if err != nil {
+		return nil, errors.New("invalid date format")
+	}
+
+	var newPocketFrom *primitive.ObjectID
+	var newPocketTo *primitive.ObjectID
+	var newUserPlatformFrom *primitive.ObjectID
+	var newUserPlatformTo *primitive.ObjectID
+
+	if req.PocketFromID != "" {
+		id, _ := primitive.ObjectIDFromHex(req.PocketFromID)
+		newPocketFrom = &id
+	}
+	if req.PocketToID != "" {
+		id, _ := primitive.ObjectIDFromHex(req.PocketToID)
+		newPocketTo = &id
+	}
+	if req.UserPlatformFromID != "" {
+		id, _ := primitive.ObjectIDFromHex(req.UserPlatformFromID)
+		newUserPlatformFrom = &id
+	}
+	if req.UserPlatformToID != "" {
+		id, _ := primitive.ObjectIDFromHex(req.UserPlatformToID)
+		newUserPlatformTo = &id
+	}
+
+	var newCategoryID *primitive.ObjectID
+	if req.CategoryID != "" {
+		id, _ := primitive.ObjectIDFromHex(req.CategoryID)
+		newCategoryID = &id
+	}
+
+	// Validate generic rules
+	if err := s.validateTransactionRules(ctx, req.Type, userObjID, newPocketFrom, newPocketTo, newUserPlatformFrom, newUserPlatformTo); err != nil {
+		return nil, err
+	}
+
+	// 3. Revert old balances
+	if err := s.balanceProcessor.RevertTransaction(ctx, oldTx.Type, oldTx.Amount, oldTx.PocketFromID, oldTx.PocketToID, oldTx.UserPlatformFromID, oldTx.UserPlatformToID); err != nil {
+		return nil, err
+	}
+
+	// 4. Validate new ownership and balance sufficiency (after reversion)
+	if err := s.validatePocket(ctx, userObjID, newPocketFrom, newPocketTo, req.Amount); err != nil {
+		// Rollback reversion if validation fails
+		s.balanceProcessor.ProcessTransaction(ctx, oldTx.Type, oldTx.Amount, oldTx.PocketFromID, oldTx.PocketToID, oldTx.UserPlatformFromID, oldTx.UserPlatformToID)
+		return nil, err
+	}
+
+	if err := s.validateUserPlatform(ctx, userObjID, newUserPlatformFrom, newUserPlatformTo, req.Amount); err != nil {
+		// Rollback reversion if validation fails
+		s.balanceProcessor.ProcessTransaction(ctx, oldTx.Type, oldTx.Amount, oldTx.PocketFromID, oldTx.PocketToID, oldTx.UserPlatformFromID, oldTx.UserPlatformToID)
+		return nil, err
+	}
+
+	// 5. Apply new balances
+	if err := s.balanceProcessor.ProcessTransaction(ctx, req.Type, req.Amount, newPocketFrom, newPocketTo, newUserPlatformFrom, newUserPlatformTo); err != nil {
+		// Rollback reversion if apply fails
+		s.balanceProcessor.ProcessTransaction(ctx, oldTx.Type, oldTx.Amount, oldTx.PocketFromID, oldTx.PocketToID, oldTx.UserPlatformFromID, oldTx.UserPlatformToID)
+		return nil, err
+	}
+
+	// 6. Update transaction record
+	updatedTx := &Transaction{
+		ID:                 txObjID,
+		UserID:             userObjID,
+		Type:               req.Type,
+		Amount:             req.Amount,
+		PocketFromID:       newPocketFrom,
+		PocketToID:         newPocketTo,
+		UserPlatformFromID: newUserPlatformFrom,
+		UserPlatformToID:   newUserPlatformTo,
+		CategoryID:         newCategoryID,
+		Note:               stringPtr(req.Note),
+		Date:               newDate,
+		Ref:                stringPtr(req.Ref),
+		CreatedAt:          oldTx.CreatedAt,
+	}
+
+	if err := s.repo.UpdateTransaction(ctx, txObjID, updatedTx); err != nil {
+		// FATAL: Balance already updated but DB update failed.
+		// In a real system we'd use a transaction if MongoDB supported it across collections easily here.
+		return nil, err
+	}
+
+	// 7. Trigger daily summary recalculation for both old and new dates
+	go s.dashboardService.GenerateDailySummary(context.Background(), userObjID, oldTx.Date)
+	if oldTx.Date.Format("2006-01-02") != newDate.Format("2006-01-02") {
+		go s.dashboardService.GenerateDailySummary(context.Background(), userObjID, newDate)
+	}
+
+	return updatedTx, nil
 }
 
 func stringPtr(s string) *string {
