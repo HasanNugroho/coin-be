@@ -120,24 +120,6 @@ func (h *Handler) handleCancel(c tele.Context) error {
 	return h.handleMenu(c)
 }
 
-func (h *Handler) handleText(c tele.Context) error {
-	sess := h.sessions.GetOrCreate(c.Sender().ID)
-	ctx := context.Background()
-
-	switch sess.State {
-	case "awaiting_email":
-		return h.handleEmailInput(ctx, c, sess)
-	case "awaiting_otp":
-		return h.handleOTPInput(ctx, c, sess)
-	case "awaiting_tx_amount":
-		return h.handleTXAmountInput(c, sess)
-	case "awaiting_tx_note":
-		return h.handleTXNoteInput(ctx, c, sess)
-	}
-
-	return h.handleMenu(c)
-}
-
 func (h *Handler) handleEmailInput(ctx context.Context, c tele.Context, sess *session.UserSession) error {
 	email := strings.TrimSpace(strings.ToLower(c.Text()))
 	user, err := h.svc.FindUserByEmail(ctx, email)
@@ -377,12 +359,16 @@ func (h *Handler) handleCallback(c tele.Context) error {
 		sess.State = "awaiting_tx_pocket"
 		sess.TempData["pocket_page"] = "0"
 		c.Respond()
-		h.deleteTrackedMessage(b, sess, "receipt_msg_id", "receipt_chat_id")
+		c.Delete() // hapus pesan "Hasil Scan Struk" yang memicu callback ini
+		delete(sess.TempData, "receipt_msg_id")
+		delete(sess.TempData, "receipt_chat_id")
 		return h.showPocketSelection(ctx, c, sess)
 
 	case "\freceipt_cancel":
 		c.Respond()
-		h.deleteTrackedMessage(b, sess, "receipt_msg_id", "receipt_chat_id")
+		c.Delete() // hapus pesan "Hasil Scan Struk" yang memicu callback ini
+		delete(sess.TempData, "receipt_msg_id")
+		delete(sess.TempData, "receipt_chat_id")
 		c.Send("❌ Scan dibatalkan.")
 		h.sessions.ClearState(sess.TelegramID)
 		return h.handleMenu(c)
