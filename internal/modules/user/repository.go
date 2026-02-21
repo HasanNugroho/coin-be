@@ -176,3 +176,33 @@ func (r *Repository) CountUsersByRole(ctx context.Context, role string) (int64, 
 	count, err := r.users.CountDocuments(ctx, bson.M{"role": role})
 	return count, err
 }
+
+func (r *Repository) FindByTelegramID(ctx context.Context, telegramID string) (*User, error) {
+	var profile UserProfile
+	err := r.userProfiles.FindOne(ctx, bson.M{"telegram_id": telegramID}).Decode(&profile)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return r.GetUserByID(ctx, profile.UserID)
+}
+
+func (r *Repository) SetTelegramID(ctx context.Context, email string, telegramID string) error {
+	user, err := r.GetUserByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.userProfiles.UpdateOne(
+		ctx,
+		bson.M{"user_id": user.ID},
+		bson.M{"$set": bson.M{
+			"telegram_id":       telegramID,
+			"telegram_verified": true,
+			"updated_at":        time.Now(),
+		}},
+	)
+	return err
+}

@@ -12,6 +12,11 @@ help:
 	@echo "  make swagger          - Generate and open Swagger docs"
 	@echo "  make seed             - Seed database with default data"
 	@echo ""
+	@echo "Bot:"
+	@echo "  make build-bot        - Build the Telegram bot"
+	@echo "  make run-bot          - Run the Telegram bot"
+	@echo "  make bot              - Build and run the Telegram bot"
+	@echo ""
 	@echo "Docker:"
 	@echo "  make docker-build     - Build Docker image"
 	@echo "  make docker-up        - Start Docker containers"
@@ -40,6 +45,17 @@ build:
 run: build
 	@echo "Running application..."
 	./bin/main
+
+build-bot:
+	@echo "Building Telegram bot..."
+	go build -o bin/bot ./cmd/bot
+	@echo "Build complete: bin/bot"
+
+run-bot: build-bot
+	@echo "Running Telegram bot..."
+	./bin/bot
+
+bot: run-bot
 
 dev:
 	@echo "Starting development server with hot reload..."
