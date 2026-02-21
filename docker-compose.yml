@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  services:
   redis:
     image: redis:7-alpine
     container_name: coin-redis
@@ -15,11 +16,6 @@ services:
       - redis_data:/data
     networks:
       - coin-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   app:
     image: devnug/coin-be:latest
@@ -29,11 +25,9 @@ services:
       - "${APP_PORT:-8080}:8080"
     env_file:
       - .env
-    environment:
-      - TZ=Asia/Jakarta
+    command: ["./main"]
     depends_on:
-      redis:
-        condition: service_healthy
+      - redis
     networks:
       - coin-network
     healthcheck:
@@ -42,6 +36,18 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
+  bot:
+    image: devnug/coin-be:latest
+    container_name: coin-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: ["./bot"]
+    depends_on:
+      - redis
+    networks:
+      - coin-network
 
 volumes:
   redis_data:

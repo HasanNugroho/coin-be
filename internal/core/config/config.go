@@ -21,6 +21,11 @@ type Config struct {
 	JWTSecret          string
 	JWTDuration        time.Duration
 	JWTRefreshDuration time.Duration
+
+	TelegramToken string
+	OpenAIKey     string
+	AIHost        string
+	AIModel       string
 }
 
 func Load() *Config {
@@ -49,5 +54,10 @@ func Load() *Config {
 		JWTSecret:          os.Getenv("JWT_SECRET"),
 		JWTDuration:        jwtDuration,
 		JWTRefreshDuration: jwtRefreshDuration,
+
+		TelegramToken: os.Getenv("TELEGRAM_TOKEN"),
+		OpenAIKey:     os.Getenv("OPENAI_API_KEY"),
+		AIHost:        os.Getenv("AI_HOST"),
+		AIModel:       os.Getenv("AI_MODEL"),
 	}
 }

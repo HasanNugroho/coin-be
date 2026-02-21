@@ -108,11 +108,6 @@ func (s *Service) CreateTransaction(ctx context.Context, userID string, req *dto
 		return nil, err
 	}
 
-	// Validate sufficient balance in source pockets and platforms
-	if err := s.validateSufficientBalance(ctx, req.Type, pocketFrom, userPlatformFrom, req.Amount); err != nil {
-		return nil, err
-	}
-
 	transaction := &Transaction{
 		UserID:             userObjID,
 		Type:               req.Type,
@@ -269,34 +264,6 @@ func (s *Service) validateUserPlatform(ctx context.Context, userID primitive.Obj
 		}
 		if !userPlatform.IsActive {
 			return errors.New("user_platform_to is not active")
-		}
-	}
-
-	return nil
-}
-
-func (s *Service) validateSufficientBalance(ctx context.Context, txType string, pocketFrom, userPlatformFrom *primitive.ObjectID, amount float64) error {
-	// Check pocket balance if provided
-	if pocketFrom != nil {
-		pocket, err := s.pocketRepo.GetPocketByID(ctx, *pocketFrom)
-		if err != nil {
-			return err
-		}
-
-		if utils.Decimal128ToFloat64(pocket.Balance) < amount {
-			return errors.New("insufficient pocket balance")
-		}
-	}
-
-	// Check user platform balance if provided
-	if userPlatformFrom != nil {
-		userPlatform, err := s.userPlatformRepo.GetUserPlatformByID(ctx, *userPlatformFrom)
-		if err != nil {
-			return err
-		}
-
-		if utils.Decimal128ToFloat64(userPlatform.Balance) < amount {
-			return errors.New("insufficient user platform balance")
 		}
 	}
 

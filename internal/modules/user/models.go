@@ -24,6 +24,7 @@ type UserProfile struct {
 	UserID                primitive.ObjectID  `bson:"user_id" json:"user_id"`
 	Phone                 string              `bson:"phone" json:"phone"`
 	TelegramId            string              `bson:"telegram_id" json:"telegram_id"`
+	TelegramVerified      bool                `bson:"telegram_verified" json:"telegram_verified"`
 	BaseSalary            float64             `bson:"base_salary" json:"base_salary"`
 	SalaryCycle           string              `bson:"salary_cycle" json:"salary_cycle" enums:"daily,weekly,monthly" default:"monthly"`
 	SalaryDay             int                 `bson:"salary_day" json:"salary_day"`
