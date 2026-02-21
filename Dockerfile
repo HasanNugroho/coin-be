@@ -6,6 +6,7 @@ WORKDIR /app
 RUN apk add --no-cache \
     git \
     gcc \
+    g++ \
     musl-dev \
     tesseract-ocr-dev \
     leptonica-dev \
