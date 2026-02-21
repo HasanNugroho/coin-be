@@ -68,8 +68,8 @@ func (s *TelegramService) SendOTP(ctx context.Context, email string, telegramID 
 		ExpiresAt:  time.Now().Add(5 * time.Minute),
 	})
 
-	subject := "Coin Bot - Your Verification Code"
-	body := fmt.Sprintf("Your OTP for Telegram registration is: %s\nThis code will expire in 5 minutes.", code)
+	subject := "Finlet - Kode Verifikasi Anda"
+	body := fmt.Sprintf("Kode OTP Anda untuk pendaftaran Telegram adalah: %s\nKode ini akan kedaluwarsa dalam 5 menit.", code)
 
 	return s.mailer.Send(ctx, email, subject, body)
 }
