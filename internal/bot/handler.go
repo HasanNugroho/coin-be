@@ -14,6 +14,21 @@ import (
 	tele "gopkg.in/telebot.v4"
 )
 
+// formatRupiah mengubah float64 ke format Rp. 2.000.000
+func formatRupiah(amount float64) string {
+	intAmount := int64(amount)
+	str := fmt.Sprintf("%d", intAmount)
+	n := len(str)
+	result := ""
+	for i, c := range str {
+		if i > 0 && (n-i)%3 == 0 {
+			result += "."
+		}
+		result += string(c)
+	}
+	return "Rp. " + result
+}
+
 type Handler struct {
 	svc      *TelegramService
 	sessions *session.Store
@@ -169,11 +184,11 @@ func (h *Handler) handleSummary(ctx context.Context, c tele.Context, sess *sessi
 	}
 
 	msg := fmt.Sprintf("📊 *Ringkasan Keuangan*\n\n"+
-		"💼 *Total Aset:* Rp %.0f\n"+
-		"📈 *Pemasukan:* Rp %.0f\n"+
-		"📉 *Pengeluaran:* Rp %.0f\n"+
-		"💰 *Selisih:* Rp %.0f",
-		summary.TotalNetWorth, summary.PeriodIncome, summary.PeriodExpense, summary.PeriodNet)
+		"💼 *Total Aset:* %s\n"+
+		"📈 *Pemasukan:* %s\n"+
+		"📉 *Pengeluaran:* %s\n"+
+		"💰 *Selisih:* %s",
+		formatRupiah(summary.TotalNetWorth), formatRupiah(summary.PeriodIncome), formatRupiah(summary.PeriodExpense), formatRupiah(summary.PeriodNet))
 
 	return c.Send(msg, tele.ModeMarkdown)
 }
@@ -240,7 +255,7 @@ func (h *Handler) showPocketSelection(ctx context.Context, c tele.Context, sess 
 
 	for _, p := range pockets[start:end] {
 		btn := selector.Data(
-			fmt.Sprintf("📂 %s (Rp %.0f)", p.Name, utils.Decimal128ToFloat64(p.Balance)),
+			fmt.Sprintf("📂 %s (%s)", p.Name, formatRupiah(utils.Decimal128ToFloat64(p.Balance))),
 			"pocket", p.ID.Hex(),
 		)
 		rows = append(rows, selector.Row(btn))
@@ -293,7 +308,7 @@ func (h *Handler) showPlatformSelection(ctx context.Context, c tele.Context, ses
 			name = *p.AliasName
 		}
 		btn := selector.Data(
-			fmt.Sprintf("💳 %s (Rp %.0f)", name, utils.Decimal128ToFloat64(p.Balance)),
+			fmt.Sprintf("💳 %s (%s)", name, formatRupiah(utils.Decimal128ToFloat64(p.Balance))),
 			"platform", p.ID.Hex(),
 		)
 		rows = append(rows, selector.Row(btn))
@@ -486,11 +501,11 @@ func (h *Handler) handlePhoto(c tele.Context) error {
 
 	msg := fmt.Sprintf("✅ *Hasil Scan Struk*\n\n"+
 		"📋 *Deskripsi:* %s\n"+
-		"💵 *Jumlah:* Rp %.0f\n"+
+		"💵 *Jumlah:* %s\n"+
 		"🏷️ *Tipe:* %s\n"+
 		"📅 *Tanggal:* %s\n\n"+
 		"Apakah ingin disimpan?",
-		parsed.Description, parsed.Amount, typeLabel, parsed.Date)
+		parsed.Description, formatRupiah(parsed.Amount), typeLabel, parsed.Date)
 
 	selector := &tele.ReplyMarkup{}
 	selector.Inline(
