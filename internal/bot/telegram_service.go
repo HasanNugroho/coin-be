@@ -9,6 +9,7 @@ import (
 
 	"github.com/HasanNugroho/coin-be/internal/bot/otp"
 	"github.com/HasanNugroho/coin-be/internal/bot/vision"
+	"github.com/HasanNugroho/coin-be/internal/core/config"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
 	"github.com/HasanNugroho/coin-be/internal/modules/dashboard"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
@@ -28,6 +29,7 @@ type TelegramService struct {
 	otpStore       *otp.Store
 	mailer         utils.Mailer
 	visionParser   *vision.ReceiptParser
+	config         *config.Config
 }
 
 func NewTelegramService(
@@ -39,6 +41,7 @@ func NewTelegramService(
 	otpStore *otp.Store,
 	mailer utils.Mailer,
 	visionParser *vision.ReceiptParser,
+	config *config.Config,
 ) *TelegramService {
 	return &TelegramService{
 		userRepo:       userRepo,
@@ -49,6 +52,7 @@ func NewTelegramService(
 		otpStore:       otpStore,
 		mailer:         mailer,
 		visionParser:   visionParser,
+		config:         config,
 	}
 }
 

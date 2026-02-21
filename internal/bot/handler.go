@@ -41,8 +41,8 @@ func (h *Handler) Register(b *tele.Bot) {
 	// Photos
 	b.Handle(tele.OnPhoto, h.handlePhoto)
 
-	// Text (Generic State Handling)
-	b.Handle(tele.OnText, h.handleText)
+	// Text (NLP-based, bukan state machine kaku)
+	b.Handle(tele.OnText, h.handleTextNLP)
 
 	// Callbacks
 	b.Handle(tele.OnCallback, h.handleCallback)
@@ -73,7 +73,7 @@ func (h *Handler) handleMenu(c tele.Context) error {
 		ResizeKeyboard:  true,
 		OneTimeKeyboard: true,
 	}
-	return c.Send("Mau ngapain?", keyboard)
+	return c.Send("Ada yang bisa dibantu?", keyboard)
 }
 
 func (h *Handler) handleCancel(c tele.Context) error {
@@ -396,8 +396,9 @@ func (h *Handler) submitTransaction(ctx context.Context, c tele.Context, sess *s
 	}
 
 	h.sessions.ClearState(sess.TelegramID)
-	return h.handleMenu(c)
+	return nil
 }
+
 func (h *Handler) handlePhoto(c tele.Context) error {
 	ctx := context.Background()
 	sess := h.sessions.GetOrCreate(c.Sender().ID)

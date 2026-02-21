@@ -57,6 +57,7 @@ func main() {
 		otpStore,
 		mailer,
 		visionParser,
+		cfg,
 	)
 
 	pref := tele.Settings{
