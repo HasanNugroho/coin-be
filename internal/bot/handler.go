@@ -2,7 +2,6 @@ package bot
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -451,8 +450,6 @@ func (h *Handler) handleTXNoteInput(ctx context.Context, c tele.Context, sess *s
 		names, err := h.svc.IdentifyCategoriesFromAI(ctx, note)
 		if err == nil && len(names) > 0 {
 			categories, err := h.svc.GetCategoriesBySimilarity(ctx, sess.UserID, names, sess.TempData["tx_type"])
-			b, _ := json.Marshal(categories)
-			fmt.Println("categories", string(b))
 			if err == nil && len(categories) > 0 {
 				return h.showCategorySelection(ctx, c, sess, categories)
 			}
