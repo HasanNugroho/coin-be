@@ -95,13 +95,22 @@ func (s *Service) GetUserCategoryByID(ctx context.Context, id string, userID str
 	return s.repo.FindByID(ctx, objID, userObjID)
 }
 
-func (s *Service) GetUserCategories(ctx context.Context, userID string) ([]*UserCategory, error) {
+func (s *Service) GetUserCategories(
+	ctx context.Context,
+	userID string,
+	txType *string,
+	search *string,
+	page int64,
+	pageSize int64,
+	sortBy string,
+	sortOrder string,
+) ([]*UserCategory, int64, error) {
 	userObjID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, errors.New("invalid user id")
+		return nil, 0, errors.New("invalid user id")
 	}
 
-	return s.repo.FindAllByUserID(ctx, userObjID)
+	return s.repo.FindAllWithFilters(ctx, userObjID, txType, search, page, pageSize, sortBy, sortOrder)
 }
 
 func (s *Service) FindAllParent(ctx context.Context, userID string, transactionType *string) ([]*UserCategory, error) {

@@ -163,6 +163,35 @@ definitions:
     - date
     - type
     type: object
+  dto.CreateUserCategoryRequest:
+    properties:
+      color:
+        maxLength: 50
+        type: string
+      description:
+        maxLength: 500
+        type: string
+      icon:
+        maxLength: 100
+        type: string
+      is_default:
+        type: boolean
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      parent_id:
+        type: string
+      template_id:
+        type: string
+      transaction_type:
+        enum:
+        - income
+        - expense
+        type: string
+    required:
+    - name
+    type: object
   dto.CreateUserPlatformRequest:
     properties:
       alias_name:
@@ -347,6 +376,33 @@ definitions:
     - amount
     - date
     - type
+    type: object
+  dto.UpdateUserCategoryRequest:
+    properties:
+      color:
+        maxLength: 50
+        type: string
+      description:
+        maxLength: 500
+        type: string
+      icon:
+        maxLength: 100
+        type: string
+      is_default:
+        type: boolean
+      name:
+        maxLength: 255
+        minLength: 1
+        type: string
+      parent_id:
+        type: string
+      template_id:
+        type: string
+      transaction_type:
+        enum:
+        - income
+        - expense
+        type: string
     type: object
   dto.UpdateUserPlatformRequest:
     properties:
@@ -2002,6 +2058,262 @@ paths:
       summary: List pocket transactions
       tags:
       - Transactions
+  /v1/user-categories:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of user categories with pagination, search, and filters
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      - description: Filter by transaction type (income/expense)
+        in: query
+        name: type
+        type: string
+      - description: Sort by field (name, created_at, updated_at)
+        in: query
+        name: sort_by
+        type: string
+      - description: Sort order (asc/desc)
+        in: query
+        name: sort_order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User categories retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user categories
+      tags:
+      - User Categories
+    post:
+      consumes:
+      - application/json
+      description: Create a new category for the authenticated user
+      parameters:
+      - description: Create User Category Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUserCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User category created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new user category
+      tags:
+      - User Categories
+  /v1/user-categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user category by ID (soft delete)
+      parameters:
+      - description: User Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User category deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User category not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a user category
+      tags:
+      - User Categories
+    get:
+      consumes:
+      - application/json
+      description: Get a specific user category by its ID
+      parameters:
+      - description: User Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User category retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User category not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user category by ID
+      tags:
+      - User Categories
+    put:
+      consumes:
+      - application/json
+      description: Update an existing user category by ID
+      parameters:
+      - description: User Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update User Category Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User category updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a user category
+      tags:
+      - User Categories
+  /v1/user-categories/dropdown:
+    get:
+      consumes:
+      - application/json
+      description: Get a simplified list of all user categories, typically for use
+        in dropdown selectors
+      parameters:
+      - description: Filter by transaction type (income/expense)
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User categories retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User category not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all user categories for dropdown
+      tags:
+      - User Categories
+  /v1/user-categories/parents:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all parent user categories (categories without a
+        parent_id)
+      parameters:
+      - description: Filter by transaction type (income/expense)
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User categories retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User category not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all parent user categories
+      tags:
+      - User Categories
   /v1/user-platforms:
     get:
       description: Get all user platforms for the authenticated user with filtering

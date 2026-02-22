@@ -56,6 +56,73 @@ func (r *Repository) FindAllByUserID(ctx context.Context, userID primitive.Objec
 	return categories, nil
 }
 
+func (r *Repository) FindAllWithFilters(
+	ctx context.Context,
+	userID primitive.ObjectID,
+	txType *string,
+	search *string,
+	page int64,
+	pageSize int64,
+	sortBy string,
+	sortOrder string,
+) ([]*UserCategory, int64, error) {
+	match := bson.M{
+		"user_id":    userID,
+		"is_deleted": false,
+	}
+
+	if txType != nil && *txType != "" {
+		match["transaction_type"] = *txType
+	}
+
+	if search != nil && *search != "" {
+		match["name"] = bson.M{"$regex": *search, "$options": "i"}
+	}
+
+	total, err := r.categories.CountDocuments(ctx, match)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	skip := (page - 1) * pageSize
+	if skip < 0 {
+		skip = 0
+	}
+
+	sortValue := -1
+	if sortOrder == "asc" {
+		sortValue = 1
+	}
+
+	allowedSort := map[string]bool{
+		"name":       true,
+		"created_at": true,
+		"updated_at": true,
+	}
+
+	if !allowedSort[sortBy] {
+		sortBy = "created_at"
+	}
+
+	opts := options.Find().
+		SetLimit(pageSize).
+		SetSkip(skip).
+		SetSort(bson.M{sortBy: sortValue})
+
+	cursor, err := r.categories.Find(ctx, match, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var categories []*UserCategory
+	if err = cursor.All(ctx, &categories); err != nil {
+		return nil, 0, err
+	}
+
+	return categories, total, nil
+}
+
 func (r *Repository) FindAllParent(ctx context.Context, userID primitive.ObjectID, transactionType *string) ([]*UserCategory, error) {
 	filter := bson.M{
 		"user_id":    userID,

@@ -16,6 +16,18 @@ func NewController(s *Service) *Controller {
 	return &Controller{service: s}
 }
 
+// CreateUserCategory godoc
+// @Summary Create a new user category
+// @Description Create a new category for the authenticated user
+// @Tags User Categories
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateUserCategoryRequest true "Create User Category Request"
+// @Success 201 {object} map[string]interface{} "User category created successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Security BearerAuth
+// @Router /v1/user-categories [post]
 func (c *Controller) CreateUserCategory(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
@@ -50,6 +62,22 @@ func (c *Controller) CreateUserCategory(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, resp)
 }
 
+// GetUserCategories godoc
+// @Summary Get user categories
+// @Description Get a list of user categories with pagination, search, and filters
+// @Tags User Categories
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number"
+// @Param page_size query int false "Page size"
+// @Param search query string false "Search by name"
+// @Param type query string false "Filter by transaction type (income/expense)"
+// @Param sort_by query string false "Sort by field (name, created_at, updated_at)"
+// @Param sort_order query string false "Sort order (asc/desc)"
+// @Success 200 {object} map[string]interface{} "User categories retrieved successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Security BearerAuth
+// @Router /v1/user-categories [get]
 func (c *Controller) GetUserCategories(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
@@ -58,8 +86,38 @@ func (c *Controller) GetUserCategories(ctx *gin.Context) {
 		return
 	}
 
+	// Get query parameters
+	transactionType := ctx.Query("type")
+	search := ctx.Query("search")
+
+	// Parse pagination parameters
+	pagination := utils.ParsePaginationParams(ctx, 10)
+
+	// Parse sorting parameters
+	allowedSortFields := []string{"name", "created_at", "updated_at"}
+	sorting := utils.ParseSortParams(ctx, allowedSortFields, "created_at")
+
+	// Prepare filter
+	var typeFilter *string
+	if transactionType != "" {
+		typeFilter = &transactionType
+	}
+	var searchFilter *string
+	if search != "" {
+		searchFilter = &search
+	}
+
 	userIDStr := userID.(string)
-	categories, err := c.service.GetUserCategories(ctx, userIDStr)
+	categories, total, err := c.service.GetUserCategories(
+		ctx,
+		userIDStr,
+		typeFilter,
+		searchFilter,
+		pagination.Page,
+		pagination.PageSize,
+		sorting.SortBy,
+		sorting.SortOrder,
+	)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)
@@ -71,10 +129,27 @@ func (c *Controller) GetUserCategories(ctx *gin.Context) {
 		categoryResps[i] = c.mapToResponse(category)
 	}
 
-	resp := utils.NewSuccessResponse("User categories retrieved successfully", categoryResps)
+	// Calculate pagination metadata
+	meta := utils.CalculatePaginationMeta(total, pagination.Page, pagination.PageSize)
+
+	// Build paginated response
+	respData := utils.BuildPaginatedResponse(categoryResps, meta)
+	resp := utils.NewSuccessResponse("User categories retrieved successfully", respData)
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// GetUserCategoryByID godoc
+// @Summary Get user category by ID
+// @Description Get a specific user category by its ID
+// @Tags User Categories
+// @Accept json
+// @Produce json
+// @Param id path string true "User Category ID"
+// @Success 200 {object} map[string]interface{} "User category retrieved successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "User category not found"
+// @Security BearerAuth
+// @Router /v1/user-categories/{id} [get]
 func (c *Controller) GetUserCategoryByID(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
@@ -98,6 +173,18 @@ func (c *Controller) GetUserCategoryByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// FindAllParent godoc
+// @Summary Get all parent user categories
+// @Description Get a list of all parent user categories (categories without a parent_id)
+// @Tags User Categories
+// @Accept json
+// @Produce json
+// @Param type query string false "Filter by transaction type (income/expense)"
+// @Success 200 {object} map[string]interface{} "User categories retrieved successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "User category not found"
+// @Security BearerAuth
+// @Router /v1/user-categories/parents [get]
 func (c *Controller) FindAllParent(ctx *gin.Context) {
 	transactionType := ctx.Query("type")
 	userID, exists := ctx.Get("user_id")
@@ -130,6 +217,18 @@ func (c *Controller) FindAllParent(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// FindAllDropdown godoc
+// @Summary Get all user categories for dropdown
+// @Description Get a simplified list of all user categories, typically for use in dropdown selectors
+// @Tags User Categories
+// @Accept json
+// @Produce json
+// @Param type query string false "Filter by transaction type (income/expense)"
+// @Success 200 {object} map[string]interface{} "User categories retrieved successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "User category not found"
+// @Security BearerAuth
+// @Router /v1/user-categories/dropdown [get]
 func (c *Controller) FindAllDropdown(ctx *gin.Context) {
 	transactionType := ctx.Query("type")
 	userID, exists := ctx.Get("user_id")
@@ -162,6 +261,19 @@ func (c *Controller) FindAllDropdown(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// UpdateUserCategory godoc
+// @Summary Update a user category
+// @Description Update an existing user category by ID
+// @Tags User Categories
+// @Accept json
+// @Produce json
+// @Param id path string true "User Category ID"
+// @Param request body dto.UpdateUserCategoryRequest true "Update User Category Request"
+// @Success 200 {object} map[string]interface{} "User category updated successfully"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Security BearerAuth
+// @Router /v1/user-categories/{id} [put]
 func (c *Controller) UpdateUserCategory(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
@@ -198,6 +310,18 @@ func (c *Controller) UpdateUserCategory(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// DeleteUserCategory godoc
+// @Summary Delete a user category
+// @Description Delete a user category by ID (soft delete)
+// @Tags User Categories
+// @Accept json
+// @Produce json
+// @Param id path string true "User Category ID"
+// @Success 200 {object} map[string]interface{} "User category deleted successfully"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 404 {object} map[string]interface{} "User category not found"
+// @Security BearerAuth
+// @Router /v1/user-categories/{id} [delete]
 func (c *Controller) DeleteUserCategory(ctx *gin.Context) {
 	userID, exists := ctx.Get("user_id")
 	if !exists {
