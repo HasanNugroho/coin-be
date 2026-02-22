@@ -2319,6 +2319,72 @@ const docTemplate = `{
                     }
                 }
             },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update an existing transaction with balance adjustment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Update transaction",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateTransactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction updated successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
@@ -3535,6 +3601,53 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateTransactionRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "date",
+                "type"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "category_id": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "pocket_from_id": {
+                    "type": "string"
+                },
+                "pocket_to_id": {
+                    "type": "string"
+                },
+                "ref": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "income",
+                        "expense",
+                        "transfer"
+                    ]
+                },
+                "user_platform_from_id": {
+                    "type": "string"
+                },
+                "user_platform_to_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.UpdateUserPlatformRequest": {
             "type": "object",
             "properties": {
@@ -3612,7 +3725,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "api.finlet.click",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "Coin Backend API",

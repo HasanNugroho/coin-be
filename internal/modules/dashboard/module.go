@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/HasanNugroho/coin-be/internal/core/config"
+	"github.com/HasanNugroho/coin-be/internal/modules/daily_summary"
 	"github.com/sarulabs/di/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -28,7 +29,8 @@ func Register(builder *di.Builder) {
 		Name: "dashboardService",
 		Build: func(ctn di.Container) (interface{}, error) {
 			repo := ctn.Get("dashboardRepository").(*Repository)
-			return NewService(repo), nil
+			dsr := ctn.Get("dailySummaryRepository").(*daily_summary.Repository)
+			return NewService(repo, dsr), nil
 		},
 	})
 
@@ -36,7 +38,8 @@ func Register(builder *di.Builder) {
 		Name: "dashboardController",
 		Build: func(ctn di.Container) (interface{}, error) {
 			service := ctn.Get("dashboardService").(*Service)
-			return NewController(service), nil
+			dss := ctn.Get("dailySummaryService").(*daily_summary.Service)
+			return NewController(service, dss), nil
 		},
 	})
 }

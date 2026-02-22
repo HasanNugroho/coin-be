@@ -315,6 +315,39 @@ definitions:
         - allocation
         type: string
     type: object
+  dto.UpdateTransactionRequest:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: string
+      date:
+        type: string
+      note:
+        maxLength: 500
+        type: string
+      pocket_from_id:
+        type: string
+      pocket_to_id:
+        type: string
+      ref:
+        maxLength: 100
+        type: string
+      type:
+        enum:
+        - income
+        - expense
+        - transfer
+        type: string
+      user_platform_from_id:
+        type: string
+      user_platform_to_id:
+        type: string
+    required:
+    - amount
+    - date
+    - type
+    type: object
   dto.UpdateUserPlatformRequest:
     properties:
       alias_name:
@@ -360,7 +393,7 @@ definitions:
         maxLength: 100
         type: string
     type: object
-host: localhost:8080
+host: api.finlet.click
 info:
   contact:
     email: support@swagger.io
@@ -1881,6 +1914,50 @@ paths:
       security:
       - BearerAuth: []
       summary: Get transaction by ID
+      tags:
+      - Transactions
+    put:
+      consumes:
+      - application/json
+      description: Update an existing transaction with balance adjustment
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Transaction not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update transaction
       tags:
       - Transactions
   /v1/transactions/pocket/{pocket_id}:

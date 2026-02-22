@@ -11,6 +11,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/bot/vision"
 	"github.com/HasanNugroho/coin-be/internal/core/config"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
+	"github.com/HasanNugroho/coin-be/internal/modules/daily_summary"
 	"github.com/HasanNugroho/coin-be/internal/modules/dashboard"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction"
@@ -22,16 +23,17 @@ import (
 )
 
 type TelegramService struct {
-	userRepo       *user.Repository
-	transactionSvc *transaction.Service
-	pocketRepo     *pocket.Repository
-	platformRepo   *user_platform.UserPlatformRepository
-	dashboardSvc   *dashboard.Service
-	otpStore       *otp.Store
-	mailer         utils.Mailer
-	visionParser   *vision.ReceiptParser
-	categoryRepo   *user_category.Repository
-	config         *config.Config
+	userRepo        *user.Repository
+	transactionSvc  *transaction.Service
+	pocketRepo      *pocket.Repository
+	platformRepo    *user_platform.UserPlatformRepository
+	dailySummarySvc *daily_summary.Service
+	dashboardSvc    *dashboard.Service
+	otpStore        *otp.Store
+	mailer          utils.Mailer
+	visionParser    *vision.ReceiptParser
+	categoryRepo    *user_category.Repository
+	config          *config.Config
 }
 
 func NewTelegramService(
@@ -39,6 +41,7 @@ func NewTelegramService(
 	transactionSvc *transaction.Service,
 	pocketRepo *pocket.Repository,
 	platformRepo *user_platform.UserPlatformRepository,
+	dailySummarySvc *daily_summary.Service,
 	dashboardSvc *dashboard.Service,
 	otpStore *otp.Store,
 	mailer utils.Mailer,
@@ -47,16 +50,17 @@ func NewTelegramService(
 	config *config.Config,
 ) *TelegramService {
 	return &TelegramService{
-		userRepo:       userRepo,
-		transactionSvc: transactionSvc,
-		pocketRepo:     pocketRepo,
-		platformRepo:   platformRepo,
-		dashboardSvc:   dashboardSvc,
-		otpStore:       otpStore,
-		mailer:         mailer,
-		visionParser:   visionParser,
-		categoryRepo:   categoryRepo,
-		config:         config,
+		userRepo:        userRepo,
+		transactionSvc:  transactionSvc,
+		pocketRepo:      pocketRepo,
+		platformRepo:    platformRepo,
+		dailySummarySvc: dailySummarySvc,
+		dashboardSvc:    dashboardSvc,
+		otpStore:        otpStore,
+		mailer:          mailer,
+		visionParser:    visionParser,
+		categoryRepo:    categoryRepo,
+		config:          config,
 	}
 }
 

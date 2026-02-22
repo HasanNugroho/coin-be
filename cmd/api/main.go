@@ -18,6 +18,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/modules/allocation"
 	"github.com/HasanNugroho/coin-be/internal/modules/auth"
 	"github.com/HasanNugroho/coin-be/internal/modules/category_template"
+	"github.com/HasanNugroho/coin-be/internal/modules/daily_summary"
 	"github.com/HasanNugroho/coin-be/internal/modules/dashboard"
 	"github.com/HasanNugroho/coin-be/internal/modules/payroll"
 	"github.com/HasanNugroho/coin-be/internal/modules/platform"
@@ -41,7 +42,7 @@ import (
 // @license.name MIT
 // @license.url https://opensource.org/licenses/MIT
 
-// @host https://api.finlet.click
+// @host api.finlet.click
 // @BasePath /api
 
 // @securityDefinitions.apikey BearerAuth
@@ -75,6 +76,7 @@ func main() {
 	pocket.Register(builder)
 	allocation.Register(builder)
 	transaction.Register(builder)
+	daily_summary.Register(builder)
 	payroll.Register(builder)
 	dashboard.Register(builder)
 	admin_dashboard.Register(builder)
@@ -173,7 +175,8 @@ func main() {
 
 	// Start dashboard cron job for daily summaries
 	dashboardService := appContainer.Get("dashboardService").(*dashboard.Service)
-	dashboardCronJob := dashboard.NewCronJob(dashboardService)
+	dailySummaryService := appContainer.Get("dailySummaryService").(*daily_summary.Service)
+	dashboardCronJob := dashboard.NewCronJob(dashboardService, dailySummaryService)
 	dashboardCronJob.Start()
 	defer dashboardCronJob.Stop()
 

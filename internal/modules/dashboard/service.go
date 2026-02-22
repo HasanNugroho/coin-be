@@ -5,16 +5,19 @@ import (
 	"errors"
 	"time"
 
+	"github.com/HasanNugroho/coin-be/internal/modules/daily_summary"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Service struct {
-	repo *Repository
+	repo             *Repository
+	dailySummaryRepo *daily_summary.Repository
 }
 
-func NewService(r *Repository) *Service {
+func NewService(r *Repository, dsr *daily_summary.Repository) *Service {
 	return &Service{
-		repo: r,
+		repo:             r,
+		dailySummaryRepo: dsr,
 	}
 }
 
@@ -61,16 +64,23 @@ func (s *Service) GetDashboardSummary(ctx context.Context, userID string, timeRa
 		timeRange = TimeRange1Month
 	}
 
-	startOfPeriod, startOfToday := timeRange.ToDuration()
+	startDate, today := timeRange.ToDuration()
 
-	historicalIncome, historicalExpense, _, err := s.repo.GetHistoricalSummary(ctx, userObjID, startOfPeriod, startOfToday)
+	summaries, err := s.dailySummaryRepo.GetDailySummariesByDateRange(ctx, userObjID, startDate, today)
 	if err != nil {
 		return nil, err
 	}
 
-	liveIncome, liveExpense, _, err := s.repo.GetLiveDeltaSummary(ctx, userObjID, startOfToday)
+	liveIncome, liveExpense, _, err := s.repo.GetLiveDeltaSummary(ctx, userObjID, today)
 	if err != nil {
 		return nil, err
+	}
+
+	historicalIncome := 0.0
+	historicalExpense := 0.0
+	for _, s := range summaries {
+		historicalIncome += s.TotalIncome
+		historicalExpense += s.TotalExpense
 	}
 
 	periodIncome := historicalIncome + liveIncome
@@ -96,42 +106,83 @@ func (s *Service) GetDashboardCharts(ctx context.Context, userID string, timeRan
 		timeRange = TimeRange1Month
 	}
 
-	startOfPeriod, startOfToday := timeRange.ToDuration()
+	startDate, today := timeRange.ToDuration()
 
-	cashFlowTrend, err := s.repo.GetDailyCashFlowTrend(ctx, userObjID, startOfPeriod, startOfToday)
+	// 1. Fetch historical summaries and live delta
+	summaries, err := s.dailySummaryRepo.GetDailySummariesByDateRange(ctx, userObjID, startDate, today)
 	if err != nil {
 		return nil, err
 	}
 
-	historicalIncome, historicalExpense, historicalCategories, err := s.repo.GetHistoricalSummary(ctx, userObjID, startOfPeriod, startOfToday)
+	liveIncome, liveExpense, liveCategories, err := s.repo.GetLiveDeltaSummary(ctx, userObjID, today)
 	if err != nil {
 		return nil, err
 	}
 
-	liveIncome, liveExpense, liveCategories, err := s.repo.GetLiveDeltaSummary(ctx, userObjID, startOfToday)
-	if err != nil {
-		return nil, err
-	}
+	// 2. Map summaries and collect IDs for name population
+	summaryMap := make(map[string]*daily_summary.DailySummary)
+	historicalIncome := 0.0
+	historicalExpense := 0.0
+	categoryMap := make(map[string]*daily_summary.CategoryBreakdown)
 
-	totalIncome := historicalIncome + liveIncome
-	totalExpense := historicalExpense + liveExpense
+	catIDs := make(map[primitive.ObjectID]bool)
 
-	categoryMap := make(map[string]*CategoryBreakdown)
-	for _, cat := range historicalCategories {
-		key := cat.Type + "_"
-		if cat.CategoryID != nil {
-			key += cat.CategoryID.Hex()
-		} else {
-			key += "uncategorized"
+	for _, sm := range summaries {
+		dateStr := sm.Date.Format("2006-01-02")
+		summaryMap[dateStr] = sm
+		historicalIncome += sm.TotalIncome
+		historicalExpense += sm.TotalExpense
+
+		for _, cat := range sm.CategoryBreakdown {
+			if cat.CategoryID != nil {
+				catIDs[*cat.CategoryID] = true
+			}
+			key := cat.Type + "_"
+			if cat.CategoryID != nil {
+				key += cat.CategoryID.Hex()
+			} else {
+				key += "uncategorized"
+			}
+
+			if existing, ok := categoryMap[key]; ok {
+				existing.Amount += cat.Amount
+			} else {
+				categoryMap[key] = &daily_summary.CategoryBreakdown{
+					CategoryID: cat.CategoryID,
+					Type:       cat.Type,
+					Amount:     cat.Amount,
+				}
+			}
 		}
-		categoryMap[key] = &CategoryBreakdown{
-			CategoryID:   cat.CategoryID,
-			CategoryName: cat.CategoryName,
-			Type:         cat.Type,
-			Amount:       cat.Amount,
+	}
+
+	// 3. Populate Category Names in bulk
+	if len(catIDs) > 0 {
+		ids := make([]primitive.ObjectID, 0, len(catIDs))
+		for id := range catIDs {
+			ids = append(ids, id)
+		}
+		names, _ := s.repo.GetCategoryNames(ctx, ids) // We should implement this or use a simple map
+		for _, cat := range categoryMap {
+			if cat.CategoryID != nil {
+				if name, ok := names[*cat.CategoryID]; ok {
+					cat.CategoryName = name
+				} else {
+					cat.CategoryName = "Unknown"
+				}
+			} else {
+				cat.CategoryName = "Uncategorized"
+			}
+		}
+	} else {
+		for _, cat := range categoryMap {
+			if cat.CategoryID == nil {
+				cat.CategoryName = "Uncategorized"
+			}
 		}
 	}
 
+	// 4. Merge live categories into categoryMap
 	for _, cat := range liveCategories {
 		key := cat.Type + "_"
 		if cat.CategoryID != nil {
@@ -142,8 +193,12 @@ func (s *Service) GetDashboardCharts(ctx context.Context, userID string, timeRan
 
 		if existing, ok := categoryMap[key]; ok {
 			existing.Amount += cat.Amount
+			// Live category already has name from repo lookup
+			if existing.CategoryName == "" || existing.CategoryName == "Unknown" {
+				existing.CategoryName = cat.CategoryName
+			}
 		} else {
-			categoryMap[key] = &CategoryBreakdown{
+			categoryMap[key] = &daily_summary.CategoryBreakdown{
 				CategoryID:   cat.CategoryID,
 				CategoryName: cat.CategoryName,
 				Type:         cat.Type,
@@ -152,6 +207,27 @@ func (s *Service) GetDashboardCharts(ctx context.Context, userID string, timeRan
 		}
 	}
 
+	totalIncome := historicalIncome + liveIncome
+	totalExpense := historicalExpense + liveExpense
+
+	// 5. Build CashFlowTrend
+	cashFlowTrend := []ChartDataPoint{}
+	for d := startDate; !d.After(today); d = d.AddDate(0, 0, 1) {
+		dateStr := d.Format("2006-01-02")
+		point := ChartDataPoint{Date: dateStr}
+
+		if d.Equal(today) {
+			point.Income = liveIncome
+			point.Expense = liveExpense
+		} else if sm, ok := summaryMap[dateStr]; ok {
+			point.Income = sm.TotalIncome
+			point.Expense = sm.TotalExpense
+		}
+
+		cashFlowTrend = append(cashFlowTrend, point)
+	}
+
+	// 6. Build breakdowns
 	incomeBreakdown := []CategoryChartData{}
 	expenseBreakdown := []CategoryChartData{}
 
@@ -161,16 +237,22 @@ func (s *Service) GetDashboardCharts(ctx context.Context, userID string, timeRan
 			categoryID = cat.CategoryID.Hex()
 		}
 
-		if cat.Type == "income" && totalIncome > 0 {
-			percentage := (cat.Amount / totalIncome) * 100
+		if cat.Type == "income" {
+			percentage := 0.0
+			if totalIncome > 0 {
+				percentage = (cat.Amount / totalIncome) * 100
+			}
 			incomeBreakdown = append(incomeBreakdown, CategoryChartData{
 				CategoryID:   categoryID,
 				CategoryName: cat.CategoryName,
 				Amount:       cat.Amount,
 				Percentage:   percentage,
 			})
-		} else if cat.Type == "expense" && totalExpense > 0 {
-			percentage := (cat.Amount / totalExpense) * 100
+		} else if cat.Type == "expense" {
+			percentage := 0.0
+			if totalExpense > 0 {
+				percentage = (cat.Amount / totalExpense) * 100
+			}
 			expenseBreakdown = append(expenseBreakdown, CategoryChartData{
 				CategoryID:   categoryID,
 				CategoryName: cat.CategoryName,
@@ -180,65 +262,9 @@ func (s *Service) GetDashboardCharts(ctx context.Context, userID string, timeRan
 		}
 	}
 
-	todayStr := time.Now().UTC().Format("2006-01-02")
-	todayExists := false
-	for i, point := range cashFlowTrend {
-		if point.Date == todayStr {
-			cashFlowTrend[i].Income = liveIncome
-			cashFlowTrend[i].Expense = liveExpense
-			todayExists = true
-			break
-		}
-	}
-
-	if !todayExists {
-		cashFlowTrend = append(cashFlowTrend, ChartDataPoint{
-			Date:    todayStr,
-			Income:  liveIncome,
-			Expense: liveExpense,
-		})
-	}
-
 	return &DashboardCharts{
 		CashFlowTrend:    cashFlowTrend,
 		IncomeBreakdown:  incomeBreakdown,
 		ExpenseBreakdown: expenseBreakdown,
 	}, nil
-}
-func (s *Service) GenerateDailySummary(ctx context.Context, userID primitive.ObjectID, date time.Time) error {
-	return s.repo.GenerateDailySummaryForDate(ctx, userID, date)
-}
-
-func (s *Service) GenerateDailySummariesForAllUsers(ctx context.Context, date time.Time) error {
-	userIDs, err := s.repo.GetAllUsersWithTransactions(ctx, date)
-	if err != nil {
-		return err
-	}
-
-	for _, userID := range userIDs {
-		if err := s.repo.GenerateDailySummaryForDate(ctx, userID, date); err != nil {
-			continue
-		}
-	}
-
-	return nil
-}
-
-func (s *Service) SyncDailySummaries(ctx context.Context, startDate time.Time) error {
-	// 1. Delete first
-	if err := s.repo.DeleteDailySummariesByDateRange(ctx, startDate); err != nil {
-		return err
-	}
-
-	// 2. Generate for each day from startDate to yesterday
-	now := time.Now()
-	yesterday := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -1)
-
-	for d := startDate; !d.After(yesterday); d = d.AddDate(0, 0, 1) {
-		if err := s.GenerateDailySummariesForAllUsers(ctx, d); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

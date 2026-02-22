@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/HasanNugroho/coin-be/internal/core/config"
-	"github.com/HasanNugroho/coin-be/internal/modules/dashboard"
+	"github.com/HasanNugroho/coin-be/internal/modules/daily_summary"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/user_platform"
 	"github.com/sarulabs/di/v2"
@@ -33,8 +33,8 @@ func Register(builder *di.Builder) {
 			repo := ctn.Get("transactionRepository").(*Repository)
 			pocketRepo := ctn.Get("pocketRepository").(*pocket.Repository)
 			userPlatformRepo := ctn.Get("userPlatformRepository").(*user_platform.UserPlatformRepository)
-			dashboardService := ctn.Get("dashboardService").(*dashboard.Service)
-			return NewService(repo, pocketRepo, userPlatformRepo, dashboardService), nil
+			dss := ctn.Get("dailySummaryService").(*daily_summary.Service)
+			return NewService(repo, pocketRepo, userPlatformRepo, dss), nil
 		},
 	})
 

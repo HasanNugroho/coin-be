@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
-	"github.com/HasanNugroho/coin-be/internal/modules/dashboard"
+	"github.com/HasanNugroho/coin-be/internal/modules/daily_summary"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction/dto"
 	"github.com/HasanNugroho/coin-be/internal/modules/user_platform"
@@ -14,20 +14,20 @@ import (
 )
 
 type Service struct {
-	repo             *Repository
-	pocketRepo       *pocket.Repository
-	userPlatformRepo *user_platform.UserPlatformRepository
-	balanceProcessor *BalanceProcessor
-	dashboardService *dashboard.Service
+	repo                *Repository
+	pocketRepo          *pocket.Repository
+	userPlatformRepo    *user_platform.UserPlatformRepository
+	balanceProcessor    *BalanceProcessor
+	dailySummaryService *daily_summary.Service
 }
 
-func NewService(r *Repository, pr *pocket.Repository, upr *user_platform.UserPlatformRepository, ds *dashboard.Service) *Service {
+func NewService(r *Repository, pr *pocket.Repository, upr *user_platform.UserPlatformRepository, dss *daily_summary.Service) *Service {
 	return &Service{
-		repo:             r,
-		pocketRepo:       pr,
-		userPlatformRepo: upr,
-		balanceProcessor: NewBalanceProcessor(pr, upr),
-		dashboardService: ds,
+		repo:                r,
+		pocketRepo:          pr,
+		userPlatformRepo:    upr,
+		balanceProcessor:    NewBalanceProcessor(pr, upr),
+		dailySummaryService: dss,
 	}
 }
 
@@ -140,7 +140,7 @@ func (s *Service) CreateTransaction(ctx context.Context, userID string, req *dto
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	if date.Before(today) {
-		go s.dashboardService.GenerateDailySummary(context.Background(), userObjID, date)
+		go s.dailySummaryService.GenerateDailySummary(context.Background(), userObjID, date)
 	}
 
 	return transaction, nil
@@ -267,7 +267,7 @@ func (s *Service) DeleteTransaction(ctx context.Context, userID string, transact
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	if transaction.Date.Before(today) {
-		go s.dashboardService.GenerateDailySummary(context.Background(), transaction.UserID, transaction.Date)
+		go s.dailySummaryService.GenerateDailySummary(context.Background(), transaction.UserID, transaction.Date)
 	}
 
 	return nil
@@ -400,7 +400,7 @@ func (s *Service) UpdateTransaction(ctx context.Context, userID string, transact
 
 	// trigger untuk tanggal lama kalau itu di masa lalu
 	if oldDate.Before(today) {
-		go s.dashboardService.GenerateDailySummary(context.Background(), userObjID, oldDate)
+		go s.dailySummaryService.GenerateDailySummary(context.Background(), userObjID, oldDate)
 	}
 
 	// kalau tanggal berubah (beda hari)
@@ -410,7 +410,7 @@ func (s *Service) UpdateTransaction(ctx context.Context, userID string, transact
 
 		// trigger untuk tanggal baru kalau di masa lalu
 		if newDateLoc.Before(today) {
-			go s.dashboardService.GenerateDailySummary(context.Background(), userObjID, newDateLoc)
+			go s.dailySummaryService.GenerateDailySummary(context.Background(), userObjID, newDateLoc)
 		}
 	}
 

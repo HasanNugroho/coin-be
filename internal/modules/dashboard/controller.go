@@ -5,15 +5,20 @@ import (
 	"time"
 
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
+	"github.com/HasanNugroho/coin-be/internal/modules/daily_summary"
 	"github.com/gin-gonic/gin"
 )
 
 type Controller struct {
-	service *Service
+	service             *Service
+	dailySummaryService *daily_summary.Service
 }
 
-func NewController(s *Service) *Controller {
-	return &Controller{service: s}
+func NewController(s *Service, dss *daily_summary.Service) *Controller {
+	return &Controller{
+		service:             s,
+		dailySummaryService: dss,
+	}
 }
 
 // GetDashboardSummary godoc
@@ -119,7 +124,7 @@ func (c *Controller) SyncDailySummaries(ctx *gin.Context) {
 		return
 	}
 
-	err = c.service.SyncDailySummaries(ctx, startDate)
+	err = c.dailySummaryService.SyncDailySummaries(ctx, startDate)
 	if err != nil {
 		resp := utils.NewErrorResponse(http.StatusBadRequest, err.Error())
 		ctx.JSON(http.StatusBadRequest, resp)

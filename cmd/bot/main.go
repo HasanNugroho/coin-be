@@ -12,6 +12,7 @@ import (
 	"github.com/HasanNugroho/coin-be/internal/core/config"
 	"github.com/HasanNugroho/coin-be/internal/core/database"
 	"github.com/HasanNugroho/coin-be/internal/core/utils"
+	"github.com/HasanNugroho/coin-be/internal/modules/daily_summary"
 	"github.com/HasanNugroho/coin-be/internal/modules/dashboard"
 	"github.com/HasanNugroho/coin-be/internal/modules/pocket"
 	"github.com/HasanNugroho/coin-be/internal/modules/transaction"
@@ -41,8 +42,10 @@ func main() {
 	userCategoryRepo := user_category.NewRepository(db)
 
 	// Services
-	dashboardSvc := dashboard.NewService(dashboard.NewRepository(db))
-	transactionSvc := transaction.NewService(transactionRepo, pocketRepo, userPlatformRepo, dashboardSvc)
+	dailySummaryRepo := daily_summary.NewRepository(db)
+	dailySummarySvc := daily_summary.NewService(dailySummaryRepo)
+	dashboardSvc := dashboard.NewService(dashboard.NewRepository(db), dailySummaryRepo)
+	transactionSvc := transaction.NewService(transactionRepo, pocketRepo, userPlatformRepo, dailySummarySvc)
 
 	// Bot components
 	otpStore := otp.NewStore()
@@ -55,6 +58,7 @@ func main() {
 		transactionSvc,
 		pocketRepo,
 		userPlatformRepo,
+		dailySummarySvc,
 		dashboardSvc,
 		otpStore,
 		mailer,
